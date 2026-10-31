@@ -2,7 +2,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 // Prisma 7 delegates connections to pg, which does not interpret Prisma's URL options.
 // Keep existing deployment URLs and explicit connection limits working for every client.
-export const createDatabaseAdapter = (connectionString: string) => {
+// Route Supabase's session pooler (:5432, capped at pool_size) to transaction mode (:6543).
+const toTransactionPooler = (url: string) =>
+  url.replace('.pooler.supabase.com:5432', '.pooler.supabase.com:6543');
+
+export const createDatabaseAdapter = (rawConnectionString: string) => {
+  const connectionString = toTransactionPooler(rawConnectionString);
   // Next.js imports server modules while building without database credentials.
   // Like Prisma 6, defer connection-string validation until the first connection.
   const parameters = URL.parse(connectionString)?.searchParams ?? new URLSearchParams();
