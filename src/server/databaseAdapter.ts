@@ -25,7 +25,8 @@ export const createDatabaseAdapter = (rawConnectionString: string) => {
           ? { max: 1 }
           : {}),
       connectionTimeoutMillis: seconds('connect_timeout', 5),
-      idleTimeoutMillis: seconds('max_idle_connection_lifetime', 300),
+      // Release idle connections quickly on Vercel so suspended instances don't hold pooler slots.
+      idleTimeoutMillis: seconds('max_idle_connection_lifetime', process.env.VERCEL ? 5 : 300),
       maxLifetimeSeconds: Number(parameters.get('max_connection_lifetime') ?? 0),
       ...(parameters.has('socket_timeout')
         ? { statement_timeout: seconds('socket_timeout', 0) }

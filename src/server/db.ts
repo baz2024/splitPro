@@ -19,6 +19,5 @@ export const db =
     return prisma;
   })());
 
-if ('production' !== env.NODE_ENV) {
-  globalThis.prisma = db;
-}
+// Share one client per process (bundles for instrumentation and routes each import this module).
+globalThis.prisma = db;
