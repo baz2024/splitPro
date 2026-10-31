@@ -13,7 +13,12 @@ export const createDatabaseAdapter = (connectionString: string) => {
   return new PrismaPg(
     {
       connectionString,
-      ...(connectionLimit ? { max: Number(connectionLimit) } : {}),
+      // Default to one connection per Vercel instance; session-mode poolers cap clients at 15.
+      ...(connectionLimit
+        ? { max: Number(connectionLimit) }
+        : process.env.VERCEL
+          ? { max: 1 }
+          : {}),
       connectionTimeoutMillis: seconds('connect_timeout', 5),
       idleTimeoutMillis: seconds('max_idle_connection_lifetime', 300),
       maxLifetimeSeconds: Number(parameters.get('max_connection_lifetime') ?? 0),
