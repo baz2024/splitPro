@@ -1,4 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import { attachDatabasePool } from '@vercel/functions';
+import { Pool } from 'pg';
 
 // Prisma 7 delegates connections to pg, which does not interpret Prisma's URL options.
 // Keep existing deployment URLs and explicit connection limits working for every client.
@@ -14,24 +16,25 @@ export const createDatabaseAdapter = (rawConnectionString: string) => {
   const seconds = (name: string, fallback: number) =>
     Number(parameters.get(name) ?? fallback) * 1_000;
   const connectionLimit = parameters.get('connection_limit');
+  const onVercel = Boolean(process.env.VERCEL);
 
-  return new PrismaPg(
-    {
-      connectionString,
-      // Default to one connection per Vercel instance; session-mode poolers cap clients at 15.
-      ...(connectionLimit
-        ? { max: Number(connectionLimit) }
-        : process.env.VERCEL
-          ? { max: 1 }
-          : {}),
-      connectionTimeoutMillis: seconds('connect_timeout', 5),
-      // Release idle connections quickly on Vercel so suspended instances don't hold pooler slots.
-      idleTimeoutMillis: seconds('max_idle_connection_lifetime', process.env.VERCEL ? 5 : 300),
-      maxLifetimeSeconds: Number(parameters.get('max_connection_lifetime') ?? 0),
-      ...(parameters.has('socket_timeout')
-        ? { statement_timeout: seconds('socket_timeout', 0) }
-        : {}),
-    },
-    { schema: parameters.get('schema') ?? 'public' },
-  );
+  const pool = new Pool({
+    connectionString,
+    // Default to one connection per Vercel instance; serverless poolers have small client caps.
+    ...(connectionLimit ? { max: Number(connectionLimit) } : onVercel ? { max: 1 } : {}),
+    connectionTimeoutMillis: seconds('connect_timeout', 5),
+    // Release idle connections quickly on Vercel so suspended instances don't hold pooler slots.
+    idleTimeoutMillis: seconds('max_idle_connection_lifetime', onVercel ? 5 : 300),
+    maxLifetimeSeconds: Number(parameters.get('max_connection_lifetime') ?? 0),
+    ...(parameters.has('socket_timeout')
+      ? { statement_timeout: seconds('socket_timeout', 0) }
+      : {}),
+  });
+
+  if (onVercel) {
+    // Close idle clients before Vercel suspends the instance, so connections never leak.
+    attachDatabasePool(pool);
+  }
+
+  return new PrismaPg(pool, { schema: parameters.get('schema') ?? 'public' });
 };
