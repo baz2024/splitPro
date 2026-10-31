@@ -541,5 +541,18 @@
     "enable_description": "Don't miss important events. Subscribe to receive notifications when expenses are added or updated.",
     "permission_granted": "You will receive notifications now",
     "subscribe": "Subscribe"
+  },
+  "empty_states": {
+    "balances": {
+      "title": "You're all square",
+      "description": "Add an expense with a friend or group and you'll see who owes whom here."
+    },
+    "groups": {
+      "title": "No groups yet",
+      "description": "Create a group for a trip, a home or a team to track shared costs together."
+    },
+    "activity": {
+      "description": "Expenses, payments and changes from your friends and groups will show up here."
+    }
   }
 }

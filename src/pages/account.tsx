@@ -1,14 +1,4 @@
-import { SiGithub } from '@icons-pack/react-simple-icons';
-import {
-  BadgeInfo,
-  CreditCard,
-  Download,
-  DownloadCloud,
-  FileDown,
-  HeartHandshakeIcon,
-  Languages,
-  Star,
-} from 'lucide-react';
+import { BadgeInfo, CreditCard, Download, DownloadCloud, FileDown, Languages } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { signOut } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
@@ -139,24 +129,9 @@ const AccountPage: NextPageWithUser<{
             </AccountButton>
           </BankConnection>
 
-          <AccountButton href="https://github.com/oss-apps/split-pro">
-            <SiGithub className="size-5" />
-            {t('account.star_on_github')}
-          </AccountButton>
-
-          <AccountButton href="https://github.com/sponsors/krokosik">
-            <HeartHandshakeIcon className="size-5 text-pink-600" />
-            {t('account.support_us')}
-          </AccountButton>
-
           {feedBackPossible && <SubmitFeedback />}
 
           <SubscribeNotification />
-
-          <AccountButton href="https://www.producthunt.com/products/splitpro/reviews/new">
-            <Star className="size-5 text-yellow-400" />
-            {t('account.write_review')}
-          </AccountButton>
 
           <DownloadAppDrawer>
             <AccountButton>

@@ -2,7 +2,9 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useEffect, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { BalanceEntry } from '~/components/Expense/BalanceEntry';
+import { EmptyState } from '~/components/EmptyState';
 import { CreateGroup } from '~/components/group/CreateGroup';
 import MainLayout from '~/components/Layout/MainLayout';
 import { Button } from '~/components/ui/button';
@@ -58,14 +60,18 @@ const BalancePage: NextPageWithUser = () => {
       <MainLayout title={t('navigation.groups')} actions={actions} loading={groupQuery.isPending}>
         <div className="mt-7 flex flex-col gap-8 pb-36">
           {0 === groupQuery.data?.length ? (
-            <div className="mt-[30vh] flex flex-col items-center justify-center gap-20">
+            <EmptyState
+              icon={Users}
+              title={t('empty_states.groups.title')}
+              description={t('empty_states.groups.description')}
+            >
               <CreateGroup>
                 <Button>
                   <PlusIcon className="me-2 h-4 w-4" />
-                  {t('actions.create')}
+                  {t('group_details.create_group.title')}
                 </Button>
               </CreateGroup>
-            </div>
+            </EmptyState>
           ) : (
             <>
               {/* Active Groups */}

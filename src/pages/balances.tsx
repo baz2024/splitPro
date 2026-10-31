@@ -1,10 +1,11 @@
 import { ArrowUpOnSquareIcon } from '@heroicons/react/24/outline';
-import { Download, PlusIcon } from 'lucide-react';
+import { Download, PlusIcon, Scale } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo } from 'react';
 import { DownloadAppDrawer } from '~/components/Account/DownloadAppDrawer';
 import { BalanceEntry } from '~/components/Expense/BalanceEntry';
+import { EmptyState } from '~/components/EmptyState';
 import MainLayout from '~/components/Layout/MainLayout';
 import { NotificationModal } from '~/components/NotificationModal';
 import { Button } from '~/components/ui/button';
@@ -110,21 +111,26 @@ const BalancePage: NextPageWithUser = ({ user }) => {
           ))}
 
           {!balanceQuery.isPending && !balanceQuery.data?.balances.length ? (
-            <div className="mt-[40vh] flex -translate-y-[130%] flex-col items-center justify-center gap-6">
-              <DownloadAppDrawer>
-                <Button className="w-62.5">
-                  <Download className="me-2 h-5 w-5 text-black" />
-                  {t('account.download_app')}
-                </Button>
-              </DownloadAppDrawer>
-              {!isPwa && <p>{t('ui.or')}</p>}
+            <EmptyState
+              icon={Scale}
+              title={t('empty_states.balances.title')}
+              description={t('empty_states.balances.description')}
+            >
               <Link href="/add">
                 <Button className="w-62.5">
                   <PlusIcon className="me-2 h-5 w-5 text-black" />
                   {t('actions.add_expense')}
                 </Button>
               </Link>
-            </div>
+              {!isPwa && (
+                <DownloadAppDrawer>
+                  <Button variant="outline" className="w-62.5">
+                    <Download className="me-2 h-5 w-5" />
+                    {t('account.download_app')}
+                  </Button>
+                </DownloadAppDrawer>
+              )}
+            </EmptyState>
           ) : null}
         </div>
       </MainLayout>

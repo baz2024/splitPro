@@ -10,7 +10,8 @@ import { getCurrencyHelpers } from '~/utils/numbers';
 import { type TFunction } from 'next-i18next';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { withI18nStaticProps } from '~/utils/i18n/server';
-import { RefreshCcwDot } from 'lucide-react';
+import { ListIcon, RefreshCcwDot } from 'lucide-react';
+import { EmptyState } from '~/components/EmptyState';
 import { Button } from '~/components/ui/button';
 import React from 'react';
 
@@ -82,7 +83,11 @@ const ActivityPage: NextPageWithUser = ({ user }) => {
       >
         <div className="flex flex-col gap-4">
           {!expensesQuery.data?.length ? (
-            <div className="mt-[30vh] text-center text-gray-400">{t('ui.no_activity')}</div>
+            <EmptyState
+              icon={ListIcon}
+              title={t('ui.no_activity')}
+              description={t('empty_states.activity.description')}
+            />
           ) : null}
           {expensesQuery.data?.map((e) => {
             const { toUIString } = getCurrencyHelpers({
