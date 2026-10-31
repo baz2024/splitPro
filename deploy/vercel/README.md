@@ -4,11 +4,22 @@ SplitPro needs three things besides Vercel itself:
 
 | Need | Use | Why |
 | --- | --- | --- |
-| PostgreSQL **with `pg_cron`** | Supabase (free tier works) | Recurring expenses are created by `pg_cron` inside the database |
+| PostgreSQL | Prisma Postgres (Vercel Storage) or Supabase | Supabase also has `pg_cron`, needed for recurring expenses |
 | Receipt file storage | Vercel Blob (private store) | Vercel functions have no persistent disk |
 | A sign-in method | KafoAI OIDC, Google, or email | At least one is required |
 
-## 1. Database (Supabase)
+## 1. Database
+
+### Option A: Prisma Postgres (from Vercel → Storage)
+Connect it to the project. In **Settings → Environment Variables**, make sure `DATABASE_URL`
+holds the plain `postgres://…` connection string. If the integration put a `prisma+postgres://…`
+URL there, swap it for the `postgres://` one. SplitPro connects with the standard Postgres
+driver, so the Accelerate URL won't work.
+
+If the database has no `pg_cron`, setup still succeeds and everything works **except automatic
+recurring expenses**. To check, run `SELECT * FROM pg_available_extensions WHERE name = 'pg_cron';`.
+
+### Option B: Supabase (includes pg_cron)
 1. Create a project at supabase.com and pick a region close to your Vercel region.
 2. **Database → Extensions** → enable **pg_cron**.
 3. **Connect → Session pooler**: copy the connection string. Vercel needs the pooler because Supabase's direct connection is IPv6-only. Then append `?sslmode=require`:

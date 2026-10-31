@@ -50,10 +50,20 @@ END;
 $$ LANGUAGE plpgsql;
 
 DO $$
+DECLARE
+  use_stub BOOLEAN := current_database() LIKE 'prisma_migrate_shadow_db%';
 BEGIN
-IF current_database() NOT LIKE 'prisma_migrate_shadow_db%' THEN
-  CREATE EXTENSION IF NOT EXISTS pg_cron;
-ELSE
+IF NOT use_stub THEN
+  BEGIN
+    CREATE EXTENSION IF NOT EXISTS pg_cron;
+  EXCEPTION WHEN OTHERS THEN
+    -- Hosts without pg_cron (e.g. some managed Postgres): keep going with a stub
+    -- cron.job table. Recurring expenses need real pg_cron.
+    RAISE NOTICE 'pg_cron unavailable (%), recurring expenses will be disabled', SQLERRM;
+    use_stub := TRUE;
+  END;
+END IF;
+IF use_stub THEN
     CREATE SCHEMA IF NOT EXISTS cron;
     CREATE TABLE IF NOT EXISTS cron.job (
         jobid BIGINT PRIMARY KEY,
