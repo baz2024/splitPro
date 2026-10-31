@@ -1,0 +1,122 @@
+import { Bell } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { toast } from 'sonner';
+
+import { useAppStore } from '~/store/appStore';
+import { api } from '~/utils/api';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
+
+const base64ToUint8Array = (base64: string) => {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+
+  const rawData = window.atob(b64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
+const NOTIFICATION_DISMISSED_TIME = 'notification_dismissed_time';
+const NOTIFICATION_DISMISSED_TIME_THRESHOLD = 1000 * 60 * 60 * 24 * 30; // 14 days
+
+export const NotificationModal: React.FC = () => {
+  const { t } = useTranslation();
+  const updatePushSubscription = api.user.updatePushNotification.useMutation();
+  const webPushPublicKey = useAppStore((s) => s.webPushPublicKey);
+
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    if ('undefined' !== typeof window && 'serviceWorker' in navigator) {
+      // Run only in browser
+      navigator.serviceWorker.ready
+        .then((reg) => {
+          reg.pushManager
+            .getSubscription()
+            .then((sub) => {
+              if (!sub) {
+                const notificationTime = localStorage.getItem(NOTIFICATION_DISMISSED_TIME);
+                if (
+                  !notificationTime ||
+                  Date.now() - parseInt(notificationTime) > NOTIFICATION_DISMISSED_TIME_THRESHOLD
+                ) {
+                  setModalOpen(true);
+                }
+              }
+            })
+            .catch(console.error);
+        })
+        .catch(console.error);
+    }
+  }, []);
+
+  async function onRequestNotification() {
+    try {
+      const result = await Notification.requestPermission();
+      if ('granted' === result) {
+        toast.success(t('notifications.permission_granted'));
+        navigator.serviceWorker.ready
+          .then(async (reg) => {
+            if (!webPushPublicKey) {
+              return;
+            }
+            const sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: base64ToUint8Array(webPushPublicKey),
+            });
+
+            updatePushSubscription.mutate({ subscription: JSON.stringify(sub) });
+          })
+          .catch((e) => {
+            toast.error(t('errors.notification_subscribe_failed'));
+            console.error(e);
+          });
+        setModalOpen(false);
+      }
+    } catch (e) {
+      toast.error(t('errors.notification_request_failed'));
+      console.error(e);
+    }
+  }
+
+  function remindLater() {
+    localStorage.setItem(NOTIFICATION_DISMISSED_TIME, Date.now().toString());
+    setModalOpen(false);
+  }
+
+  if (!webPushPublicKey) {
+    return null;
+  }
+
+  return (
+    <AlertDialog open={modalOpen}>
+      <AlertDialogContent className="rounded-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('notifications.enable_title')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('notifications.enable_description')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={remindLater}>{t('actions.remind_later')}</AlertDialogCancel>
+          <AlertDialogAction onClick={onRequestNotification}>
+            <Bell className="me-1 h-4" />
+            {t('notifications.subscribe')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};

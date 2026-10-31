@@ -1,0 +1,211 @@
+# Contributing to Splitpro
+
+If you plan to contribute to Splitpro, please take a moment to feel awesome ✨ People like you are what open source is about ♥. Any contributions, no matter how big or small, are highly appreciated.
+
+## Tech stack
+
+- [NextJS](https://nextjs.org/)
+- [Tailwind](https://tailwindcss.com/)
+- [tRPC](https://trpc.io/)
+- [ShadcnUI](https://ui.shadcn.com/)
+- [Prisma](https://www.prisma.io/)
+- [Postgres](https://www.postgresql.org/)
+- [NextAuth](https://next-auth.js.org/)
+
+## Adding a new locale
+
+If you speak a language that is missing here or spot some mistakes in the translations, feel free to use our [Weblate project](https://hosted.weblate.org/projects/splitpro/), no coding knowledge required! The GUI is easy to navigate and you can read Weblate docs in case of any issues. If you are adding a new language and have translated all the keys, you can submit a PR updating [config](./next-i18next.config.js) and [client](./src/utils/i18n/client.ts) to enable its use in the app.
+
+#### Adding locales when developing
+
+To ease developer burden, you should only create English keys when adding new features. The rest should be updated by the community via Weblate!
+
+## Adding a new currency rate provider
+
+This is very straightforward and requires adding a new subclass in `./src/server/api/services/currencyRateService.ts`. You basically need to define a method that given a currency pair and a date, returns the appropriate date. If the provider returns more currencies in one API call, you can also return more, as well as only return an intermediate currencies, the inherited methods will put it all together!
+
+## Adding a new bank API
+
+Similar to currency rates, you can add a provider that you feel would be a good fit by creating a new class based on `./src/server/api/services/bankTransactions/bankTransactionService.ts`. Reach out to @alexanderwassbjer if you encounter any issues.
+
+## Before getting started
+
+- Before jumping into a PR be sure to search [existing PRs](https://github.com/oss-apps/split-pro/pulls) or [issues](https://github.com/oss-apps/split-pro/issues) for an open or closed item that relates to your submission.
+- Select an issue from [here](https://github.com/oss-apps/split-pro/issues) or create a new one
+- Consider the results from the discussion on the issue
+
+## Taking issues
+
+No need to ask for permission when working on the issue, just check out if there is anybody already implementing a solution and submit a PR. Just please keep in mind that reducing the amount of burden you place on maintainers will greatly boost your chances of having it merged. AI slop will not be tolerated, check the AI guidelines below.
+
+Always feel free to ask questions or seek clarification on the issue. For complex features, it might be best to first agree on an approach with the maintainer.
+
+## Developing
+
+The development branch is <code>main</code>. All pull requests should be made against this branch. If you need help getting started, go to our GitHub Discussions.
+
+1. [Fork](https://help.github.com/articles/fork-a-repo/) this repository to your
+   own GitHub account and then
+   [clone](https://help.github.com/articles/cloning-a-repository/) it to your local device.
+2. Create a new branch:
+
+- Create a new branch (include the issue id and something readable):
+
+  ```sh
+  git checkout -b feat/doc-999-somefeature-that-rocks
+  ```
+
+### Prerequisites
+
+- Node.js (Version: >=22.x)
+- PostgreSQL
+- pnpm (recommended)
+
+### Development with Nix and direnv (Linux)
+
+The flake supports x86_64 and aarch64 Linux, including NixOS. It provides Node.js 22,
+pnpm 10.11.0, PostgreSQL 18 with `pg_cron`, Git, OpenSSL, and `nixfmt`.
+Node and pnpm run in an FHS runtime so the project's native npm dependencies
+(including Prisma, Next.js, oxlint, and `tsc`) work without patching `node_modules`.
+The runtime requires unprivileged user namespaces, as used by Bubblewrap.
+
+1. Install Nix with the `nix-command` and `flakes` experimental features enabled.
+   Install direnv and [hook it into your shell](https://direnv.net/docs/hook.html).
+   For example, add `eval "$(direnv hook bash)"` to your Bash configuration.
+   nix-direnv is recommended for caching, but regular direnv also works.
+2. Run `direnv allow` in the repository. Alternatively, run `nix develop` for an
+   interactive shell, or `nix develop --command pnpm test` for a single command.
+3. Copy `.env.example` to `.env` and use a localhost database URL. The native
+   database reads `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and
+   `POSTGRES_PORT` from `.env`; exported variables take precedence. For example:
+
+   ```dotenv
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=strong-password
+   POSTGRES_DB=splitpro
+   POSTGRES_PORT=5432
+   DATABASE_URL="postgresql://postgres:strong-password@localhost:5432/splitpro"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
+
+   Configure a NextAuth provider as described below if you need to sign in.
+
+4. Run `pnpm dx` to install dependencies, start PostgreSQL, and apply migrations.
+   On a fresh database, run `pnpm db:seed` for sample data, then `pnpm dev`.
+   `pnpm d` combines setup and starting the development server.
+
+Inside the Nix shell, `pnpm dx:up` starts native PostgreSQL and creates the database
+and `pg_cron` extension if needed. `pnpm dx:down` stops it while retaining data.
+The server listens on IPv4 loopback and uses password authentication for TCP.
+Data, its private Unix socket, and logs live in `.direnv/postgres/`; the server
+continues running when you leave the shell. Stop it explicitly when finished.
+Outside the Nix shell, these commands use the existing Docker Compose setup.
+
+Bare `psql` in the Nix shell connects to this checkout's database using its private
+Unix socket. The shell sets `PGHOST`, `PGPORT`, `PGUSER`, and `PGDATABASE` from the
+local development settings; explicit `PG*` overrides and `psql` arguments still work.
+
+Each checkout/worktree has its own database directory. Use a unique
+`POSTGRES_PORT`, database name, and matching `DATABASE_URL` for simultaneous
+checkouts, plus distinct NextAuth URLs and development server ports. Stop an
+existing instance before changing database settings. User credentials are set
+during initialization; changing them later requires updating the database role.
+
+The usual commands work in the shell:
+
+```bash
+pnpm generate
+pnpm db:dev
+pnpm db:studio
+pnpm prettier --check .
+pnpm lint
+pnpm tsc --noEmit
+pnpm test
+pnpm build
+```
+
+Format the flake with `nixfmt flake.nix`. `flake.lock` pins the Nix dependencies;
+update them intentionally with `nix flake update`.
+
+### Install Dependencies
+
+```bash
+corepack enable
+```
+
+```bash
+pnpm i
+```
+
+### Setting up the environment
+
+- Copy `.env.example` to `.env`.
+- Configure at least one NextAuth provider (email, OAuth, or OIDC).
+- Configure uploads storage (local disk) and optional push notifications.
+- For bank integration, create a Plaid account and set the related env vars.
+- For currency conversions, set the provider and related keys if applicable.
+
+See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for a full variable reference.
+
+### Run the app
+
+```bash
+pnpm d
+```
+
+## Linting
+
+This projects implements `oxlint` for linting. When developing please make sure to have an IDE integration enabled and watch out not to introduce new warnings. It is also nice to follow the boy scout rule and leave the code you modify with a little less warnings. Checks are enforced on CI for linting, formatting and typing, so run necessary checks before pushing.
+
+## Pre-commit Hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/okonet/lint-staged) to automatically run code quality checks before each commit:
+
+- **Prettier**: Automatically formats code according to the project's style guide
+- **oxlint**: Runs linting checks and automatically fixes issues where possible
+
+The pre-commit hooks are automatically installed when you run `pnpm install`. If you need to manually set them up:
+
+```bash
+pnpm exec husky install
+```
+
+### Bypassing pre-commit hooks
+
+In rare cases where you need to bypass the pre-commit checks, you can use:
+
+```bash
+git commit --no-verify -m "your commit message"
+```
+
+**Note:** Only use `--no-verify` when absolutely necessary, as it skips important code quality checks.
+
+## Building
+
+> **Note**
+> Please ensure you can make a full production build before pushing code or creating PRs.
+
+You can build the project with:
+
+```bash
+pnpm build
+```
+
+## Seed data
+
+There is an extensive seed data generation script, which handles the creation of tens of users, groups and thousands of expenses with various categories, names, split types etc.
+You can use it for development and it is strongly advised, when reporting issues to point to the seeded user/group/expense as the data creation
+is deterministic. To return a disposable development database to the pure seeded state, run
+`pnpm prisma migrate reset` followed by `pnpm generate && pnpm db:seed`. Prisma 7 no longer
+generates the client or seeds automatically after migration commands; `pnpm db:dev` generates
+the client, and a new development database needs an explicit `pnpm db:seed`.
+There is also a markdown report being generated on each run and you can see it in the project root directory. It features some useful statistic
+like the most connected accounts, which you can log into to have a populated app.
+
+If you need to tweak the script for your use case (like faster seeding with less expenses or DB stress testing), feel free to tweak the parameters in the `src/dummies` directory.
+
+## AI Contribution policy
+
+While I am not against the usage of AI and also utilize it to some extent in this repo, I would like to establish the following policy and AI contributions. Each PR must explicitly
+state that it was made with the use of AI and to what extent. The changes also MUST be reviewed and I reserve the right to instantly close a PR without comment, as I am not willing to sacrifice
+my time for someone who could not even read and understand what they are submitting.

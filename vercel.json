@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm prisma migrate deploy && pnpm next build",
+  "crons": [{ "path": "/api/cron/recurrence-notifications", "schedule": "0 6 * * *" }]
+}

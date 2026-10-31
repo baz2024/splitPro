@@ -1,0 +1,80 @@
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs/promises';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import sharp from 'sharp';
+
+import { authOptions } from '~/server/auth';
+import { env } from '~/env';
+
+import { type File, formidable } from 'formidable';
+import { saveFile } from '~/server/storage';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if ('POST' !== req.method) {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const form = formidable({
+    keepExtensions: true,
+    maxFileSize: env.UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024,
+  });
+
+  let uploadedFile: File | undefined = undefined;
+
+  try {
+    const [, files] = await form.parse(req);
+    uploadedFile = files.file?.[0];
+
+    if (!uploadedFile) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
+
+    const userId = String(session.user.id);
+
+    const fileUUID = randomUUID();
+    const fileName = `${fileUUID}.webp`;
+    const thumbName = `${fileUUID}-thumb.webp`;
+
+    const fileBuffer = await fs.readFile(uploadedFile.filepath);
+
+    const [image, thumb] = await Promise.all([
+      sharp(fileBuffer)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer(),
+      sharp(fileBuffer).resize(200).webp({ quality: 60 }).toBuffer(),
+    ]);
+
+    await Promise.all([
+      saveFile(`${userId}/${fileName}`, image, 'image/webp'),
+      saveFile(`${userId}/${thumbName}`, thumb, 'image/webp'),
+    ]);
+
+    return res.status(200).json({
+      key: `${userId}/${fileName}`,
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    try {
+      if (uploadedFile) {
+        await fs.unlink(uploadedFile.filepath);
+      }
+    } catch {
+      // Ignore errors
+    }
+  }
+}

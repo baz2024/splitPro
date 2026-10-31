@@ -1,0 +1,124 @@
+import { SplitType, type User } from '@prisma/client';
+import { ArrowRightIcon } from 'lucide-react';
+import React, { type ReactNode, useState } from 'react';
+import { toast } from 'sonner';
+import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
+import { DEFAULT_CATEGORY } from '~/lib/category';
+import { api } from '~/utils/api';
+import { BigMath } from '~/utils/numbers';
+
+import { EntityAvatar } from '../ui/avatar';
+import { CurrencyInput } from '../ui/currency-input';
+import { AppDrawer } from '../ui/drawer';
+import { useSession } from 'next-auth/react';
+
+export const GroupSettleUp: React.FC<{
+  amount: bigint;
+  currency: string;
+  friend: User;
+  user: User;
+  children: ReactNode;
+  groupId: number;
+}> = ({ amount: _amount, currency, friend, user, children, groupId }) => {
+  const { data } = useSession();
+  const { displayName, t, getCurrencyHelpersCached } = useTranslationWithUtils();
+  const [amount, setAmount] = useState<bigint>(BigMath.abs(_amount));
+  const [amountStr, setAmountStr] = useState(getCurrencyHelpersCached(currency).toUIString(amount));
+
+  const onCurrencyInputValueChange = React.useCallback(
+    ({ strValue, bigIntValue }: { strValue?: string; bigIntValue?: bigint }) => {
+      if (strValue !== undefined) {
+        setAmountStr(strValue);
+      }
+      if (bigIntValue !== undefined) {
+        setAmount(bigIntValue);
+      }
+    },
+    [],
+  );
+
+  const addExpenseMutation = api.expense.addOrEditExpense.useMutation();
+  const utils = api.useUtils();
+
+  const isUserPaying = 0 > _amount;
+  const sender = isUserPaying ? user : friend;
+  const receiver = isUserPaying ? friend : user;
+  const payerRole = sender.id === data?.user.id ? 'you' : 'other';
+  const receiverRole = receiver.id === data?.user.id ? 'you' : 'other';
+  const paymentText =
+    payerRole === 'you'
+      ? t('ui.expense.statements.you_pay_user', { user: displayName(receiver) })
+      : receiverRole === 'you'
+        ? t('ui.expense.statements.user_pays_you', { user: displayName(sender) })
+        : t('ui.expense.statements.user_pays_user', {
+            payer: displayName(sender),
+            receiver: displayName(receiver),
+          });
+
+  const saveExpense = React.useCallback(() => {
+    if (!amount) {
+      return;
+    }
+
+    addExpenseMutation.mutate(
+      {
+        name: t('ui.settle_up_name'),
+        currency,
+        amount,
+        splitType: SplitType.SETTLEMENT,
+        groupId,
+        participants: [
+          {
+            userId: sender.id,
+            amount,
+          },
+          {
+            userId: receiver.id,
+            amount: -amount,
+          },
+        ],
+        paidBy: sender.id,
+        category: DEFAULT_CATEGORY,
+      },
+      {
+        onSuccess: () => {
+          utils.group.invalidate().catch(console.error);
+        },
+        onError: (error) => {
+          console.error('Error while saving expense:', error);
+          toast.error(t('errors.saving_expense'));
+        },
+      },
+    );
+  }, [sender, receiver, amount, utils, addExpenseMutation, currency, groupId, t]);
+
+  return (
+    <AppDrawer
+      trigger={children}
+      leftAction={t('actions.back')}
+      title={t('ui.settlement')}
+      actionTitle={t('actions.save')}
+      actionOnClick={saveExpense}
+      actionDisabled={!amount}
+      className="h-[70vh]"
+      shouldCloseOnAction
+    >
+      <div className="mt-10 flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-5">
+            <EntityAvatar entity={sender} />
+            <ArrowRightIcon className="h-6 w-6 text-gray-600 rtl:rotate-180" />
+            <EntityAvatar entity={receiver} />
+          </div>
+          <p className="mt-2 text-center text-sm text-gray-400">{paymentText}</p>
+        </div>
+        <CurrencyInput
+          currency={currency}
+          strValue={amountStr}
+          className="mx-auto mt-4 w-[150px] text-center text-lg"
+          onValueChange={onCurrencyInputValueChange}
+        />
+      </div>
+    </AppDrawer>
+  );
+};

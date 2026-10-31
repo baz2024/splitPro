@@ -1,0 +1,99 @@
+import { type BalanceView, type User } from '@prisma/client';
+import React, { useMemo } from 'react';
+
+import { CumulatedBalances } from '~/components/Expense/CumulatedBalances';
+import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
+import { BigMath } from '~/utils/numbers';
+
+interface GroupMyBalanceProps {
+  userId: number;
+  groupBalances?: BalanceView[];
+  users?: User[];
+  groupId: number;
+}
+
+const GroupMyBalance: React.FC<GroupMyBalanceProps> = ({
+  userId,
+  groupBalances = [],
+  users = [],
+  groupId,
+}) => {
+  const { t, getCurrencyHelpersCached } = useTranslationWithUtils();
+
+  const userMap = useMemo(
+    () =>
+      users.reduce<Record<number, User>>((acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      }, {}),
+    [users],
+  );
+
+  const friendBalances = useMemo(
+    () =>
+      groupBalances.reduce<Record<number, Record<string, bigint>>>((acc, balance) => {
+        if (balance.userId === userId && 0 < BigMath.abs(balance.amount)) {
+          acc[balance.friendId] ??= {};
+          const friendBalance = acc[balance.friendId]!;
+          friendBalance[balance.currency] =
+            (friendBalance[balance.currency] ?? 0n) + balance.amount;
+        }
+        return acc;
+      }, {}),
+    [groupBalances, userId],
+  );
+
+  const cumulatedBalances = useMemo(
+    () =>
+      Object.entries(
+        Object.values(friendBalances).reduce<Record<string, bigint>>((acc, balances) => {
+          if (balances) {
+            Object.entries(balances).forEach(([currency, amount]) => {
+              acc[currency] = (acc[currency] ?? 0n) + amount;
+            });
+          }
+          return acc;
+        }, {}),
+      ).map(([currency, amount]) => ({ currency, amount })),
+    [friendBalances],
+  );
+
+  return (
+    <div className="flex gap-2">
+      <div className="flex flex-col gap-2">
+        <CumulatedBalances entityId={groupId} entityType="group" balances={cumulatedBalances} />
+
+        {Object.entries(friendBalances)
+          .slice(0, 2)
+          .map(([friendId, balances]) => {
+            const friend = userMap[+friendId];
+            return (
+              <div key={friendId} className="text-sm text-gray-500">
+                {Object.entries(balances).map(([currency, amount]) => (
+                  <div key={currency}>
+                    {t(
+                      0 < amount
+                        ? 'balance_summary.friend_owes_you'
+                        : 'balance_summary.you_owe_friend',
+                      {
+                        friend: friend?.name ?? '',
+                        amount: getCurrencyHelpersCached(currency).toUIString(amount),
+                      },
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+
+        {2 < Object.keys(friendBalances).length ? (
+          <div className="text-sm text-gray-500">
+            {t('balance_summary.more', { count: Object.keys(friendBalances).length - 2 })}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+export default GroupMyBalance;

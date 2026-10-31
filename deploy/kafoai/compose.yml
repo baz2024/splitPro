@@ -1,0 +1,64 @@
+# SplitPro for KafoAI — served at https://split.kafoai.com
+# Builds from this repo (includes the Arabic/RTL changes not in the upstream image).
+name: splitpro-kafoai
+
+services:
+  postgres:
+    image: ossapps/postgres:17.7-trixie
+    container_name: splitpro-db
+    restart: always
+    env_file: .env
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_cron
+      -c cron.database_name=${POSTGRES_DB:-splitpro}
+      -c cron.timezone=UTC
+    volumes:
+      - database:/var/lib/postgresql/data
+
+  splitpro:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: kafoai/splitpro:latest
+    container_name: splitpro
+    restart: always
+    env_file: .env
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1:3000/api/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+
+  # TLS + reverse proxy. Remove this service if you already run nginx/Traefik/Cloudflare
+  # in front of the server — then just proxy split.kafoai.com -> splitpro:3000.
+  caddy:
+    image: caddy:2.8
+    container_name: splitpro-caddy
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - splitpro
+
+volumes:
+  database:
+  uploads:
+  caddy_data:

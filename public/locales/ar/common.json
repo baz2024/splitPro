@@ -1,0 +1,545 @@
+{
+  "account": {
+    "change_language": "تغيير اللغة",
+    "change_language_details": {
+      "messages": {
+        "language_changed": "تم تغيير اللغة بنجاح"
+      },
+      "no_language_found": "لم يتم العثور على لغة.",
+      "placeholder": "اختر لغة",
+      "title": "اختر لغة"
+    },
+    "download_app": "تنزيل التطبيق",
+    "download_app_details": {
+      "download_as_pwa": "يمكنك تثبيت SplitPro كتطبيق ويب (PWA) على شاشتك الرئيسية.",
+      "title": "تنزيل التطبيق",
+      "using_android": "إذا كنت تستخدم Android، شاهد هذا",
+      "using_ios": "إذا كنت تستخدم iOS، شاهد هذا",
+      "video": "الفيديو"
+    },
+    "download_splitpro_data": "تنزيل بيانات SplitPro",
+    "default_balance_currency": "عملة الرصيد الافتراضية",
+    "edit_name": {
+      "apply_avatar": "تطبيق الصورة",
+      "avatar_label": "صورة الملف الشخصي",
+      "avatar_preview": "معاينة الصورة",
+      "placeholder": "أدخل الاسم",
+      "remove_avatar": "إزالة الصورة",
+      "select_avatar": "اختر صورة",
+      "zoom": "تكبير",
+      "title": "تعديل البيانات"
+    },
+    "follow_on_x": "تابعنا على X",
+    "import_from_splitwise": "الاستيراد من Splitwise",
+    "import_from_splitwise_details": {
+      "choose_file": "اختر ملفًا",
+      "export_splitwise_data_button": "تصدير بيانات Splitwise",
+      "follow_to_export_splitwise_data": "اتبع هذا الرابط لتصدير بيانات Splitwise",
+      "messages": {
+        "import_success": "تم الاستيراد بنجاح"
+      },
+      "no_file_chosen": "لم يتم اختيار ملف",
+      "note": "ملاحظة: يدعم حاليًا استيراد الأصدقاء والمجموعات فقط، ولن يتم استيراد المعاملات. نعمل على ذلك."
+    },
+    "logout": "تسجيل الخروج",
+    "messages": {
+      "submit_error": "تعذّر تحديث البيانات",
+      "submit_success": "تم تحديث البيانات"
+    },
+    "notifications": {
+      "disable_notification": "إيقاف الإشعارات",
+      "enable_notification": "تفعيل الإشعارات",
+      "messages": {
+        "notification_granted": "ستصلك الإشعارات الآن"
+      }
+    },
+    "star_on_github": "ادعمنا بنجمة على GitHub",
+    "submit_feedback": "إرسال ملاحظات",
+    "submit_feedback_details": {
+      "placeholder": "اكتب ملاحظاتك",
+      "title": "إرسال ملاحظات",
+      "messages": {
+        "submit_error": "تعذّر إرسال الملاحظات",
+        "submit_success": "تم إرسال الملاحظات"
+      }
+    },
+    "support_us": "ادعمنا",
+    "title": "الحساب",
+    "write_review": "اكتب تقييمًا",
+    "debug_info": "معلومات التصحيح",
+    "debug_info_details": {
+      "title": "معلومات التصحيح",
+      "description": "الصق المعلومات أدناه عند إنشاء طلب دعم:",
+      "user_agent": "UserAgent",
+      "git": "Git",
+      "version": "الإصدار",
+      "new_version_available": "يتوفر إصدار جديد:",
+      "copy_failed": "تعذّر نسخ معلومات التصحيح إلى الحافظة",
+      "send_test_notification": "إرسال إشعار تجريبي",
+      "test_notification_sent": "تم إرسال الإشعار التجريبي",
+      "test_notification_failed": "تعذّر إرسال الإشعار التجريبي"
+    }
+  },
+  "actions": {
+    "add_expense": "إضافة مصروف",
+    "back": "رجوع",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "copy": "نسخ",
+    "confirm": "تأكيد",
+    "create": "إنشاء",
+    "edit_expense": "تعديل المصروف",
+    "export": "تصدير",
+    "fetch": "جلب",
+    "import": "استيراد",
+    "invite": "دعوة",
+    "leave": "مغادرة",
+    "next": "التالي",
+    "save": "حفظ",
+    "settle_up": "تسوية",
+    "submit": "إرسال",
+    "reconnect": "إعادة الربط",
+    "connect": "ربط",
+    "remind_later": "ذكّرني لاحقًا"
+  },
+  "actors": {
+    "all": "الكل",
+    "friends": "الأصدقاء",
+    "groups": "المجموعات",
+    "members": "الأعضاء",
+    "owner": "المالك",
+    "you": "أنت",
+    "you_accusativus": "أنت",
+    "you_dativus": "أنت"
+  },
+  "auth": {
+    "continue_with": "المتابعة باستخدام {provider}",
+    "email_placeholder": "أدخل بريدك الإلكتروني",
+    "no_providers_configured": "لم يتم إعداد أي مزوّد لتسجيل الدخول",
+    "no_providers_instructions": "يرجى إعداد مزوّد واحد على الأقل لتسجيل الدخول. راجع",
+    "otp_sent": "أرسلنا رسالة بريد إلكتروني تحتوي على رمز التحقق. يرجى التحقق من صندوق الوارد والنقر على الرابط لتسجيل الدخول.",
+    "send_magic_link": "إرسال رابط الدخول",
+    "sending": "جارٍ الإرسال...",
+    "setup_instructions": "تعليمات الإعداد باستخدام Docker",
+    "trouble_logging_in": "تواجه مشكلة في تسجيل الدخول؟ تواصل مع"
+  },
+  "currency_conversion": {
+    "amount_to_receive": "المبلغ المستلم",
+    "description": "حوّل المبلغ إلى عملة أخرى.",
+    "exchange_rate": "سعر الصرف",
+    "fetching_rate": "جارٍ جلب السعر...",
+    "rate": "السعر",
+    "success_toast": "تم ضبط تحويل العملة بنجاح",
+    "title": "تحويل العملة",
+    "amount_aria_label": "المبلغ",
+    "converted_amount_aria_label": "المبلغ بعد التحويل"
+  },
+  "errors": {
+    "currency_conversion_error": "حدث خطأ أثناء ضبط تحويل العملة",
+    "email_invalid": "البريد الإلكتروني غير صالح، يرجى إعادة محاولة تسجيل الدخول.",
+    "no_providers": "حدث خطأ أثناء جلب مزوّدي تسجيل الدخول. يرجى مراجعة سجلات الخادم.",
+    "email_required": "البريد الإلكتروني مطلوب",
+    "feedback_min_length": "يجب ألا تقل الملاحظات عن 10 أحرف",
+    "feedback_required": "الملاحظات مطلوبة",
+    "add_member_failed": "تعذّرت إضافة العضو إلى المجموعة",
+    "group_name_update_failed": "حدث خطأ أثناء تحديث اسم المجموعة",
+    "import_failed": "حدث خطأ أثناء استيراد الملف",
+    "invalid_currency_code": "رمز العملة غير صالح {code}",
+    "invalid_split": "عدّل من يدين بهذا المصروف قبل الحفظ.",
+    "language_change_failed": "حدث خطأ أثناء تغيير اللغة",
+    "less_than": "يجب أن يكون حجم الملف أقل من {size} ميغابايت",
+    "image_compression_failed": "فشل ضغط الصورة، جارٍ محاولة رفع الملف الأصلي",
+    "name_required": "الاسم مطلوب",
+    "notification_not_supported": "الإشعارات غير مدعومة",
+    "otp_invalid": "رمز التحقق غير صحيح",
+    "otp_required": "رمز التحقق مطلوب",
+    "request_error": "حدث خطأ أثناء طلب الإشعارات",
+    "saving_expense": "حدث خطأ أثناء حفظ المصروف",
+    "setting_update_failed": "تعذّر تحديث الإعداد",
+    "signin_error": "حدث خطأ أثناء تسجيل الدخول: {error}",
+    "signup_disabled": "تسجيل الحسابات الجديدة معطّل على هذا الخادم",
+    "something_went_wrong": "حدث خطأ ما",
+    "subscribe_error": "تعذّر الاشتراك في الإشعارات",
+    "unsubscribe_error": "حدث خطأ أثناء إلغاء الاشتراك في الإشعارات",
+    "upload_failed": "تعذّر رفع الملف",
+    "uploading_error": "حدث خطأ أثناء رفع الملف",
+    "valid_email": "أدخل بريدًا إلكترونيًا صالحًا",
+    "group_balances_malformed": "بيانات أرصدة المجموعة غير سليمة، يرجى الإبلاغ عن المشكلة أو إعادة حساب الأرصدة.",
+    "currency_conversion_malformed": "بيانات تحويل العملة غير سليمة",
+    "invalid_cron_expression": "تعبير cron غير صالح",
+    "currency_conversion_failed": "تعذّر تحويل العملات",
+    "recurrence_delete_failed": "تعذّر حذف التكرار",
+    "recurrence_update_failed": "تعذّر تحديث التكرار",
+    "notification_request_failed": "حدث خطأ أثناء طلب إذن الإشعارات",
+    "notification_subscribe_failed": "تعذّر الاشتراك في الإشعارات",
+    "expense_submission_failed": "حدث خطأ غير متوقع أثناء إرسال المصروف.",
+    "expense_deletion_failed": "حدث خطأ غير متوقع أثناء حذف المصروف.",
+    "friend_deletion_failed": "تعذّر حذف الصديق",
+    "signin_failed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "invite_email_failed": "تعذّر إرسال بريد الدعوة. تحقق من إعدادات SMTP."
+  },
+  "bank_transactions": {
+    "choose_bank_provider": "اختر مزوّد الخدمة البنكية",
+    "select_bank_provider": "حدد مزوّد الخدمة البنكية",
+    "search_bank": "ابحث عن بنك",
+    "no_bank_providers_found": "لم يتم العثور على مزوّدين بنكيين",
+    "to_bank": "إلى البنك",
+    "plaid": {
+      "bank_connected_successfully": "تم ربط البنك بنجاح",
+      "bank_connection_failed": "تعذّر الربط بالبنك",
+      "bank_connection_cancelled": "تم إلغاء الربط بالبنك"
+    }
+  },
+  "expense_details": {
+    "add_expense": "إضافة مصروف",
+    "add_expense_details": {
+      "add_new_expense": "إضافة مصروف جديد",
+      "amount_placeholder": "أدخل المبلغ",
+      "description_placeholder": "أدخل الوصف",
+      "pick_a_date": "اختر تاريخًا",
+      "select_user_or_group": {
+        "add_to_split_pro": "إضافة إلى SplitPro",
+        "note": "ملاحظة: إرسال الدعوات معطّل حاليًا بسبب الرسائل المزعجة",
+        "only_one_group_time": "يمكنك اختيار مجموعة واحدة فقط في كل مرة",
+        "send_invite": "إرسال دعوة للمستخدم",
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة",
+        "empty_image_alt": "لم يتم العثور على مستخدمين"
+      },
+      "split_type_section": {
+        "direction": {
+          "no_money_flow": "لا أحد آخر مدين بشيء",
+          "owes_payer": "{debtor} مدين لـ {payer}",
+          "owes_you": "{debtor} مدين لك",
+          "you_owe": "أنت مدين لـ {payer}"
+        },
+        "split_equally": "مقسّم بالتساوي",
+        "split_unequally": "مقسّم بشكل غير متساوٍ",
+        "types": {
+          "adjustment": {
+            "remaining_to_split_equally": "المتبقي للتقسيم بالتساوي",
+            "title": "تعديل"
+          },
+          "equal": {
+            "per_person": "لكل شخص",
+            "title": "بالتساوي"
+          },
+          "exact": {
+            "remaining": "المتبقي",
+            "title": "مبالغ محددة"
+          },
+          "percentage": {
+            "remaining": "المتبقي",
+            "title": "نسبة مئوية"
+          },
+          "share": {
+            "shares": "حصة/حصص",
+            "title": "بالحصص",
+            "total_shares": "إجمالي الحصص"
+          }
+        },
+        "split_equally_with_count": "مقسّم بالتساوي على {count, plural, zero {لا أحد} one {شخص واحد} two {شخصين} few {# أشخاص} many {# شخصًا} other {# شخص}}"
+      },
+      "sponsor_us": "ادعمنا",
+      "upload_file": {
+        "messages": {
+          "upload_success": "تم رفع الملف بنجاح"
+        }
+      },
+      "user_input": {
+        "add_more_friends": "ابحث عن أصدقاء أو مجموعات أو أضف بريدًا إلكترونيًا",
+        "cannot_change_group": "لا يمكن تغيير المجموعة أثناء التعديل",
+        "remove_group": "اضغط حذف لإزالة المجموعة",
+        "search_friends": "ابحث عن أصدقاء أو مجموعات أو أضف بريدًا إلكترونيًا"
+      }
+    },
+    "balance_list": {
+      "are_settled_up": "تمت تسويتهم",
+      "is_settled_up": "تمت تسويته",
+      "press_balance_info": "اضغط على أي رصيد لبدء التسوية",
+      "settled": "{actor, select, you {حسابك مُسوّى} other {حساب {person} مُسوّى}}",
+      "lent": "{actor, select, you {أقرضتَ} other {أقرض {person}}}",
+      "owes": "{actor, select, you {أنت مدين} other {{person} مدين}}"
+    },
+    "delete_expense_details": {
+      "text": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف المصروف نهائيًا.",
+      "title": "هل أنت متأكد تمامًا؟"
+    },
+    "multiple_transactions": {
+      "title": "إضافة عدة معاملات",
+      "description": "لقد حددت عدة معاملات. اختر إضافتها جميعًا بإعدادات التقسيم الحالية أو ضبط الإعدادات لكل معاملة على حدة.",
+      "add_all": "إضافة الكل",
+      "add_one_by_one": "إضافة واحدة تلو الأخرى"
+    },
+    "title": "إضافة مصروف",
+    "title_mobile": "إضافة",
+    "clear": "مسح",
+    "bank_transactions": "المعاملات البنكية",
+    "submit_all": "إرسال الكل",
+    "pending": "قيد الانتظار",
+    "no_transactions_yet": "لا توجد معاملات بعد",
+    "already_added": "تمت إضافتها مسبقًا",
+    "receipt": {
+      "title": "إيصال المصروف",
+      "thumbnail_alt": "صورة مصغّرة لإيصال المصروف",
+      "image_alt": "إيصال المصروف"
+    },
+    "empty_state_image_alt": "لا توجد مصاريف"
+  },
+  "group_details": {
+    "add_members": "إضافة أعضاء",
+    "copied": "تم النسخ",
+    "create_group": {
+      "group_name_placeholder": "اسم المجموعة",
+      "title": "إنشاء مجموعة"
+    },
+    "group_info": {
+      "actions": "الإجراءات",
+      "archive_group": "أرشفة المجموعة",
+      "configure_default_split": "ضبط التقسيم الافتراضي",
+      "default_split": "التقسيم الافتراضي",
+      "default_balance_currency": "عملة الرصيد الافتراضية",
+      "edit_group": "تعديل المجموعة",
+      "archive_group_details": {
+        "can_archive": "ستتم أرشفة هذه المجموعة وإخفاؤها من قائمة مجموعاتك الرئيسية. يمكنك الوصول إليها لاحقًا عند الحاجة.",
+        "cant_archive": "لا يمكن أرشفة مجموعة عليها أرصدة مستحقة. يجب تسوية جميع الأرصدة أولًا.",
+        "title": "هل أنت متأكد من أرشفة هذه المجموعة؟"
+      },
+      "archived": "مؤرشفة",
+      "delete_group": "حذف المجموعة",
+      "delete_group_details": {
+        "can_delete": "لا يمكن التراجع عن هذا الإجراء",
+        "cant_delete": "لا يمكن حذف المجموعة حتى يسوّي الجميع أرصدتهم",
+        "title": "هل أنت متأكد تمامًا؟"
+      },
+      "group_created": "تاريخ الإنشاء",
+      "leave_group": "مغادرة المجموعة",
+      "leave_group_details": {
+        "can_leave": "لا يمكن التراجع عن هذا الإجراء",
+        "cant_leave": "لا يمكنك مغادرة المجموعة حتى تتم تسوية رصيدك المستحق",
+        "title": "هل أنت متأكد تمامًا؟"
+      },
+      "members": "الأعضاء",
+      "recalculate_balances": "إعادة حساب الأرصدة",
+      "recalculate_balances_details": {
+        "description": "إذا لم تتطابق الأرصدة مع المصاريف، يمكنك إعادة حسابها. قد يستغرق ذلك بعض الوقت إذا كان عدد المصاريف كبيرًا. لن تتأثر الأرصدة خارج المجموعة.",
+        "title": "هل أنت متأكد؟"
+      },
+      "remove_member_details": {
+        "can_remove": "أنت على وشك إزالة هذا العضو من المجموعة",
+        "cant_remove": "لا يمكن إزالة العضو حتى تتم تسوية رصيده المستحق",
+        "title": "هل أنت متأكد تمامًا؟"
+      },
+      "simplify_debts": "تبسيط الديون",
+      "title": "معلومات المجموعة"
+    },
+    "group_statistics": {
+      "first_expense": "أول مصروف",
+      "title": "إحصائيات المجموعة",
+      "total_expenses": "إجمالي المصاريف"
+    },
+    "messages": {
+      "default_split_cleared": "تم مسح التقسيم الافتراضي",
+      "default_split_updated": "تم تحديث التقسيم الافتراضي",
+      "default_balance_currency_cleared": "تم مسح عملة الرصيد الافتراضية",
+      "default_balance_currency_updated": "تم تحديث عملة الرصيد الافتراضية",
+      "balances_recalculated": "تمت إعادة حساب الأرصدة بنجاح",
+      "group_archived": "تمت أرشفة المجموعة بنجاح",
+      "group_name_updated": "تم تحديث بيانات المجموعة"
+    },
+    "no_members": {
+      "add_members": "إضافة أعضاء",
+      "add_members_details": {
+        "add_to_split_pro": "إضافة إلى SplitPro",
+        "note": "ملاحظة: إرسال الدعوات عبر البريد الإلكتروني معطّل",
+        "placeholder": "أدخل الاسم أو البريد الإلكتروني",
+        "send_invite": "إرسال دعوة للمستخدم",
+        "title": "إضافة أعضاء",
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة"
+      },
+      "invite_link": "رابط الدعوة",
+      "no_members": "لا يوجد أعضاء في المجموعة بعد."
+    },
+    "tabs": {
+      "balances": "الأرصدة",
+      "expenses": "المصاريف"
+    },
+    "title": "الأرصدة المستحقة في المجموعة"
+  },
+  "invite_message": {
+    "in_splitpro": "على SplitPro",
+    "join_to": "انضم إلى",
+    "text": "انضم إلى المجموعة لتتمكن من إضافة المصاريف وإدارتها ومتابعة أرصدتك"
+  },
+  "meta": {
+    "application_name": "SplitPro",
+    "description": "قسّم المصاريف مع أصدقائك مجانًا",
+    "title": "SplitPro: قسّم المصاريف مع أصدقائك مجانًا"
+  },
+  "balances": {
+    "user_preferences": {
+      "title": "التفضيلات"
+    },
+    "default_split": {
+      "cleared": "تم مسح التقسيم الافتراضي",
+      "configure": "التقسيم الافتراضي",
+      "updated": "تم تحديث التقسيم الافتراضي"
+    }
+  },
+  "navigation": {
+    "account": "الحساب",
+    "activity": "النشاط",
+    "add": "إضافة",
+    "add_expense": "إضافة مصروف",
+    "recurring": "المتكررة",
+    "balances": "الأرصدة",
+    "groups": "المجموعات"
+  },
+  "recurrence": {
+    "title": "التكرار",
+    "description": "اضبط تكرارًا تلقائيًا لهذا المصروف.",
+    "cron_expression": "تعبير Cron",
+    "time_of_day": "الوقت من اليوم",
+    "days_of_week": "أيام الأسبوع",
+    "days_of_month": "أيام الشهر",
+    "months": "الأشهر",
+    "last_day": "آخر يوم",
+    "never": "لم يتم ضبط جدول",
+    "empty": "لا توجد مصاريف متكررة بعد",
+    "recurring": "متكرر",
+    "expense_for_the_amount_of": "مصروف {name} بمبلغ {amount} {currency}",
+    "delete_title": "حذف التكرار",
+    "delete_description": "سيؤدي هذا إلى إيقاف إنشاء المصاريف المستقبلية. لن يتم حذف المصاريف التي أُنشئت سابقًا بهذا التكرار.",
+    "edit_title": "تعديل التكرار",
+    "edit_description": "سيؤدي هذا إلى تغيير جدول المصاريف المستقبلية. لن يتم تعديل المصاريف الحالية.",
+    "schedule_type": {
+      "never": "أبدًا",
+      "custom": "مخصص",
+      "day": "يوميًا",
+      "month": "شهريًا",
+      "week": "أسبوعيًا",
+      "year": "سنويًا"
+    },
+    "edit_confirmation_title": "تعديل المصروف المتكرر",
+    "template_edit_warning": "هذا قالب مصروف متكرر. ستُطبّق التغييرات على جميع المصاريف المتكررة المستقبلية.",
+    "derived_edit_warning": "هذا المصروف جزء من تكرار. ستؤثر التغييرات على هذا المصروف فقط.",
+    "template_delete_warning": "هذا قالب مصروف متكرر. حذفه سيوقف جميع المصاريف المتكررة المستقبلية.",
+    "derived_delete_warning": "هذا المصروف جزء من تكرار. سيتم حذف هذا المصروف فقط، وستستمر المصاريف المتكررة المستقبلية.",
+    "view_recurring_page": "عرض صفحة المصاريف المتكررة",
+    "toggle_options": "إظهار/إخفاء خيارات التكرار"
+  },
+  "ui": {
+    "added_by": "أضافه",
+    "and": "و",
+    "balance": "رصيد",
+    "balances": "أرصدة",
+    "delete": "حذف",
+    "deleted_by": "حذفه",
+    "edited_by": "عدّله",
+    "expense": {
+      "for": "مقابل",
+      "from": "من",
+      "paid_by": "دفعه",
+      "received_by": "استلمه",
+      "to": "إلى",
+      "user": {
+        "deleted": "حذف",
+        "get": "يستحق",
+        "lent": "أقرض",
+        "owe": "مدين بـ",
+        "paid": "دفع",
+        "pay": "يدفع",
+        "received": "استلم"
+      },
+      "you": {
+        "deleted": "حذفتَ",
+        "get": "تستحق",
+        "lent": "أقرضتَ",
+        "owe": "مدين بـ",
+        "paid": "دفعتَ",
+        "pay": "تدفع",
+        "received": "استلمتَ"
+      },
+      "payer": {
+        "current_user": "أنت"
+      },
+      "recipient": {
+        "current_user": "أنت"
+      },
+      "statements": {
+        "you_lent": "أقرضتَ",
+        "you_owe": "أنت مدين",
+        "you_lent_amount": "أقرضتَ {amount}",
+        "you_owe_amount": "أنت مدين بـ {amount}",
+        "you_pay_user": "تدفع إلى {user}",
+        "user_pays_you": "{user} يدفع لك",
+        "user_pays_user": "{payer} يدفع إلى {receiver}"
+      }
+    },
+    "expense_details": "تفاصيل المصروف",
+    "no_activity": "لا توجد أنشطة بعد",
+    "not_involved": "غير مشارك",
+    "not_set": "غير محدد",
+    "on": "في",
+    "or": "أو",
+    "outstanding_balances": "الأرصدة المستحقة",
+    "total_balance": "إجمالي الرصيد",
+    "select_currency": "اختر العملة",
+    "select_balance": "اختر الرصيد",
+    "settle_up_name": "تسوية",
+    "settled_up": "تمت التسوية",
+    "settlement": "تسوية",
+    "share_text": "جرّب SplitPro، بديل مجاني ومفتوح المصدر لتطبيق Splitwise",
+    "show_all_currencies": "عرض جميع العملات",
+    "today": "اليوم",
+    "in_group": "في المجموعة",
+    "transfer": "{senderRole, select, you {تدفع إلى {receiver}} other {{receiverRole, select, you {{sender} يدفع لك} other {{sender} يدفع إلى {receiver}}}}}"
+  },
+  "friend": {
+    "delete_confirmation": {
+      "title": "هل أنت متأكد تمامًا؟",
+      "description": "هل تريد المتابعة فعلًا؟",
+      "outstanding_balance": "لا يمكنك إزالة صديق لديه أرصدة مستحقة. قم بالتسوية أولًا."
+    }
+  },
+  "activity": {
+    "you_paid_for_expense": "دفعتَ {amount} مقابل {expense}",
+    "you_received_for_expense": "استلمتَ {amount} مقابل {expense}",
+    "user_paid_for_expense": "{user} دفع {amount} مقابل {expense}",
+    "user_received_for_expense": "{user} استلم {amount} مقابل {expense}",
+    "user_deleted_expense": "{actor, select, you {حذفتَ {expense}} other {{user} حذف {expense}}}",
+    "you_paid_amount": "دفعتَ {amount}",
+    "you_received_amount": "استلمتَ {amount}"
+  },
+  "balance_summary": {
+    "friend_owes_you": "{friend} مدين لك بـ {amount}",
+    "you_owe_friend": "أنت مدين لـ {friend} بـ {amount}",
+    "more": "{count, plural, zero {لا أرصدة أخرى} one {رصيد آخر} two {رصيدان آخران} few {# أرصدة أخرى} many {# رصيدًا آخر} other {# رصيد آخر}}"
+  },
+  "balance_list": {
+    "pays": "{payerRole, select, you {تدفع {amount} إلى {receiver}} other {{payer} يدفع {amount} {receiverRole, select, you {لك} other {إلى {receiver}}}}}",
+    "gets": "{receiverRole, select, you {تستلم {amount} من {payer}} other {{receiver} يستلم {amount} {payerRole, select, you {منك} other {من {payer}}}}}"
+  },
+  "expense_participant": {
+    "gets": "{actor, select, you {<person/> تستحق <amount/>} other {<person/> يستحق <amount/>}}",
+    "owes": "{actor, select, you {<person/> مدين بـ <amount/>} other {<person/> مدين بـ <amount/>}}",
+    "paid": "<person/> دفع <amount/>",
+    "received": "<person/> استلم <amount/>"
+  },
+  "expense_metadata": {
+    "edited_by": "{actor, select, you {عدّلتَه في {date}} other {عدّله {user} في {date}}}",
+    "deleted_by": "{actor, select, you {حذفتَه في {date}} other {حذفه {user} في {date}}}",
+    "added_by": "{actor, select, you {أضفتَه في {date}} other {أضافه {user} في {date}}}"
+  },
+  "expense_list": {
+    "user_paid": "{actor, select, you {دفعتَ {amount}} other {{user} دفع {amount}}}",
+    "user_received": "{actor, select, you {استلمتَ {amount}} other {{user} استلم {amount}}}",
+    "settlement": "{payerRole, select, you {دفعتَ {amount} إلى {receiver}} other {{receiverRole, select, you {{payer} دفع لك {amount}} other {{payer} دفع {amount} إلى {receiver}}}}}",
+    "conversion_for_users": "تحويل عملة لـ {payerRole, select, you {أنت} other {{payer}}} و{receiverRole, select, you {أنت} other {{receiver}}}"
+  },
+  "notifications": {
+    "enable_title": "تفعيل الإشعارات",
+    "enable_description": "لا تفوّت الأحداث المهمة. اشترك لتلقي إشعارات عند إضافة المصاريف أو تحديثها.",
+    "permission_granted": "ستصلك الإشعارات الآن",
+    "subscribe": "اشتراك"
+  }
+}
