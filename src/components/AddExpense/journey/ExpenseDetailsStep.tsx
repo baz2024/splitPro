@@ -3,11 +3,13 @@ import React from 'react';
 
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { type CurrencyCode } from '~/lib/currency';
+import { parseReviewReasons } from '~/lib/expenseReview';
 import { cn } from '~/lib/utils';
 import { useAddExpenseStore } from '~/store/addStore';
 import { toImageSrc } from '~/utils/imageUpload';
 
 import { RecurrenceInput } from '../RecurrenceInput';
+import { useReviewTranslation } from '../../Review/useReviewTranslation';
 import { PaidBySentence } from './PaidBySentence';
 import { CategorySheet, CurrencySheet, DatePopover, categoryLabel } from './journeyPickers';
 import { GroupedRows, JOURNEY_PILL_CLASS, RowButton, ValueRow } from './journeyUi';
@@ -98,6 +100,8 @@ export const RepeatLink: React.FC<{
 export const ExpenseDetailsStep: React.FC<{
   lowConfidenceFields?: ScanField[];
   note?: string | null;
+  /** Reason codes that will flag the saved expense "Review" (~/lib/expenseReview). */
+  reviewReasons?: readonly string[];
   receiptPreviewUrl?: string | null;
   fromPhoto?: boolean;
   onEditAmount: () => void;
@@ -106,6 +110,7 @@ export const ExpenseDetailsStep: React.FC<{
 }> = ({
   lowConfidenceFields = [],
   note,
+  reviewReasons = [],
   receiptPreviewUrl,
   fromPhoto = false,
   onEditAmount,
@@ -113,6 +118,7 @@ export const ExpenseDetailsStep: React.FC<{
   onCurrencyPick,
 }) => {
   const { t, toUIDate, getCurrencyHelpersCached } = useTranslationWithUtils();
+  const { t: tReview } = useReviewTranslation();
   const amount = useAddExpenseStore((s) => s.amount);
   const isNegative = useAddExpenseStore((s) => s.isNegative);
   const currency = useAddExpenseStore((s) => s.currency);
@@ -126,13 +132,21 @@ export const ExpenseDetailsStep: React.FC<{
   const flagged = new Set(lowConfidenceFields);
   const amountFlagged = flagged.has('amount');
   const receiptSrc = receiptPreviewUrl ?? toImageSrc(fileKey);
+  // Fields only the confidence scores caught (e.g. tax), which the flagged list can't name.
+  const unsureFields = parseReviewReasons(reviewReasons).flatMap((reason) =>
+    'field' === reason.kind ? [reason.field] : [],
+  );
   const warning =
     note ??
     (0 < flagged.size
       ? t('add_journey.review.warning_pill', {
           fields: [...flagged].map((field) => t(`add_journey.review.fields.${field}`)).join(', '),
         })
-      : null);
+      : 0 < unsureFields.length
+        ? tReview('warning_fields', {
+            fields: unsureFields.map((field) => tReview(`fields.${field}`)).join(', '),
+          })
+        : null);
 
   return (
     <div className="flex flex-col gap-4">

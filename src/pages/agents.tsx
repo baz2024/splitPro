@@ -10,6 +10,7 @@ import {
   API_KEY_NAME_INPUT_ID,
   ApiKeysSection,
 } from '~/components/Agent/ApiKeysSection';
+import { AgentCapBanner } from '~/components/Agent/AgentCapBanner';
 import { DetectedSubscriptionsCard } from '~/components/Agent/DetectedSubscriptionsCard';
 import { InstallSkillSection } from '~/components/Agent/InstallSkillSection';
 import { UsageConnected } from '~/components/Agent/UsageConnected';
@@ -80,7 +81,9 @@ const UsageOverview: React.FC<{ groupId?: number }> = ({ groupId }) => {
         </p>
       )}
 
-      <UsageSpentBy rows={usage.rows} currency={currency} />
+      <UsageSpentBy rows={usage.rows} currency={currency} agents={usage.agents} />
+
+      <AgentCapBanner agents={usage.agents} />
 
       {null !== usage.cap && (overCap || nearCap) && (
         <Alert status="warning" className="rounded-2xl">
@@ -161,6 +164,8 @@ export default AgentsPage;
 export const getStaticProps = withI18nStaticProps([
   'common',
   'agentsusage',
+  'agentcaps',
+  'billing',
   'categories',
   'currencies',
 ]);

@@ -228,8 +228,11 @@ SubscriptionsPage.auth = true;
 export const getStaticProps = withI18nStaticProps([
   'common',
   'subscriptions',
+  'billing',
   'categories',
   'currencies',
+  'reminders',
+  'unused',
 ]);
 
 export default SubscriptionsPage;

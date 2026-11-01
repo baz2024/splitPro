@@ -26,7 +26,17 @@ describe('parseReceiptScanText', () => {
         currency: 'USD',
         date: '2026-10-30',
         category: 'diningOut',
+        tax: null,
         lowConfidenceFields: [],
+        confidence: {
+          merchant: null,
+          amount: null,
+          currency: null,
+          date: null,
+          category: null,
+          tax: null,
+        },
+        reviewReasons: [],
         note: null,
       });
     });
@@ -45,7 +55,17 @@ describe('parseReceiptScanText', () => {
         currency: 'GBP',
         date: '2026-02-03',
         category: 'groceries',
+        tax: null,
         lowConfidenceFields: ['amount'],
+        confidence: {
+          merchant: null,
+          amount: null,
+          currency: null,
+          date: null,
+          category: null,
+          tax: null,
+        },
+        reviewReasons: ['field:total', 'note:Tax looked blurry'],
         note: 'Tax looked blurry',
       });
     });
@@ -77,9 +97,72 @@ describe('parseReceiptScanText', () => {
         currency: null,
         date: null,
         category: null,
+        tax: null,
+        lowConfidenceFields: [],
+        confidence: {
+          merchant: null,
+          amount: null,
+          currency: null,
+          date: null,
+          category: null,
+          tax: null,
+        },
+        reviewReasons: [],
+        note: null,
+      });
+    });
+  });
+
+  describe('with per-field confidence', () => {
+    it('flags fields below the threshold, including tax, as review reasons', () => {
+      const result = parseReceiptScanText(
+        JSON.stringify({
+          merchant: 'Vercel Inc.',
+          amount: '20.00',
+          currency: 'USD',
+          date: '2026-11-01',
+          category: 'cloudHosting',
+          tax: '0.00',
+          confidence: {
+            merchant: 0.98,
+            amount: 0.95,
+            currency: 0.9,
+            date: 0.92,
+            category: 0.85,
+            tax: 0.4,
+          },
+          lowConfidenceFields: [],
+          note: 'Tax looked blurry',
+        }),
+      );
+
+      expect(result.tax).toBe('0.00');
+      expect(result.confidence.tax).toBe(0.4);
+      expect(result.reviewReasons).toEqual(['field:tax', 'note:Tax looked blurry']);
+    });
+
+    it('needs no review when every field is confident and there is no note', () => {
+      const result = normaliseReceiptScan({
+        merchant: 'Cafe',
+        amount: '4.50',
+        currency: 'EUR',
+        date: '2026-11-01',
+        category: 'diningOut',
+        tax: null,
+        confidence: { merchant: 0.99, amount: 0.99, currency: 0.99, date: 0.99, category: 0.9 },
         lowConfidenceFields: [],
         note: null,
       });
+
+      expect(result.reviewReasons).toEqual([]);
+    });
+
+    it('ignores malformed confidence values', () => {
+      const result = normaliseReceiptScan({ confidence: { merchant: 'high', amount: 80 } });
+
+      expect(result.confidence.merchant).toBeNull();
+      expect(result.confidence.amount).toBe(0.8);
+      expect(result.reviewReasons).toEqual([]);
     });
   });
 });

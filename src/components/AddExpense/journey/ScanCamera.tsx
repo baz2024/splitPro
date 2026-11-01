@@ -3,6 +3,7 @@ import { Check, ImageIcon, Minus, Sparkles, Zap } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
 import React, { useRef } from 'react';
 
+import { useReviewTranslation } from '../../Review/useReviewTranslation';
 import { GroupedRows } from './journeyUi';
 
 /** Decorative receipt outline drawn inside the viewfinder. */
@@ -116,8 +117,12 @@ const FIELD_ORDER = ['merchant', 'total', 'date', 'category'] as const;
 export const ReadingReceipt: React.FC<{
   previewUrl: string | null;
   fields: ReadingFields | null;
-}> = ({ previewUrl, fields }) => {
+  /** Leave while the AI is still reading; the saved expense is then flagged "Review". */
+  onSkip?: () => void;
+}> = ({ previewUrl, fields, onSkip }) => {
   const { t } = useTranslation();
+  const { t: tReview } = useReviewTranslation();
+  const canSkip = Boolean(onSkip) && null === fields;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={null === fields}>
@@ -168,7 +173,16 @@ export const ReadingReceipt: React.FC<{
         })}
       </GroupedRows>
 
-      <p className="text-muted text-xs">{t('add_journey.scan.reading_footnote')}</p>
+      {canSkip ? (
+        <>
+          <p className="text-muted text-xs">{tReview('reading.leave_hint')}</p>
+          <Button variant="ghost" size="sm" className="text-accent self-start" onPress={onSkip}>
+            {tReview('reading.type_instead')}
+          </Button>
+        </>
+      ) : (
+        <p className="text-muted text-xs">{t('add_journey.scan.reading_footnote')}</p>
+      )}
     </div>
   );
 };

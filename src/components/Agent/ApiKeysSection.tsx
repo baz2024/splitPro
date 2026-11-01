@@ -1,5 +1,5 @@
 import { Alert, Button, Card, Chip, Input } from '@heroui/react';
-import { KeyRound, Plus, Trash2 } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -7,6 +7,7 @@ import { SimpleConfirmationDialog } from '~/components/SimpleConfirmationDialog'
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { api } from '~/utils/api';
 
+import { AgentKeySheet } from './AgentKeySheet';
 import { CopyField } from './CopyField';
 
 const MAX_KEY_NAME_LENGTH = 100;
@@ -22,7 +23,10 @@ interface CreatedKey {
 }
 
 export const ApiKeysSection: React.FC = () => {
-  const { t, toUIDate } = useTranslationWithUtils();
+  const { t, toUIDate, getCurrencyHelpersCached } = useTranslationWithUtils([
+    'common',
+    'agentcaps',
+  ]);
   const utils = api.useUtils();
   const keysQuery = api.agent.listApiKeys.useQuery();
   const createMutation = api.agent.createApiKey.useMutation();
@@ -35,6 +39,28 @@ export const ApiKeysSection: React.FC = () => {
   const trimmedName = name.trim();
   const keys = keysQuery.data ?? [];
   const keyToRevoke = keys.find((key) => key.id === revokeId);
+  const groupsQuery = api.group.getAllGroups.useQuery();
+  const groupNames = new Map(
+    (groupsQuery.data ?? []).map(({ group }) => [group.id, group.name] as const),
+  );
+
+  const keySettings = (key: (typeof keys)[number]) => {
+    const label = key.agentLabel?.trim();
+    const cap =
+      null !== key.monthlyCapAmount && key.capCurrency
+        ? t('key_row.cap', {
+            ns: 'agentcaps',
+            cap: getCurrencyHelpersCached(key.capCurrency).toUIString(key.monthlyCapAmount),
+          })
+        : t('key_row.no_cap', { ns: 'agentcaps' });
+    const projectName = null === key.groupId ? undefined : groupNames.get(key.groupId);
+    const project = projectName
+      ? t('key_row.project', { ns: 'agentcaps', project: projectName })
+      : t('key_row.personal', { ns: 'agentcaps' });
+    return [label && label !== key.name ? label : null, key.model, cap, project]
+      .filter(Boolean)
+      .join(' · ');
+  };
 
   const onCreate = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -150,7 +176,24 @@ export const ApiKeysSection: React.FC = () => {
                         })
                       : t('agents.keys.never_used')}
                   </span>
+                  {!key.revokedAt && (
+                    <span className="text-muted truncate text-xs">{keySettings(key)}</span>
+                  )}
                 </div>
+                {!key.revokedAt && (
+                  <AgentKeySheet
+                    apiKey={key}
+                    trigger={
+                      <button
+                        type="button"
+                        aria-label={t('key_row.edit_label', { ns: 'agentcaps', name: key.name })}
+                        className="bg-default text-foreground focus-visible:ring-focus inline-flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:ring-2 focus-visible:outline-none"
+                      >
+                        <Pencil className="size-4" aria-hidden />
+                      </button>
+                    }
+                  />
+                )}
                 {!key.revokedAt && (
                   <Button
                     size="sm"

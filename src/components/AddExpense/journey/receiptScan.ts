@@ -14,7 +14,12 @@ export interface ReceiptScanResult {
   currency: string | null;
   date: string | null;
   category: string | null;
+  tax: string | null;
   lowConfidenceFields: ScanField[];
+  /** Model-reported confidence per field (0–1), null when not reported. */
+  confidence: Record<ScanField | 'tax', number | null>;
+  /** Reason codes saved on the expense as the "Review" flag (see ~/lib/expenseReview). */
+  reviewReasons: string[];
   note: string | null;
 }
 

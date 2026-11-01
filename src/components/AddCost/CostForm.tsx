@@ -11,6 +11,7 @@ import { cronToBackend } from '~/lib/cron';
 import { type CurrencyCode } from '~/lib/currency';
 import { FEATURED_SERVICES, type ServiceInfo, findService } from '~/lib/serviceCatalog';
 import { cn } from '~/lib/utils';
+import { DEFAULT_REMIND_DAYS_BEFORE } from '~/server/reminders/dueDate';
 import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
 
@@ -66,6 +67,7 @@ export const CostForm: React.FC<{
     'addcost',
     'common',
     'categories',
+    'reminders',
   ]);
   const router = useRouter();
   const isSubscription = 'subscription' === kind;
@@ -90,6 +92,7 @@ export const CostForm: React.FC<{
   const [plan, setPlan] = useState('');
   const [cadence, setCadence] = useState<BillingCadence>('monthly');
   const [nextRenewal, setNextRenewal] = useState<Date>(() => defaultNextRenewal('monthly'));
+  const [remind, setRemind] = useState(true);
   const [month, setMonth] = useState<Date>(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -114,6 +117,21 @@ export const CostForm: React.FC<{
       : null;
 
   const addExpenseMutation = api.expense.addOrEditExpense.useMutation();
+  const setReminderMutation = api.reminders.setReminder.useMutation();
+
+  /** The reminder is a separate write; a failure keeps the saved subscription and says so. */
+  const saveReminder = async (expenseId: string | undefined) => {
+    if (!isSubscription || !remind || !expenseId) {
+      return true;
+    }
+    try {
+      await setReminderMutation.mutateAsync({ expenseId, daysBefore: DEFAULT_REMIND_DAYS_BEFORE });
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
 
   const service = serviceId && OTHER_SERVICE !== serviceId ? findService(serviceId) : undefined;
   const isOther = OTHER_SERVICE === serviceId;
@@ -161,7 +179,7 @@ export const CostForm: React.FC<{
       : state.participants.map((p) => ({ userId: p.id, amount: p.amount ?? 0n }));
 
     try {
-      await addExpenseMutation.mutateAsync([
+      const [saved] = await addExpenseMutation.mutateAsync([
         {
           name: isSubscription
             ? buildSubscriptionDescription(serviceName, plan)
@@ -181,7 +199,11 @@ export const CostForm: React.FC<{
             : undefined,
         },
       ]);
-      toast.success(t(isSubscription ? 'saved.subscription' : 'saved.usage'));
+      if (await saveReminder(saved?.id)) {
+        toast.success(t(isSubscription ? 'saved.subscription' : 'saved.usage'));
+      } else {
+        toast.warning(t('form.saved_without_reminder', { ns: 'reminders' }));
+      }
       goAfterSave().catch(console.error);
     } catch (error) {
       console.error(error);
@@ -189,12 +211,9 @@ export const CostForm: React.FC<{
     }
   };
 
+  const isSaving = addExpenseMutation.isPending || setReminderMutation.isPending;
   const canSave =
-    !addExpenseMutation.isPending &&
-    0n < amount &&
-    '' !== serviceName &&
-    Boolean(category) &&
-    canSplitScreenClosed;
+    !isSaving && 0n < amount && '' !== serviceName && Boolean(category) && canSplitScreenClosed;
 
   const [thisMonth] = useState(() => toMonthInputValue(new Date()));
 
@@ -303,6 +322,27 @@ export const CostForm: React.FC<{
                 }
               />
             </Row>
+            <label
+              htmlFor="addcost-remind"
+              className="flex min-h-14 cursor-pointer items-center gap-3 px-4 py-2"
+            >
+              <input
+                id="addcost-remind"
+                type="checkbox"
+                checked={remind}
+                onChange={(e) => setRemind(e.target.checked)}
+                aria-describedby="addcost-remind-hint"
+                className="accent-accent focus-visible:ring-focus size-5 shrink-0 rounded outline-none focus-visible:ring-2"
+              />
+              <span className="flex min-w-0 flex-col">
+                <span className="text-sm">
+                  {t('form.remind', { ns: 'reminders', days: DEFAULT_REMIND_DAYS_BEFORE })}
+                </span>
+                <span id="addcost-remind-hint" className="text-muted text-xs">
+                  {t('form.remind_hint', { ns: 'reminders' })}
+                </span>
+              </span>
+            </label>
           </>
         ) : (
           <Row label={t('fields.month')} htmlFor="addcost-month">
@@ -337,7 +377,7 @@ export const CostForm: React.FC<{
             size="lg"
             className="min-h-13 rounded-full"
             isDisabled={!canSave}
-            isPending={addExpenseMutation.isPending}
+            isPending={isSaving}
             onPress={() => {
               save().catch(console.error);
             }}

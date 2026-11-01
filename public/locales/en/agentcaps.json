@@ -1,0 +1,40 @@
+{
+  "key_row": {
+    "edit": "Edit agent",
+    "edit_label": "Edit {name}",
+    "cap": "Cap {cap}/month",
+    "no_cap": "No monthly cap",
+    "project": "Counts toward {project}",
+    "personal": "Personal spend"
+  },
+  "sheet": {
+    "title": "Agent settings",
+    "save": "Save",
+    "label": "Agent name",
+    "label_placeholder": "e.g. Growth agent",
+    "label_hint": "Shown on the usage page. Leave empty to use the key name.",
+    "model": "Model",
+    "model_placeholder": "e.g. claude-sonnet",
+    "project": "Project",
+    "project_none": "No project (personal)",
+    "project_hint": "Spend this agent reports is added to this project.",
+    "cap": "Monthly cap",
+    "cap_placeholder": "e.g. 300",
+    "cap_hint": "When month-to-date spend reaches the cap, the agent is told to pause. Leave empty for no cap.",
+    "invalid_cap": "Enter a cap greater than zero, or leave it empty.",
+    "saved": "Agent settings saved",
+    "failed": "Couldn't save agent settings"
+  },
+  "spent_by": {
+    "agent_model": "agent · {model}",
+    "cap_header": "Cap",
+    "cap_bar_label": "{spent} of the {cap} cap ({percent}%)",
+    "no_cap": "No cap"
+  },
+  "banner": {
+    "over": "{label} is over its {cap} cap.",
+    "reached": "{label} has reached its {cap} cap and will pause.",
+    "near_pace": "{label} will hit its {cap} cap at current pace.",
+    "near": "{label} has used {percent}% of its {cap} cap."
+  }
+}

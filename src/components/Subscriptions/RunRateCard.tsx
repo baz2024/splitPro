@@ -3,12 +3,16 @@ import React from 'react';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 
 import { SUBSCRIPTIONS_NAMESPACES, type SubscriptionsOverview } from './types';
+import { UnusedSheet } from './UnusedSheet';
 
 interface RunRateCardProps {
   overview: SubscriptionsOverview;
 }
 
-/** Monthly run-rate (primary currency, others noted) beside the active subscription count. */
+/**
+ * Monthly run-rate (primary currency, others noted) beside the active subscription count and,
+ * when any exist, a link to the subscriptions unused for 30+ days.
+ */
 export const RunRateCard: React.FC<RunRateCardProps> = ({ overview }) => {
   const { t, getCurrencyHelpersCached } = useTranslationWithUtils(SUBSCRIPTIONS_NAMESPACES);
   const [primary, ...others] = overview.runRates;
@@ -45,6 +49,7 @@ export const RunRateCard: React.FC<RunRateCardProps> = ({ overview }) => {
         <span dir="ltr" className="text-foreground text-[26px] font-bold">
           {overview.items.length}
         </span>
+        <UnusedSheet overview={overview} />
       </div>
     </section>
   );

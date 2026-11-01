@@ -2,11 +2,13 @@ import { groupRouter } from '~/server/api/routers/group';
 import { createTRPCRouter } from '~/server/api/trpc';
 
 import { agentRouter } from './routers/agent';
+import { billingRouter } from './routers/billing';
 import { userRouter } from './routers/user';
 import { projectRouter } from './routers/project';
 import { bankTransactionsRouter } from './routers/bankTransactions';
 import { expenseRouter } from './routers/expense';
 import { receiptRouter } from './routers/receipt';
+import { remindersRouter } from './routers/reminders';
 import { subscriptionsRouter } from './routers/subscriptions';
 
 /**
@@ -23,6 +25,8 @@ export const appRouter = createTRPCRouter({
   agent: agentRouter,
   project: projectRouter,
   subscriptions: subscriptionsRouter,
+  reminders: remindersRouter,
+  billing: billingRouter,
 });
 
 // Export type definition of API

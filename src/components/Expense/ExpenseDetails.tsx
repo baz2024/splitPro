@@ -21,6 +21,7 @@ import { api } from '~/utils/api';
 import { BigMath } from '~/utils/numbers';
 
 import { CurrencyConversion } from '../Friend/CurrencyConversion';
+import { ReviewReasonsCard } from '../Review/ReviewReasonsCard';
 import { EntityAvatar } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { CategoryIcon } from '../ui/categoryIcons';
@@ -59,8 +60,20 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
 
   const { toUIString } = getCurrencyHelpersCached(expense.currency);
 
+  const canMarkReviewed =
+    user.id === expense.addedBy ||
+    user.id === expense.paidBy ||
+    expense.expenseParticipants.some((p) => p.userId === user.id && 0n !== p.amount);
+
   return (
     <>
+      {expense.needsReview && !expense.deletedBy ? (
+        <ReviewReasonsCard
+          expenseId={expense.id}
+          reviewReasons={expense.reviewReasons}
+          canMarkReviewed={canMarkReviewed}
+        />
+      ) : null}
       <div className="mb-4 flex items-start justify-between gap-2">
         <div className="flex items-start gap-4">
           <div className="rounded-lg border p-2 text-xl">

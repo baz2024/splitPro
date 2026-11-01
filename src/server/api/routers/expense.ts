@@ -19,6 +19,7 @@ import { isCurrencyCode } from '~/lib/currency';
 import { SplitType } from '@prisma/client';
 import { DEFAULT_CATEGORY } from '~/lib/category';
 import { getUserMap } from './user';
+import { sanitizeReviewReasons } from '~/lib/expenseReview';
 
 export const expenseRouter = createTRPCRouter({
   getCumulatedBalances: protectedProcedure.query(async ({ ctx }) => {
@@ -145,9 +146,16 @@ export const expenseRouter = createTRPCRouter({
         }
 
         try {
+          // Review flags only come from the add journey; edits never set them.
+          const reviewReasons = sanitizeReviewReasons(input.reviewReasons);
+          const reviewInput = {
+            ...input,
+            needsReview: !input.expenseId && true === input.needsReview && 0 < reviewReasons.length,
+            reviewReasons,
+          };
           const expense = input.expenseId
             ? await editExpense(input, ctx.session.user.id)
-            : await createExpense(input, ctx.session.user.id);
+            : await createExpense(reviewInput, ctx.session.user.id);
 
           results.push(expense);
         } catch (error) {
@@ -561,6 +569,45 @@ export const expenseRouter = createTRPCRouter({
 
       // Use cron.alter_job to update the schedule
       await db.$executeRaw`SELECT cron.alter_job(${recurrence.job.jobid}, schedule := ${input.cronExpression})`;
+    }),
+
+  /** Clears the "Review" flag ("Looks right"). Only whoever added/paid it or a participant. */
+  markReviewed: protectedProcedure
+    .input(z.object({ expenseId: z.string().uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+      const expense = await db.expense.findUnique({
+        where: { id: input.expenseId },
+        select: {
+          id: true,
+          addedBy: true,
+          paidBy: true,
+          deletedBy: true,
+          needsReview: true,
+          expenseParticipants: { where: { userId }, select: { userId: true } },
+        },
+      });
+
+      if (!expense || null !== expense.deletedBy) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Expense not found' });
+      }
+      const canReview =
+        userId === expense.addedBy ||
+        userId === expense.paidBy ||
+        0 < expense.expenseParticipants.length;
+      if (!canReview) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You cannot review this expense' });
+      }
+      if (!expense.needsReview) {
+        return { id: expense.id, needsReview: false };
+      }
+
+      const updated = await db.expense.update({
+        where: { id: expense.id },
+        data: { needsReview: false, reviewReasons: [] },
+        select: { id: true, needsReview: true },
+      });
+      return updated;
     }),
 
   deleteExpense: protectedProcedure

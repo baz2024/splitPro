@@ -2,12 +2,13 @@ import { Button } from '@heroui/react';
 import { Camera, PencilLine, Upload } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cronToBackend } from '~/lib/cron';
 import { type CurrencyCode } from '~/lib/currency';
+import { REVIEW_SCAN_SKIPPED } from '~/lib/expenseReview';
 import { useAddExpenseStore } from '~/store/addStore';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
@@ -97,6 +98,14 @@ export const AddExpenseJourney: React.FC<{
     fields: [],
     note: null,
   });
+  /** Reason codes for the "Review" flag saved with a scanned expense (~/lib/expenseReview). */
+  const [scanReviewReasons, setScanReviewReasons] = useState<string[]>([]);
+  /**
+   * The scan in flight. `id` changes when a new photo is picked or the scan is abandoned, so a
+   * late answer for an old photo is ignored. `skipped` = the user left the reading screen to
+   * fill in the details before the AI finished.
+   */
+  const scanSessionRef = useRef<{ id: number; skipped: boolean }>({ id: 0, skipped: false });
 
   const amount = useAddExpenseStore((s) => s.amount);
   const description = useAddExpenseStore((s) => s.description);
@@ -129,7 +138,15 @@ export const AddExpenseJourney: React.FC<{
     [previewUrl],
   );
 
+  const resetScanReview = () => {
+    scanSessionRef.current = { id: scanSessionRef.current.id + 1, skipped: false };
+    setScanReviewReasons([]);
+  };
+
   const changeMode = (next: AddMode, nextStep: Step = firstStep(next)) => {
+    if ('scan' !== next) {
+      resetScanReview();
+    }
     setMode(next);
     setStep(nextStep);
     router
@@ -183,29 +200,39 @@ export const AddExpenseJourney: React.FC<{
     await uploadReceipt(prepared);
   };
 
-  const applyScanResult = (result: ReceiptScanResult): ReadingFields => {
-    if (result.merchant) {
+  /**
+   * Copies the scan into the add store. With `onlyEmpty` (the user already left the reading
+   * screen and may have typed things) only the description and amount fill in, and only when
+   * still empty, so the late answer never overwrites the user's input.
+   */
+  const applyScanResult = (result: ReceiptScanResult, onlyEmpty = false): ReadingFields => {
+    const before = useAddExpenseStore.getState();
+    const canFillDescription = !onlyEmpty || '' === before.description.trim();
+    const canFillAmount = !onlyEmpty || 0n === before.amount;
+
+    if (result.merchant && canFillDescription) {
       setDescription(result.merchant.trim());
     }
-    const currency = parseScanCurrency(result.currency);
+    const currency = canFillAmount ? parseScanCurrency(result.currency) : null;
     if (currency) {
       setCurrency(currency);
     }
     const helpers = getCurrencyHelpersCached(currency ?? useAddExpenseStore.getState().currency);
     const scannedAmount = parseScanAmount(result.amount);
     const value = null === scannedAmount ? null : helpers.toSafeBigInt(scannedAmount);
-    if (null !== value) {
+    if (null !== value && canFillAmount) {
       setAmount(value);
       setAmountStr(helpers.toUIString(value, false, true));
     }
-    const date = parseScanDate(result.date);
+    const date = onlyEmpty ? null : parseScanDate(result.date);
     if (date) {
       setExpenseDate(date);
     }
-    const category = parseScanCategory(result.category);
+    const category = onlyEmpty ? null : parseScanCategory(result.category);
     if (category) {
       setCategory(category);
     }
+    setScanReviewReasons(result.reviewReasons);
 
     const missing: ScanField[] = [];
     if (!result.merchant) {
@@ -234,7 +261,16 @@ export const AddExpenseJourney: React.FC<{
     changeMode('manual', 'manual');
   };
 
+  /** Reading screen → fill in by hand while the scan keeps running ("Review" flag is set). */
+  const skipReading = () => {
+    scanSessionRef.current = { ...scanSessionRef.current, skipped: true };
+    setStep('manual');
+  };
+
   const onReceiptPicked = async (file: File) => {
+    resetScanReview();
+    const scanId = scanSessionRef.current.id;
+    const isCurrentScan = () => scanId === scanSessionRef.current.id;
     setPreviewUrl(URL.createObjectURL(file));
     setReadingFields(null);
     setStep('reading');
@@ -265,7 +301,15 @@ export const AddExpenseJourney: React.FC<{
         fallBackToManual(t('add_journey.scan.too_large'));
         return;
       }
-      setReadingFields(applyScanResult(await scanMutation.mutateAsync({ imageBase64, mimeType })));
+      const result = await scanMutation.mutateAsync({ imageBase64, mimeType });
+      if (!isCurrentScan()) {
+        return;
+      }
+      if (scanSessionRef.current.skipped) {
+        applyScanResult(result, true);
+        return;
+      }
+      setReadingFields(applyScanResult(result));
       // Let the filled checklist register before moving on.
       setTimeout(
         () => setStep((current) => ('reading' === current ? 'review' : current)),
@@ -273,6 +317,10 @@ export const AddExpenseJourney: React.FC<{
       );
     } catch (error) {
       console.error('Receipt scan failed:', error);
+      if (!isCurrentScan() || scanSessionRef.current.skipped) {
+        // The user is already filling it in by hand; the "Review" flag stays on.
+        return;
+      }
       fallBackToManual(
         error instanceof Error && error.message ? error.message : t('add_journey.scan.failed'),
       );
@@ -310,6 +358,15 @@ export const AddExpenseJourney: React.FC<{
       return;
     }
     const sign = state.isNegative ? -1n : 1n;
+    const reviewReasons =
+      'scan' === mode
+        ? [
+            ...new Set([
+              ...(scanSessionRef.current.skipped ? [REVIEW_SCAN_SKIPPED] : []),
+              ...scanReviewReasons,
+            ]),
+          ]
+        : [];
 
     try {
       const [saved] = await addExpenseMutation.mutateAsync([
@@ -329,6 +386,7 @@ export const AddExpenseJourney: React.FC<{
           expenseDate: state.expenseDate,
           transactionId: state.transactionId,
           cronExpression: state.cronExpression ? cronToBackend(state.cronExpression) : undefined,
+          ...(0 < reviewReasons.length && { needsReview: true, reviewReasons }),
         },
       ]);
 
@@ -364,6 +422,8 @@ export const AddExpenseJourney: React.FC<{
       return;
     }
     if ('review' === step || 'reading' === step) {
+      // Back to the camera abandons this photo's scan.
+      resetScanReview();
       setStep('capture');
       return;
     }
@@ -447,7 +507,9 @@ export const AddExpenseJourney: React.FC<{
           />
         );
       case 'reading':
-        return <ReadingReceipt previewUrl={previewUrl} fields={readingFields} />;
+        return (
+          <ReadingReceipt previewUrl={previewUrl} fields={readingFields} onSkip={skipReading} />
+        );
       case 'manual':
         return (
           <AmountKeypad
@@ -462,6 +524,7 @@ export const AddExpenseJourney: React.FC<{
           <ExpenseDetailsStep
             lowConfidenceFields={scanFlags.fields}
             note={scanFlags.note}
+            reviewReasons={scanReviewReasons}
             receiptPreviewUrl={previewUrl}
             fromPhoto={'scan' === mode}
             onEditAmount={() => setStep('manual')}

@@ -2,6 +2,7 @@ import { Bot } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
+import { ReviewChip } from '~/components/Review/ReviewChip';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
@@ -232,8 +233,11 @@ export const TodayList: React.FC<{ summary: ProjectSummary; currentUserId: numbe
                     })}
                   </span>
                 </div>
-                <span className="shrink-0 text-sm font-semibold" dir="ltr">
-                  {getCurrencyHelpersCached(expense.currency).toUIString(expense.amount)}
+                <span className="flex shrink-0 items-center gap-2">
+                  {expense.needsReview ? <ReviewChip /> : null}
+                  <span className="text-sm font-semibold" dir="ltr">
+                    {getCurrencyHelpersCached(expense.currency).toUIString(expense.amount)}
+                  </span>
                 </span>
               </Link>
             </li>

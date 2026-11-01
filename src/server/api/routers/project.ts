@@ -135,6 +135,7 @@ export const projectRouter = createTRPCRouter({
             createdAt: true,
             fileKey: true,
             recurrenceId: true,
+            needsReview: true,
             paidByUser: { select: { id: true, name: true, email: true, image: true } },
           },
         }),
@@ -199,6 +200,7 @@ export const projectRouter = createTRPCRouter({
           paidBy: expense.paidByUser,
           hasReceipt: null !== expense.fileKey,
           isRecurring: null !== expense.recurrenceId,
+          needsReview: expense.needsReview,
         })),
       };
     }),

@@ -90,6 +90,27 @@ export async function sendFeedbackEmail(
   await sendMail(env.FEEDBACK_EMAIL, subject, text, text, user.email ?? undefined);
 }
 
+/** Renewal reminder email, used when a participant has no push subscription. */
+export async function sendRenewalReminderEmail(
+  email: string,
+  message: { subject: string; line: string; openLabel: string; footer: string; dir: 'ltr' | 'rtl' },
+) {
+  if (!env.NEXTAUTH_URL) {
+    return false;
+  }
+  const url = new URL('/subscriptions', env.NEXTAUTH_URL).toString();
+
+  if ('development' === env.NODE_ENV) {
+    console.log('Sending renewal reminder email', message.line);
+    return true;
+  }
+
+  const text = `${message.line}\n\n${message.openLabel}: ${url}\n\n${message.footer}\n\nSafi`;
+  const html = `<div dir="${message.dir}"><p>${escapeHtml(message.line)}</p><p><a href="${url}">${escapeHtml(message.openLabel)}</a></p><p style="font-size:12px">${escapeHtml(message.footer)}</p><p>Safi</p></div>`;
+
+  return await sendMail(email, message.subject, text, html);
+}
+
 async function sendMail(
   email: string,
   subject: string,

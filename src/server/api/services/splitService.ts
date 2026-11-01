@@ -47,6 +47,8 @@ export async function createExpense(
     fileKey,
     transactionId,
     cronExpression,
+    needsReview,
+    reviewReasons,
   }: CreateExpense & { cronExpression?: string },
   currentUserId: number,
   conversionFromParams?: CreateExpense,
@@ -101,6 +103,7 @@ export async function createExpense(
       expenseDate,
       transactionId,
       conversionFrom,
+      ...(needsReview && { needsReview, reviewReasons: reviewReasons ?? [] }),
     },
   });
 

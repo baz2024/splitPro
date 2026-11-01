@@ -101,3 +101,63 @@ Summarise for the user: which services are new, what each one likely costs (link
 - The only data sent to Safi is what is shown in the table: service name, category,
   evidence lines, repo name (`owner/repo` from the git remote, or the folder name) and the
   agent name.
+
+## Heartbeats (`--heartbeat`)
+
+Add `--heartbeat` (usually together with `--report`) to tell Safi which services this
+repo **still** uses:
+
+```bash
+node scripts/scan.mjs . --report --heartbeat
+```
+
+- It sends every CURRENT finding, new and already known, to `POST /api/agent/v1/seen`
+  as `{ fingerprints: [{ fingerprint, service }], detectedIn }`. Only fingerprint,
+  service name and repo name are sent; no evidence lines.
+- Safi only refreshes services it already knows for this key's user. Unknown ones are
+  ignored; new services are still added only through `--report`.
+- Safi uses these heartbeats for "unused 30+ days" on the Subscriptions screen: a
+  subscription is flagged when no heartbeat, usage cost or "Still using" tap has been
+  seen for it in 30 days. Running the scan with `--heartbeat` regularly keeps tools in
+  active use from being flagged.
+- It needs `SAFI_API_KEY`, the same as `--report`; ask the user first in the same way.
+
+## Reporting your own API spend (`/api/agent/v1/usage`)
+
+An agent that pays for its own model or API calls can report that spend to Safi, and
+must respect the monthly cap the user set for its key under **Account → Coding agents**.
+
+Report spend after a run (or once per billing period), not per token:
+
+```bash
+curl -sS -X POST "${SAFI_API_URL:-https://safi.kafoai.com}/api/agent/v1/usage" \
+  -H "Authorization: Bearer $SAFI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"service":"anthropic","amount":"12.50","currency":"USD","model":"claude-sonnet",
+       "periodStart":"2026-11-01T00:00:00Z","periodEnd":"2026-11-16T00:00:00Z",
+       "idempotencyKey":"run-2026-11-16-001"}'
+```
+
+- Required: `service`, `amount` (a decimal **string** such as `"12.50"`, never a number),
+  `currency` (ISO 4217) and `idempotencyKey`. Optional: `model`, `periodStart`,
+  `periodEnd` (ISO 8601) and `description`.
+- `idempotencyKey` (letters, digits and `. _ : -`, up to 200 characters) must be unique
+  per real charge. Retrying with the same key never adds a second cost: Safi answers
+  `200` with `"duplicate": true` and the first expense.
+- Safi records a one-off expense paid by the key owner, in the project chosen for the
+  key (or as personal spend when none is set), dated at `periodEnd` or now.
+- A new report returns `201` with `{ expenseId, duplicate, currency, monthToDate, cap,
+capRemaining, percent, overCap, shouldPause, projectedToHitCap }`. Amounts are decimal
+  strings in `currency`; `cap` and `capRemaining` are `null` when no cap is set.
+
+Check the cap before starting expensive work (same fields, without `expenseId`):
+
+```bash
+curl -sS "${SAFI_API_URL:-https://safi.kafoai.com}/api/agent/v1/usage" \
+  -H "Authorization: Bearer $SAFI_API_KEY"
+```
+
+**When `shouldPause` is `true`, stop making paid calls.** Month-to-date spend (UTC month)
+has reached or passed the cap. Tell the user, and resume only when they raise the cap or
+the next month starts. When `projectedToHitCap` is `true`, tell the user and prefer
+cheaper models. Only spend reported in the cap currency counts toward the cap.

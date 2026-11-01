@@ -1,7 +1,7 @@
-import { Button, Chip } from '@heroui/react';
 import Link from 'next/link';
 import React from 'react';
 
+import { BillingConnectedRows } from '~/components/Billing/BillingConnectedRows';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 
 import { capHref } from './UsageSummaryCard';
@@ -11,7 +11,7 @@ interface UsageConnectedProps {
   projectId: number | null;
 }
 
-/** Connected sources: Kafo AI as the budget source, billing integrations as "coming soon". */
+/** Connected sources: Kafo AI as the budget source, then billing sync (Vercel) rows. */
 export const UsageConnected: React.FC<UsageConnectedProps> = ({ hasBudget, projectId }) => {
   const { t } = useTranslationWithUtils(['agentsusage']);
 
@@ -37,23 +37,7 @@ export const UsageConnected: React.FC<UsageConnectedProps> = ({ hasBudget, proje
             </Link>
           )}
         </li>
-        <li className="flex min-h-14 items-center justify-between gap-3 px-4 py-2 text-sm">
-          <span>{t('connected.vercel')}</span>
-          <div className="flex items-center gap-2">
-            <Chip size="sm" variant="soft">
-              {t('connected.soon')}
-            </Chip>
-            <Button
-              size="sm"
-              variant="outline"
-              isDisabled
-              aria-label={t('connected.connect_label', { service: t('connected.vercel') })}
-              className="min-h-9 rounded-full"
-            >
-              {t('connected.connect')}
-            </Button>
-          </div>
-        </li>
+        <BillingConnectedRows projectId={projectId} />
       </ul>
     </section>
   );

@@ -4,7 +4,8 @@
  * optionally reports NEW ones to Safi (https://safi.kafoai.com).
  *
  * Zero dependencies, Node >= 18, ESM.
- * Usage: node scan.mjs [repoDir] [--report] [--json] [--baseline <file>] [--update-baseline]
+ * Usage: node scan.mjs [repoDir] [--report] [--heartbeat] [--json] [--baseline <file>]
+ *        [--update-baseline]
  *
  * Privacy: this script only reads dependency manifests, deploy configs and the variable
  * NAMES of committed env templates (.env.example / .env.sample / .env.template). It never
@@ -1208,6 +1209,54 @@ export const reportFindings = async (
 };
 
 // ---------------------------------------------------------------------------
+// Heartbeat: tells Safi which known services this repo still uses
+// ---------------------------------------------------------------------------
+
+export const MAX_HEARTBEAT_FINGERPRINTS = 200;
+
+export const toHeartbeatPayload = (findings, { detectedIn }) => ({
+  fingerprints: findings.slice(0, MAX_HEARTBEAT_FINGERPRINTS).map((finding) => ({
+    fingerprint: finding.fingerprint.slice(0, 100),
+    service: finding.service.slice(0, 100),
+  })),
+  ...(detectedIn ? { detectedIn: detectedIn.slice(0, 200) } : {}),
+});
+
+/**
+ * POSTs every CURRENT finding (new and known) to /api/agent/v1/seen so Safi can tell which
+ * subscriptions are still in use. Safi only refreshes services it already knows; it never creates
+ * new ones from a heartbeat.
+ */
+export const sendHeartbeat = async (
+  findings,
+  { apiUrl, apiKey, detectedIn, fetchImpl = globalThis.fetch },
+) => {
+  const endpoint = `${apiUrl.replace(/\/+$/, '')}/api/agent/v1/seen`;
+  try {
+    const response = await fetchImpl(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(toHeartbeatPayload(findings, { detectedIn })),
+    });
+    const body = await response.json().catch(() => ({}));
+    return {
+      ok: response.ok,
+      httpStatus: response.status,
+      seen: Array.isArray(body.seen) ? body.seen : [],
+      ignored: Array.isArray(body.ignored) ? body.ignored : [],
+      error: response.ok ? undefined : (body.error ?? `HTTP ${response.status}`),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      seen: [],
+      ignored: [],
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
+
+// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
@@ -1215,6 +1264,7 @@ export const parseArgs = (argv) => {
   const args = {
     repoDir: '.',
     report: false,
+    heartbeat: false,
     json: false,
     baseline: null,
     updateBaseline: false,
@@ -1225,6 +1275,8 @@ export const parseArgs = (argv) => {
     const arg = rest.shift();
     if ('--report' === arg) {
       args.report = true;
+    } else if ('--heartbeat' === arg) {
+      args.heartbeat = true;
     } else if ('--json' === arg) {
       args.json = true;
     } else if ('--update-baseline' === arg) {
@@ -1247,9 +1299,11 @@ export const parseArgs = (argv) => {
 const HELP = `Safi subscription monitor
 Finds paid APIs and services this codebase uses and reports new ones to Safi.
 
-Usage: node scan.mjs [repoDir] [--report] [--json] [--baseline <file>] [--update-baseline]
+Usage: node scan.mjs [repoDir] [--report] [--heartbeat] [--json] [--baseline <file>] [--update-baseline]
 
   --report            POST each NEW finding to Safi (needs SAFI_API_KEY)
+  --heartbeat         Also tell Safi which known services this repo still uses (all CURRENT
+                      findings, not only new ones), so it can flag subscriptions unused 30+ days
   --json              Machine-readable output
   --baseline <file>   Known-subscriptions file (default: <repo>/${DEFAULT_BASELINE})
   --update-baseline   Mark every current finding as known
@@ -1297,7 +1351,7 @@ export const main = async (argv = process.argv.slice(2), env = process.env) => {
     return 2;
   }
   const apiKey = env.SAFI_API_KEY?.trim();
-  if (args.report && !apiKey) {
+  if ((args.report || args.heartbeat) && !apiKey) {
     console.error(
       'SAFI_API_KEY is not set. Create a key in Safi (Account → Coding agents), then run:\n' +
         '  export SAFI_API_KEY=safi_...\n' +
@@ -1336,6 +1390,18 @@ export const main = async (argv = process.argv.slice(2), env = process.env) => {
       exitCode = 1;
     }
   }
+  let heartbeat = null;
+  const keyRejected = Boolean(reported?.some((result) => 401 === result.httpStatus));
+  if (args.heartbeat && 0 < findings.length && !keyRejected) {
+    heartbeat = await sendHeartbeat(findings, {
+      apiUrl: env.SAFI_API_URL?.trim() || DEFAULT_API_URL,
+      apiKey,
+      detectedIn: detectRepoName(root),
+    });
+    if (!heartbeat.ok) {
+      exitCode = 1;
+    }
+  }
   if (args.updateBaseline) {
     nextBaseline = mergeIntoBaseline(nextBaseline ?? baseline, findings);
   }
@@ -1358,6 +1424,7 @@ export const main = async (argv = process.argv.slice(2), env = process.env) => {
             isNew: newSet.has(finding.fingerprint),
           })),
           ...(reported ? { reported } : {}),
+          ...(heartbeat ? { heartbeat } : {}),
         },
         null,
         2,
@@ -1384,6 +1451,16 @@ export const main = async (argv = process.argv.slice(2), env = process.env) => {
     console.log(
       'Run with --report to send the new ones to Safi, or --update-baseline to mark them known.',
     );
+  }
+  if (heartbeat) {
+    console.log(
+      heartbeat.ok
+        ? `Heartbeat sent: ${heartbeat.seen.length} known service(s) marked as still in use.`
+        : `Heartbeat FAILED: ${heartbeat.error}`,
+    );
+    if (401 === heartbeat.httpStatus) {
+      console.error('Safi rejected the API key (401). Check SAFI_API_KEY or create a new key.');
+    }
   }
   if (args.updateBaseline) {
     console.log(`Baseline updated: ${relBaseline}`);

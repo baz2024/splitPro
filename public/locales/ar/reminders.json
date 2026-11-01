@@ -1,0 +1,23 @@
+{
+  "form": {
+    "remind": "ذكّرني قبل التجديد {days, plural, zero {# يوم} one {بيوم واحد} two {بيومين} few {بـ# أيام} many {بـ# يومًا} other {بـ# يوم}}",
+    "remind_hint": "سيصل إشعار إلى كل من يتشارك هذه التكلفة، أو بريد إلكتروني إن كانت الإشعارات متوقفة.",
+    "saved_without_reminder": "حُفظ الاشتراك، لكن تعذّر ضبط التذكير. فعّله من صفحة الاشتراكات."
+  },
+  "row": {
+    "turn_on": "ذكّرني قبل تجديد {name} {days, plural, zero {بـ# يوم} one {بيوم واحد} two {بيومين} few {بـ# أيام} many {بـ# يومًا} other {بـ# يوم}}",
+    "turn_off": "إيقاف تذكير التجديد لـ{name}",
+    "turned_on": "تم تفعيل التذكير لـ{name}",
+    "turned_off": "تم إيقاف التذكير لـ{name}",
+    "error": "تعذّر تحديث التذكير. حاول مرة أخرى."
+  },
+  "notification": {
+    "title": "يتجدد {name} {days, plural, zero {خلال # يوم} one {غدًا} two {بعد يومين} few {بعد # أيام} many {بعد # يومًا} other {بعد # يوم}}",
+    "amount_personal": "{amount}",
+    "amount_split": "{amount} · مقسّمة على {ways, plural, two {شخصين} few {# أشخاص} many {# شخصًا} other {# شخص}}",
+    "line": "يتجدد {name} {days, plural, zero {خلال # يوم} one {غدًا} two {بعد يومين} few {بعد # أيام} many {بعد # يومًا} other {بعد # يوم}} — {details}",
+    "email_subject": "تذكير بالتجديد: {name}",
+    "email_open": "افتح الاشتراكات في Safi",
+    "email_footer": "وصلك هذا البريد لأن تذكير التجديد مفعّل لهذا الاشتراك. يمكنك إيقافه من زر الجرس في صفحة الاشتراكات."
+  }
+}

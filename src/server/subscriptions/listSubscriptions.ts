@@ -16,7 +16,15 @@ import {
   splitKindFromParticipants,
   summariseRunRates,
   summariseUsage,
+  usageServiceKey,
 } from './helpers';
+import {
+  type UsageSignalKind,
+  getUsageStatus,
+  lastExpenseByServiceKey,
+  lastSeenByServiceKey,
+  unusedCutoff,
+} from './unused';
 
 export interface SubscriptionItem {
   id: string;
@@ -32,6 +40,11 @@ export interface SubscriptionItem {
   split: SplitKind;
   groupId: number | null;
   groupName: string | null;
+  /** Older than 30 days with no usage signal in the last 30 days. */
+  unused: boolean;
+  /** Newest usage signal (still-using tap, repo heartbeat or usage expense), if any. */
+  lastUsedAt: Date | null;
+  lastUsedSignal: UsageSignalKind | null;
 }
 
 export interface ProjectBudgetShare {
@@ -46,9 +59,101 @@ export interface SubscriptionsOverview {
   runRates: RunRate[];
   usage: UsageSummary[];
   budget: ProjectBudgetShare | null;
+  unusedCount: number;
 }
 
 const NON_SPEND_SPLIT_TYPES = ['SETTLEMENT', 'CURRENCY_CONVERSION'] as const;
+
+const newestDate = (a: Date | undefined, b: Date | undefined): Date | null => {
+  if (!a || !b) {
+    return a ?? b ?? null;
+  }
+  return a.getTime() >= b.getTime() ? a : b;
+};
+
+interface UsageSignalMaps {
+  startedByRecurrence: Map<number, Date>;
+  seenByRecurrence: Map<number, Date>;
+  seenByService: Map<string, Date>;
+  usageByService: Map<string, Date>;
+}
+
+/**
+ * Loads the data behind the "unused 30+ days" rule: when each recurrence started, repo heartbeats
+ * from the subscription-monitor skill, and the user's non-recurring expenses in the last 30 days.
+ * Usage expenses are user-wide (not limited to one project): use anywhere counts as use.
+ */
+const loadUsageSignals = async (
+  db: PrismaClient,
+  { userId, recurrenceIds, now }: { userId: number; recurrenceIds: number[]; now: Date },
+): Promise<UsageSignalMaps> => {
+  if (0 === recurrenceIds.length) {
+    return {
+      startedByRecurrence: new Map(),
+      seenByRecurrence: new Map(),
+      seenByService: new Map(),
+      usageByService: new Map(),
+    };
+  }
+
+  const cutoff = unusedCutoff(now);
+  const [starts, detected, recentExpenses] = await Promise.all([
+    db.expense.groupBy({
+      by: ['recurrenceId'],
+      where: { recurrenceId: { in: recurrenceIds }, deletedBy: null },
+      _min: { createdAt: true },
+    }),
+    db.detectedSubscription.findMany({
+      where: { userId, lastSeenAt: { gte: cutoff } },
+      select: { fingerprint: true, service: true, lastSeenAt: true, expenseId: true },
+    }),
+    db.expense.findMany({
+      where: {
+        deletedBy: null,
+        recurrenceId: null,
+        expenseParticipants: { some: { userId } },
+        splitType: { notIn: [...NON_SPEND_SPLIT_TYPES] },
+        expenseDate: { gte: cutoff, lte: now },
+      },
+      select: { name: true, expenseDate: true },
+    }),
+  ]);
+
+  const linkedExpenseIds = detected.flatMap(({ expenseId }) => (expenseId ? [expenseId] : []));
+  const linkedExpenses =
+    0 < linkedExpenseIds.length
+      ? await db.expense.findMany({
+          where: { id: { in: linkedExpenseIds }, recurrenceId: { in: recurrenceIds } },
+          select: { id: true, recurrenceId: true },
+        })
+      : [];
+  const recurrenceByExpenseId = new Map(
+    linkedExpenses.map(({ id, recurrenceId }) => [id, recurrenceId] as const),
+  );
+
+  const seenByRecurrence = detected.reduce((acc, row) => {
+    const recurrenceId = row.expenseId ? recurrenceByExpenseId.get(row.expenseId) : null;
+    if (!recurrenceId || !row.lastSeenAt) {
+      return acc;
+    }
+    acc.set(recurrenceId, newestDate(acc.get(recurrenceId), row.lastSeenAt) ?? row.lastSeenAt);
+    return acc;
+  }, new Map<number, Date>());
+
+  const startedByRecurrence = starts.reduce((acc, { recurrenceId, _min }) => {
+    if (recurrenceId && _min.createdAt) {
+      acc.set(recurrenceId, _min.createdAt);
+    }
+    return acc;
+  }, new Map<number, Date>());
+
+  return {
+    startedByRecurrence,
+    seenByRecurrence,
+    seenByService: lastSeenByServiceKey(detected),
+    usageByService: lastExpenseByServiceKey(recentExpenses),
+  };
+};
 
 export const listSubscriptions = async (
   db: PrismaClient,
@@ -115,6 +220,12 @@ export const listSubscriptions = async (
     }),
   ]);
 
+  const signals = await loadUsageSignals(db, {
+    userId,
+    recurrenceIds: recurrences.map(({ id }) => id),
+    now,
+  });
+
   const items = recurrences
     .flatMap((recurrence) => {
       const expense = recurrence.expense[0];
@@ -122,6 +233,18 @@ export const listSubscriptions = async (
         return [];
       }
       const cadence = cadenceFromCron(recurrence.job.schedule);
+      const serviceKey = usageServiceKey(expense.name);
+      const seenViaLink = signals.seenByRecurrence.get(recurrence.id);
+      const seenViaService = signals.seenByService.get(serviceKey);
+      const usage = getUsageStatus(
+        {
+          startedAt: signals.startedByRecurrence.get(recurrence.id) ?? null,
+          lastConfirmedUsedAt: recurrence.lastConfirmedUsedAt,
+          lastSeenInRepoAt: newestDate(seenViaLink, seenViaService),
+          lastUsageExpenseAt: signals.usageByService.get(serviceKey) ?? null,
+        },
+        now,
+      );
       return [
         {
           id: expense.id,
@@ -137,6 +260,9 @@ export const listSubscriptions = async (
           split: splitKindFromParticipants(expense.expenseParticipants),
           groupId: expense.groupId,
           groupName: expense.group?.name ?? null,
+          unused: usage.unused,
+          lastUsedAt: usage.lastUsedAt,
+          lastUsedSignal: usage.lastUsedSignal,
         } satisfies SubscriptionItem,
       ];
     })
@@ -159,5 +285,11 @@ export const listSubscriptions = async (
         }
       : null;
 
-  return { items, runRates, usage, budget };
+  return {
+    items,
+    runRates,
+    usage,
+    budget,
+    unusedCount: items.filter((item) => item.unused).length,
+  };
 };

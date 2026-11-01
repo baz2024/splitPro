@@ -39,6 +39,13 @@ export interface UsageRow {
   /** Services an agent reported, for the agent sub-label. */
   services: string[];
   amount: bigint;
+  /** Set when the row is spend an agent reported itself through its API key. */
+  apiKeyId?: string;
+}
+
+export interface UsageReporter {
+  apiKeyId: string;
+  label: string;
 }
 
 export interface UsageSummary {
@@ -60,7 +67,18 @@ export const userShareOf = (expense: UsageExpense, userId: number): bigint =>
 const rowIdentity = (
   expense: UsageExpense,
   agentByExpenseId: ReadonlyMap<string, string>,
-): Pick<UsageRow, 'key' | 'kind' | 'name' | 'badge'> => {
+  reporterByExpenseId: ReadonlyMap<string, UsageReporter>,
+): Pick<UsageRow, 'key' | 'kind' | 'name' | 'badge' | 'apiKeyId'> => {
+  const reporter = reporterByExpenseId.get(expense.id);
+  if (reporter) {
+    return {
+      key: `apikey:${reporter.apiKeyId}`,
+      kind: 'agent',
+      name: reporter.label,
+      badge: reporter.label,
+      apiKeyId: reporter.apiKeyId,
+    };
+  }
   const agent = agentByExpenseId.get(expense.id);
   if (agent) {
     return { key: `agent:${agent}`, kind: 'agent', name: agent, badge: agent };
@@ -94,11 +112,13 @@ export const aggregateUsage = ({
   expenses,
   userId,
   agentByExpenseId = new Map(),
+  reporterByExpenseId = new Map(),
   preferredCurrency = null,
 }: {
   expenses: UsageExpense[];
   userId: number;
   agentByExpenseId?: ReadonlyMap<string, string>;
+  reporterByExpenseId?: ReadonlyMap<string, UsageReporter>;
   preferredCurrency?: string | null;
 }): UsageSummary => {
   const shares = expenses
@@ -115,7 +135,7 @@ export const aggregateUsage = ({
   const rows = shares
     .filter(({ expense }) => expense.currency === currency)
     .reduce((acc, { expense, share }) => {
-      const identity = rowIdentity(expense, agentByExpenseId);
+      const identity = rowIdentity(expense, agentByExpenseId, reporterByExpenseId);
       const existing = acc.get(identity.key);
       const serviceName = findService(expense.name)?.name ?? expense.name;
       if (existing) {
@@ -245,8 +265,18 @@ export const loadUsage = async (
       amount: true,
       paidBy: true,
       expenseParticipants: { where: { userId }, select: { amount: true } },
+      reportedByApiKey: { select: { id: true, name: true, agentLabel: true, userId: true } },
     },
   });
+
+  // Only the key owner's own keys label a row; a project member's agent stays a service row.
+  const reporterByExpenseId = new Map(
+    expenses.flatMap(({ id, reportedByApiKey: key }) =>
+      key && userId === key.userId
+        ? [[id, { apiKeyId: key.id, label: key.agentLabel?.trim() || key.name }] as const]
+        : [],
+    ),
+  );
 
   const expenseIds = expenses.map((expense) => expense.id);
   const detections =
@@ -271,6 +301,7 @@ export const loadUsage = async (
   const summary = aggregateUsage({
     userId,
     agentByExpenseId,
+    reporterByExpenseId,
     preferredCurrency: project?.currency ?? null,
     expenses: expenses.map((expense) => ({
       id: expense.id,

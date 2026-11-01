@@ -283,6 +283,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => ({
       'categories',
       'currencies',
       'addcost',
+      'reminders',
     ])),
   },
 });

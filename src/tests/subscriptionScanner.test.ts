@@ -244,4 +244,70 @@ describe('safi subscription scanner', () => {
       }
     });
   });
+
+  describe('heartbeat', () => {
+    it('should POST every current finding to /seen, including ones already known', async () => {
+      const repo = makeRepo();
+      const requests: { url?: string; auth?: string; body: Record<string, unknown> }[] = [];
+      const server = http.createServer((req, res) => {
+        let raw = '';
+        req.on('data', (chunk: Buffer) => {
+          raw += chunk.toString();
+        });
+        req.on('end', () => {
+          const body = JSON.parse(raw) as Record<string, unknown>;
+          requests.push({ url: req.url, auth: req.headers.authorization, body });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          if ('/api/agent/v1/seen' === req.url) {
+            res.end(JSON.stringify({ seen: ['openai', 'vercel'], ignored: [] }));
+            return;
+          }
+          res.end(JSON.stringify({ id: 'x', status: 'pending', duplicate: true }));
+        });
+      });
+      await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+      const { port } = server.address() as AddressInfo;
+
+      try {
+        const env = {
+          ...cleanEnv(),
+          SAFI_API_KEY: FAKE_KEY,
+          SAFI_API_URL: `http://127.0.0.1:${port}`,
+        };
+        // Everything is already in the baseline, so --report alone would send nothing.
+        expect(runScan([repo, '--json', '--update-baseline']).status).toBe(0);
+
+        const result = await runScanAsync([repo, '--report', '--heartbeat', '--json'], env);
+        expect(result.code).toBe(0);
+        expect(result.stdout).not.toContain(FAKE_KEY);
+
+        expect(requests).toHaveLength(1);
+        const [heartbeat] = requests;
+        expect(heartbeat?.url).toBe('/api/agent/v1/seen');
+        expect(heartbeat?.auth).toBe(`Bearer ${FAKE_KEY}`);
+        expect(heartbeat?.body.detectedIn).toBe(path.basename(repo));
+        const sentEntries = (heartbeat?.body.fingerprints ?? []) as {
+          fingerprint: string;
+          service: string;
+        }[];
+        const sent = sentEntries.map((entry) => entry.fingerprint).sort();
+        expect(sent).toEqual(['openai', 'resend', 'stripe', 'supabase', 'vercel']);
+        expect(heartbeat?.body.fingerprints).toContainEqual({
+          fingerprint: 'openai',
+          service: 'OpenAI API',
+        });
+
+        const output = JSON.parse(result.stdout) as { heartbeat?: { ok: boolean; seen: string[] } };
+        expect(output.heartbeat).toMatchObject({ ok: true, seen: ['openai', 'vercel'] });
+      } finally {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+      }
+    });
+
+    it('should need SAFI_API_KEY', () => {
+      const result = runScan([makeRepo(), '--heartbeat']);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain('SAFI_API_KEY is not set');
+    });
+  });
 });

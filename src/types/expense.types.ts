@@ -23,11 +23,17 @@ export type CreateExpense = Omit<
   | 'transactionId'
   | 'conversionToId'
   | 'recurrenceId'
+  | 'needsReview'
+  | 'reviewReasons'
+  | 'reportedByApiKeyId'
+  | 'agentIdempotencyKey'
 > & {
   expenseDate?: Date;
   fileKey?: string;
   expenseId?: string;
   transactionId?: string;
+  needsReview?: boolean;
+  reviewReasons?: string[];
   participants: Omit<ExpenseParticipant, 'expenseId'>[];
 };
 
@@ -54,6 +60,8 @@ export const createExpenseSchema = z.object({
   expenseId: z.string().optional(),
   conversionToId: z.string().optional(),
   cronExpression: z.string().optional(),
+  needsReview: z.boolean().optional(),
+  reviewReasons: z.array(z.string().max(200)).max(12).optional(),
 }) satisfies z.ZodType<CreateExpense>;
 
 export const createCurrencyConversionSchema = z.object({

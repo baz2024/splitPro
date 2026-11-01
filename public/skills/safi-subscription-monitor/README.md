@@ -75,6 +75,24 @@ Environment variables:
 
 Exit codes: `0` ok, `1` a report failed, `2` bad usage or missing key.
 
+### Agents reporting their own spend
+
+Agents can report what they spend on model and API calls with
+`POST /api/agent/v1/usage` (Bearer `SAFI_API_KEY`), and read month-to-date spend against
+the key's monthly cap with `GET /api/agent/v1/usage`. Set the agent's name, model,
+project and monthly cap under **Account → Coding agents** in Safi.
+
+```bash
+curl -sS -X POST https://safi.kafoai.com/api/agent/v1/usage \
+  -H "Authorization: Bearer $SAFI_API_KEY" -H "Content-Type: application/json" \
+  -d '{"service":"openai","amount":"4.20","currency":"USD","model":"gpt-4.1-mini","idempotencyKey":"job-8812"}'
+```
+
+The response includes `monthToDate`, `cap`, `capRemaining`, `overCap` and `shouldPause`.
+An agent **must stop paid calls when `shouldPause` is `true`** (spend has reached the
+cap) and tell the user. Reusing an `idempotencyKey` never records a cost twice. See
+`SKILL.md` for every field.
+
 ## 5. GitHub Actions: scan every pull request
 
 Add `SAFI_API_KEY` under **Settings → Secrets and variables → Actions**, then create

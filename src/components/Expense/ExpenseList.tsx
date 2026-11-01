@@ -11,6 +11,7 @@ import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
 import type { ExpenseRouter } from '~/server/api/routers/expense';
 import { api } from '~/utils/api';
+import { ReviewChip } from '../Review/ReviewChip';
 import { Separator } from '../ui/separator';
 
 type ExpensesOutput =
@@ -102,7 +103,10 @@ const Expense: ExpenseComponent = ({ e, userId }) => {
         </div>
         <CategoryIcon category={e.category} className="size-5 shrink-0 text-gray-400" />
         <div className="min-w-0 pe-1">
-          <p className="truncate text-sm lg:text-base">{e.name}</p>
+          <p className="flex min-w-0 items-center gap-1.5 text-sm lg:text-base">
+            <span className="truncate">{e.name}</span>
+            {e.needsReview ? <ReviewChip /> : null}
+          </p>
           <p className="truncate text-xs text-gray-500">
             {t(e.amount < 0n ? 'expense_list.user_received' : 'expense_list.user_paid', {
               actor: e.paidByUser.id === userId ? 'you' : 'other',

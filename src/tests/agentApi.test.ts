@@ -242,6 +242,7 @@ describe('detectedSubscriptions', () => {
         id: 'id1',
         status: 'PENDING',
         expenseId: null,
+        lastSeenAt: null,
         createdAt: now,
         updatedAt: now,
       });

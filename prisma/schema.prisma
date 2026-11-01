@@ -66,6 +66,7 @@ model User {
   hiddenFriendIds       Int[]                  @default([])
   apiKeys               ApiKey[]
   detectedSubscriptions DetectedSubscription[]
+  billingConnections    BillingConnection[]
 
   @@schema("public")
 }
@@ -111,6 +112,7 @@ model Group {
   budgetCurrency    String?
   budgetSource      String?
   expenses          Expense[]
+  agentApiKeys      ApiKey[]
   createdBy         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   groupUsers        GroupUser[]
   groupBalances     BalanceView[]
@@ -190,6 +192,8 @@ model Expense {
   recurrenceId        Int?
   id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   conversionToId      String?              @unique @db.Uuid
+  needsReview         Boolean              @default(false)
+  reviewReasons       String[]             @default([])
   addedByUser         User                 @relation("AddedByUser", fields: [addedBy], references: [id], onDelete: Cascade)
   deletedByUser       User?                @relation("DeletedByUser", fields: [deletedBy], references: [id], onDelete: Cascade)
   group               Group?               @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -200,7 +204,11 @@ model Expense {
   updatedByUser       User?                @relation("UpdatedByUser", fields: [updatedBy], references: [id])
   expenseNotes        ExpenseNote[]
   expenseParticipants ExpenseParticipant[]
+  reportedByApiKeyId  String?
+  agentIdempotencyKey String?
+  reportedByApiKey    ApiKey?              @relation(fields: [reportedByApiKeyId], references: [id], onDelete: SetNull)
 
+  @@unique([reportedByApiKeyId, agentIdempotencyKey])
   @@index([groupId])
   @@index([paidBy])
   @@schema("public")
@@ -230,11 +238,17 @@ model ExpenseNote {
 }
 
 model ExpenseRecurrence {
-  id       Int       @id @default(autoincrement())
-  jobId    BigInt    @unique
-  notified Boolean   @default(true)
-  expense  Expense[]
-  job      job       @relation(fields: [jobId], references: [jobid], onDelete: Cascade)
+  id                  Int       @id @default(autoincrement())
+  jobId               BigInt    @unique
+  notified            Boolean   @default(true)
+  /// Days before each renewal to remind participants; null means no reminder.
+  remindDaysBefore    Int?
+  /// Renewal date (next run of the job) the last reminder covered, so each renewal is reminded once.
+  lastReminderSentFor DateTime?
+  /// Last time the user said they still use this subscription ("Still using").
+  lastConfirmedUsedAt DateTime?
+  expense             Expense[]
+  job                 job       @relation(fields: [jobId], references: [jobid], onDelete: Cascade)
 
   @@schema("public")
 }
@@ -320,17 +334,25 @@ model job_run_details {
 }
 
 model ApiKey {
-  id         String    @id @default(cuid())
-  userId     Int
-  name       String
-  prefix     String
-  hashedKey  String    @unique
-  createdAt  DateTime  @default(now())
-  lastUsedAt DateTime?
-  revokedAt  DateTime?
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  userId           Int
+  name             String
+  prefix           String
+  hashedKey        String    @unique
+  createdAt        DateTime  @default(now())
+  lastUsedAt       DateTime?
+  revokedAt        DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthlyCapAmount BigInt?
+  capCurrency      String?
+  groupId          Int?
+  agentLabel       String?
+  model            String?
+  group            Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  reportedExpenses Expense[]
 
   @@index([userId])
+  @@index([groupId])
   @@schema("public")
 }
 
@@ -349,6 +371,8 @@ model DetectedSubscription {
   pricingUrl        String?
   agent             String?
   expenseId         String?
+  /// Last heartbeat from the subscription-monitor skill that still found this service in a repo.
+  lastSeenAt        DateTime?
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
   user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -372,6 +396,57 @@ view BalanceView {
   user   User   @relation("UserBalanceView", fields: [userId], references: [id], onDelete: Cascade)
   friend User   @relation("FriendBalanceView", fields: [friendId], references: [id], onDelete: Cascade)
   group  Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+/// A provider billing account whose charges are imported as expenses (billing sync).
+model BillingConnection {
+  id                String          @id @default(cuid())
+  userId            Int
+  provider          BillingProvider
+  /// Project (group) the imported costs are posted into; null posts them as personal expenses.
+  groupId           Int?
+  /// Provider team or organisation id, only needed for account-wide tokens.
+  externalAccountId String?
+  label             String?
+  /// AES-256-GCM ciphertext of the provider token ("v<keyVersion>:<iv>:<tag>:<data>", base64).
+  encryptedToken    String
+  tokenLast4        String
+  /// active | error
+  status            String          @default("active")
+  lastSyncedAt      DateTime?
+  lastError         String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imports           BillingImport[]
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([provider, status])
+  @@schema("public")
+}
+
+/// Idempotency ledger: one row per (connection, month, service) linking to the expense it feeds.
+model BillingImport {
+  id           String            @id @default(cuid())
+  connectionId String
+  /// "<YYYY-MM>:<service key>", e.g. "2026-11:function-invocations".
+  periodKey    String
+  expenseId    String?
+  amount       BigInt
+  currency     String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  connection   BillingConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, periodKey])
+  @@schema("public")
+}
+
+enum BillingProvider {
+  VERCEL
+  SUPABASE
 
   @@schema("public")
 }

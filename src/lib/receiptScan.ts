@@ -1,8 +1,35 @@
 import { CATEGORIES, type CategoryItem, type CategorySection } from '~/lib/category';
+import {
+  type FieldConfidence,
+  type ReviewField,
+  buildReviewReasons,
+  normaliseConfidence,
+} from '~/lib/expenseReview';
 
 export const RECEIPT_FIELDS = ['merchant', 'amount', 'currency', 'date', 'category'] as const;
 
 export type ReceiptField = (typeof RECEIPT_FIELDS)[number];
+
+/** Fields the model rates its own confidence (0–1) for. `amount` is the receipt total. */
+export const RECEIPT_CONFIDENCE_FIELDS = [
+  'merchant',
+  'amount',
+  'currency',
+  'date',
+  'category',
+  'tax',
+] as const;
+
+export type ReceiptConfidenceField = (typeof RECEIPT_CONFIDENCE_FIELDS)[number];
+
+const REVIEW_FIELD_FOR: Record<ReceiptConfidenceField, ReviewField> = {
+  merchant: 'merchant',
+  amount: 'total',
+  currency: 'currency',
+  date: 'date',
+  category: 'category',
+  tax: 'tax',
+};
 
 export interface ReceiptScanResult {
   merchant: string | null;
@@ -14,7 +41,13 @@ export interface ReceiptScanResult {
   date: string | null;
   /** One of the app's category keys when possible */
   category: string | null;
+  /** Tax as a decimal string, when printed */
+  tax: string | null;
   lowConfidenceFields: ReceiptField[];
+  /** Model-reported confidence per field, 0–1; null when not reported */
+  confidence: Record<ReceiptConfidenceField, number | null>;
+  /** Stored on the expense when non-empty (see ~/lib/expenseReview) */
+  reviewReasons: string[];
   /** Short human warning, e.g. "Tax looked blurry" */
   note: string | null;
 }
@@ -233,11 +266,34 @@ export const normaliseReceiptScan = (raw: unknown): ReceiptScanResult => {
       'category' !== field,
   );
   const flagged = new Set<ReceiptField>([...reported, ...unparsed]);
+  const lowConfidenceFields = RECEIPT_FIELDS.filter((field) => flagged.has(field));
+  const note = cleanString(input.note, 160);
+
+  const rawConfidence = isRecord(input.confidence) ? input.confidence : {};
+  const confidence: Record<ReceiptConfidenceField, number | null> = {
+    merchant: normaliseConfidence(rawConfidence.merchant),
+    amount: normaliseConfidence(rawConfidence.amount),
+    currency: normaliseConfidence(rawConfidence.currency),
+    date: normaliseConfidence(rawConfidence.date),
+    category: normaliseConfidence(rawConfidence.category),
+    tax: normaliseConfidence(rawConfidence.tax),
+  };
+
+  const reviewConfidence: FieldConfidence = Object.fromEntries(
+    RECEIPT_CONFIDENCE_FIELDS.map((field) => [REVIEW_FIELD_FOR[field], confidence[field]]),
+  );
 
   return {
     ...parsed,
-    lowConfidenceFields: RECEIPT_FIELDS.filter((field) => flagged.has(field)),
-    note: cleanString(input.note, 160),
+    tax: normaliseReceiptAmount(input.tax),
+    lowConfidenceFields,
+    confidence,
+    reviewReasons: buildReviewReasons({
+      confidence: reviewConfidence,
+      flaggedFields: lowConfidenceFields.map((field) => REVIEW_FIELD_FOR[field]),
+      note,
+    }),
+    note,
   };
 };
 

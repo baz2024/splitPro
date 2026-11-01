@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { env } from '~/env';
 import {
   RECEIPT_CATEGORY_KEYS,
+  RECEIPT_CONFIDENCE_FIELDS,
   RECEIPT_FIELDS,
   type ReceiptScanResult,
   parseReceiptScanText,
@@ -32,10 +33,29 @@ const RECEIPT_JSON_SCHEMA = {
     currency: nullable({ type: 'string' }),
     date: nullable({ type: 'string' }),
     category: nullable({ type: 'string', enum: RECEIPT_CATEGORY_KEYS }),
+    tax: nullable({ type: 'string' }),
+    confidence: {
+      type: 'object',
+      properties: Object.fromEntries(
+        RECEIPT_CONFIDENCE_FIELDS.map((field) => [field, nullable({ type: 'number' })]),
+      ),
+      required: [...RECEIPT_CONFIDENCE_FIELDS],
+      additionalProperties: false,
+    },
     lowConfidenceFields: { type: 'array', items: { type: 'string', enum: RECEIPT_FIELDS } },
     note: nullable({ type: 'string' }),
   },
-  required: ['merchant', 'amount', 'currency', 'date', 'category', 'lowConfidenceFields', 'note'],
+  required: [
+    'merchant',
+    'amount',
+    'currency',
+    'date',
+    'category',
+    'tax',
+    'confidence',
+    'lowConfidenceFields',
+    'note',
+  ],
   additionalProperties: false,
 };
 
@@ -46,8 +66,10 @@ const SYSTEM_PROMPT = `You read photos of purchase receipts for an expense-split
 - currency: ISO 4217 code (e.g. "USD", "EUR", "GBP"). Infer it from symbols, the country or the language on the receipt when it is not printed; mark it low confidence when inferred. null if there is no clue.
 - date: the purchase date as YYYY-MM-DD, or null.
 - category: the best-fitting key from the allowed list, or null if none fits.
+- tax: the total tax (VAT, GST, sales tax) as a plain decimal like amount, or null if none is printed.
+- confidence: for each of merchant, amount, currency, date, category and tax, how sure you are of the value you returned, from 0 (guess) to 1 (clearly printed and unambiguous). Use null only when the field is null because the receipt does not show it at all. Be honest: blurry, cut-off, handwritten or inferred values must score below 0.8.
 - lowConfidenceFields: every field you guessed, inferred, or read from blurry, cut-off or ambiguous print.
-- note: one short plain-English warning for the user when something needs checking (e.g. "Tax looked blurry"), otherwise null.
+- note: one short plain-English warning for the user when something needs checking (e.g. "Tax looked blurry"), under 80 characters, otherwise null.
 
 If the image is not a receipt, return every field as null and say so in note. Never invent values.`;
 

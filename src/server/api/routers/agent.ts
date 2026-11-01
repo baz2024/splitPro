@@ -1,15 +1,36 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { isCurrencyCode } from '~/lib/currency';
 import { MAX_ACTIVE_API_KEYS, createApiKeyRecord } from '~/server/agent/apiKeys';
+import { loadAgentSpends } from '~/server/agent/caps';
 import {
   listDetectedSubscriptions,
   serializeDetectedSubscription,
 } from '~/server/agent/detectedSubscriptions';
 import { loadUsage } from '~/server/agent/usage';
+import { parseAmountToMinorUnits } from '~/server/agent/validation';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 
 const DETECTED_STATUSES = ['PENDING', 'ADDED', 'DISMISSED'] as const;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullable()
+    .transform((value) => (value && '' !== value ? value : null));
+
+const capInputSchema = z
+  .object({
+    amount: z.string().trim(),
+    currency: z
+      .string()
+      .transform((value) => value.trim().toUpperCase())
+      .refine((value) => isCurrencyCode(value), { message: 'Unknown currency' }),
+  })
+  .nullable();
 
 export const agentRouter = createTRPCRouter({
   listApiKeys: protectedProcedure.query(async ({ ctx }) =>
@@ -22,6 +43,11 @@ export const agentRouter = createTRPCRouter({
         createdAt: true,
         lastUsedAt: true,
         revokedAt: true,
+        agentLabel: true,
+        model: true,
+        groupId: true,
+        monthlyCapAmount: true,
+        capCurrency: true,
       },
       orderBy: { createdAt: 'desc' },
     }),
@@ -69,6 +95,64 @@ export const agentRouter = createTRPCRouter({
       });
     }),
 
+  updateApiKey: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        agentLabel: optionalText(100),
+        model: optionalText(100),
+        groupId: z.number().int().positive().nullable(),
+        /** Monthly cap as a decimal string in `currency`; null removes the cap. */
+        cap: capInputSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const apiKey = await ctx.db.apiKey.findFirst({
+        where: { id: input.id, userId },
+        select: { id: true },
+      });
+      if (!apiKey) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'API key not found' });
+      }
+
+      if (null !== input.groupId) {
+        const membership = await ctx.db.groupUser.findFirst({
+          where: { groupId: input.groupId, userId },
+          select: { groupId: true },
+        });
+        if (!membership) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
+        }
+      }
+
+      const capAmount = input.cap
+        ? parseAmountToMinorUnits(input.cap.amount.replace(',', '.'), input.cap.currency)
+        : null;
+      if (input.cap && (null === capAmount || 0n >= capAmount)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Enter a cap greater than zero' });
+      }
+
+      return ctx.db.apiKey.update({
+        where: { id: apiKey.id },
+        data: {
+          agentLabel: input.agentLabel,
+          model: input.model,
+          groupId: input.groupId,
+          monthlyCapAmount: capAmount,
+          capCurrency: input.cap ? input.cap.currency : null,
+        },
+        select: {
+          id: true,
+          agentLabel: true,
+          model: true,
+          groupId: true,
+          monthlyCapAmount: true,
+          capCurrency: true,
+        },
+      });
+    }),
+
   listDetectedSubscriptions: protectedProcedure
     .input(z.object({ status: z.enum(DETECTED_STATUSES).optional() }).optional())
     .query(async ({ ctx, input }) =>
@@ -105,7 +189,15 @@ export const agentRouter = createTRPCRouter({
 
   usage: protectedProcedure
     .input(z.object({ groupId: z.number().int().positive().optional() }).optional())
-    .query(async ({ ctx, input }) =>
-      loadUsage(ctx.db, ctx.session.user.id, { groupId: input?.groupId }),
-    ),
+    .query(async ({ ctx, input }) => {
+      const [usage, agents] = await Promise.all([
+        loadUsage(ctx.db, ctx.session.user.id, { groupId: input?.groupId }),
+        loadAgentSpends(ctx.db, ctx.session.user.id),
+      ]);
+      // Per-key spend with cap + percent; scoped to the project when one is picked.
+      const scopedAgents = input?.groupId
+        ? agents.filter((agent) => agent.project?.id === input.groupId)
+        : agents;
+      return { ...usage, agents: scopedAgents };
+    }),
 });
