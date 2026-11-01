@@ -313,7 +313,28 @@ export async function editExpense(
   }
   // For derived expenses, cronExpression is ignored entirely
 
-  await db.$transaction(operations);
+  // A one-off expense (for example an imported one) becomes recurring when a schedule is added.
+  const addsRecurrence = Boolean(cronExpression) && !expense.recurrence;
+  if (addsRecurrence && cronExpression) {
+    const [{ schedule }] = await createRecurringExpenseJob(expenseId, cronExpression);
+    operations.push(
+      db.expenseRecurrence.create({
+        data: {
+          expense: { connect: { id: expenseId } },
+          job: { connect: { jobid: schedule } },
+        },
+      }),
+    );
+  }
+
+  try {
+    await db.$transaction(operations);
+  } catch (error) {
+    if (addsRecurrence) {
+      await db.$executeRaw`SELECT cron.unschedule(${expenseId})`;
+    }
+    throw error;
+  }
   sendExpensePushNotification(expenseId).catch(console.error);
   return { id: expenseId }; // Return the updated expense
 }
