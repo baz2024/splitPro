@@ -202,6 +202,8 @@ export const groupRouter = createTRPCRouter({
           groupId: input.groupId,
           userId,
         })),
+        // Adding someone who is already a member must not fail the whole request.
+        skipDuplicates: true,
       });
 
       await ctx.db.groupDefaultSplit.deleteMany({ where: { groupId: input.groupId } });
