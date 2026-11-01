@@ -9,7 +9,8 @@
     "label": "Monthly run-rate",
     "budget_share": "{percent}% of project budget",
     "other_currencies": "Also {amounts}",
-    "empty": "No recurring costs yet"
+    "empty": "No recurring costs yet",
+    "yearly": "{amount} a year"
   },
   "active": {
     "label": "Active"
@@ -56,5 +57,25 @@
     "add_cta": "Add a subscription"
   },
   "error": "Couldn't load subscriptions.",
-  "retry": "Try again"
+  "retry": "Try again",
+  "savings": {
+    "banner": "{count, plural, one {Cancel # unused service, save {amount} a year} other {Cancel # unused services, save {amount} a year}}",
+    "hint": "No sign of use in 30+ days. Review them",
+    "open": "Review unused subscriptions"
+  },
+  "month": {
+    "paid": "Paid this month",
+    "remaining": "Still to pay",
+    "next": "{days, plural, =0 {Next charge today} =1 {Next charge tomorrow} other {Next charge in # days}}",
+    "nothing_left": "Nothing else due this month"
+  },
+  "checklist": {
+    "open": "Which of these do you pay for?",
+    "title": "Which of these do you pay for?",
+    "hint": "Tap a service to add it, then pick its plan. Prices are filled in for you.",
+    "add": "Add {name}"
+  },
+  "audit_g": {
+    "month_total": "{total} due this month in total. The run-rate above is a monthly average, so yearly plans count a twelfth every month."
+  }
 }

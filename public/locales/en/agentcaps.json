@@ -36,5 +36,71 @@
     "reached": "{label} has reached its {cap} cap and will pause.",
     "near_pace": "{label} will hit its {cap} cap at current pace.",
     "near": "{label} has used {percent}% of its {cap} cap."
+  },
+  "tabs": {
+    "label": "Agents or providers",
+    "agents": "Agents",
+    "providers": "Providers"
+  },
+  "header": {
+    "spent": "Agent spend this month",
+    "caps": "Combined caps",
+    "caps_partial": "Caps of {capped} of {total} agents",
+    "no_caps": "No agent caps set",
+    "ring_label": "Agents with a cap have spent {percent} percent of their combined {cap} caps",
+    "excluded": "{count, plural, one {# agent reports in another currency and isn't included.} other {# agents report in other currencies and aren't included.}}"
+  },
+  "freshness": "Agents report spend within about 5 minutes, so the newest costs may not show yet.",
+  "card": {
+    "model_none": "No model set",
+    "masked_key": "Key {key}",
+    "last_report": "Last report {time}",
+    "never_reported": "No spend reported yet",
+    "paused": "Paused",
+    "this_month": "This month",
+    "of_cap": "of {cap} cap",
+    "no_cap": "No cap",
+    "allow_list": "Only {entries}",
+    "pause": "Pause",
+    "resume": "Resume",
+    "edit_cap": "Edit cap",
+    "rename": "Rename",
+    "settings": "Settings",
+    "revoke": "Revoke",
+    "paused_toast": "{name} is paused. It's told to stop spending.",
+    "resumed_toast": "{name} can spend again.",
+    "pause_failed": "Couldn't change this agent",
+    "paused_note": "Paused. The agent API answers 403 until you resume it."
+  },
+  "rename": {
+    "title": "Rename agent",
+    "label": "Agent name",
+    "save": "Save",
+    "saved": "Agent renamed",
+    "failed": "Couldn't rename the agent"
+  },
+  "cap_sheet": {
+    "title": "Monthly cap",
+    "save": "Save cap"
+  },
+  "allow": {
+    "label": "Allowed providers or models",
+    "placeholder": "e.g. anthropic, gpt-4o*",
+    "hint": "Comma-separated. Leave empty to allow anything. Spend outside this list is still recorded, but the agent is told to pause."
+  },
+  "relative": {
+    "now": "just now"
+  },
+  "revoked": {
+    "title": "Revoked keys"
+  },
+  "empty": "No agents yet. Create a key above to connect one.",
+  "audit_g": {
+    "paused_note": "Paused — this agent can't add costs until you resume it.",
+    "section_title": "Your agents",
+    "section_description": "Each agent has its own key. Pause it, cap its monthly spend, or revoke it here.",
+    "empty": "No agents yet. Tap \"Add agent & get token\" below to connect one.",
+    "create_title": "Add an agent",
+    "create_hint": "Give it a name you'll recognise, like the laptop or tool it runs on. You'll get its token next."
   }
 }

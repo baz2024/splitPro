@@ -4,12 +4,24 @@ import { Toaster as Sonner } from 'sonner';
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = 'system' } = useTheme();
+  // Follow the app's Light/Dark/System choice; resolvedTheme turns "system" into the actual
+  // scheme. Before next-themes mounts it is undefined, so fall back to the dark default.
+  const { resolvedTheme } = useTheme();
+  const theme: ToasterProps['theme'] = 'light' === resolvedTheme ? 'light' : 'dark';
 
   return (
     <Sonner
-      theme={theme as ToasterProps['theme']}
+      theme={theme}
       className="toaster group"
+      // Sonner reads these variables for its normal toasts; map them to the app tokens so toasts
+      // sit on the themed overlay surface instead of sonner's stock white / near-black.
+      style={
+        {
+          '--normal-bg': 'var(--overlay)',
+          '--normal-text': 'var(--overlay-foreground)',
+          '--normal-border': 'var(--border)',
+        } as React.CSSProperties
+      }
       toastOptions={{
         classNames: {
           toast:

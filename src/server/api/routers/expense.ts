@@ -301,6 +301,7 @@ export const expenseRouter = createTRPCRouter({
           },
           paidByUser: true,
           conversionTo: true,
+          reportedByApiKey: { select: { name: true, agentLabel: true } },
           group: {
             select: {
               id: true,
@@ -342,6 +343,7 @@ export const expenseRouter = createTRPCRouter({
           paidByUser: true,
           deletedByUser: true,
           conversionTo: true,
+          reportedByApiKey: { select: { name: true, agentLabel: true } },
         },
       });
 
@@ -367,6 +369,7 @@ export const expenseRouter = createTRPCRouter({
           deletedByUser: true,
           updatedByUser: true,
           group: true,
+          reportedByApiKey: { select: { name: true, agentLabel: true } },
           recurrence: {
             include: {
               job: {
@@ -483,6 +486,7 @@ export const expenseRouter = createTRPCRouter({
                 id: true,
               },
             },
+            reportedByApiKey: { select: { name: true, agentLabel: true } },
           },
         },
       },

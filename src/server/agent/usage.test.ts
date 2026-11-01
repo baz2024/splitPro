@@ -42,6 +42,29 @@ describe('userShareOf', () => {
 });
 
 describe('aggregateUsage', () => {
+  describe('Providers', () => {
+    it('should group by provider whoever reported it and put unmatched spend last', () => {
+      const result = aggregateUsage({
+        userId: USER,
+        reporterByExpenseId: new Map([['a', { apiKeyId: 'k1', label: 'Growth agent' }]]),
+        expenses: [
+          expense({ id: 'a', name: 'Anthropic · claude-sonnet', amount: 20000n }),
+          expense({ id: 'b', name: 'Anthropic API', amount: 5000n }),
+          expense({ id: 'c', name: 'Mystery GPU', category: 'aiApis', amount: 90000n }),
+          expense({ id: 'd', name: 'OpenAI', amount: 8000n }),
+        ],
+      });
+
+      expect(result.providers.map((row) => [row.key, row.amount, row.categories])).toEqual([
+        ['service:anthropic', 25000n, []],
+        ['service:openai', 8000n, []],
+        ['other', 90000n, ['aiApis']],
+      ]);
+      // The agent row still exists for the Agents view.
+      expect(result.rows.some((row) => 'apikey:k1' === row.key)).toBe(true);
+    });
+  });
+
   describe('Totals', () => {
     it('should sum user shares and group rows by catalog service', () => {
       const result = aggregateUsage({
@@ -147,6 +170,7 @@ describe('aggregateUsage', () => {
         currency: null,
         total: 0n,
         rows: [],
+        providers: [],
         otherCurrencies: [],
       });
     });

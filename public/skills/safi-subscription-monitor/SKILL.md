@@ -127,7 +127,8 @@ node scripts/scan.mjs . --report --heartbeat
 An agent that pays for its own model or API calls can report that spend to Safi, and
 must respect the monthly cap the user set for its key under **Account → Coding agents**.
 
-Report spend after a run (or once per billing period), not per token:
+Report spend after a run (or once per billing period), not per token. Send it within about
+5 minutes of the run ending: the Agents page tells the user spend arrives that quickly.
 
 ```bash
 curl -sS -X POST "${SAFI_API_URL:-https://safi.kafoai.com}/api/agent/v1/usage" \
@@ -147,8 +148,13 @@ curl -sS -X POST "${SAFI_API_URL:-https://safi.kafoai.com}/api/agent/v1/usage" \
 - Safi records a one-off expense paid by the key owner, in the project chosen for the
   key (or as personal spend when none is set), dated at `periodEnd` or now.
 - A new report returns `201` with `{ expenseId, duplicate, currency, monthToDate, cap,
-capRemaining, percent, overCap, shouldPause, projectedToHitCap }`. Amounts are decimal
-  strings in `currency`; `cap` and `capRemaining` are `null` when no cap is set.
+capRemaining, percent, overCap, shouldPause, projectedToHitCap, paused, pauseReason,
+allowList, message }`. Amounts are decimal strings in `currency`; `cap` and
+  `capRemaining` are `null` when no cap is set.
+- The user may limit a key to certain providers or models (`allowList`, e.g.
+  `["anthropic", "gpt-4o*"]`; empty means anything). A report outside that list is still
+  recorded, but answers `shouldPause: true` with `pauseReason: "not_allowed"` and a
+  `message` naming the provider or model. Stop using it and tell the user.
 
 Check the cap before starting expensive work (same fields, without `expenseId`):
 
@@ -157,7 +163,14 @@ curl -sS "${SAFI_API_URL:-https://safi.kafoai.com}/api/agent/v1/usage" \
   -H "Authorization: Bearer $SAFI_API_KEY"
 ```
 
-**When `shouldPause` is `true`, stop making paid calls.** Month-to-date spend (UTC month)
-has reached or passed the cap. Tell the user, and resume only when they raise the cap or
-the next month starts. When `projectedToHitCap` is `true`, tell the user and prefer
+**When `shouldPause` is `true`, stop making paid calls.** `pauseReason` says why:
+`"cap_reached"` (month-to-date spend, UTC month, has reached or passed the cap: resume only
+when the user raises the cap or the next month starts), `"paused"` (the user paused this
+agent in Safi) or `"not_allowed"` (see the allow-list above). Tell the user the `message`.
+
+A paused key can still `GET` its status (`paused: true`), but every other agent endpoint,
+including `POST /api/agent/v1/usage`, answers `403` with
+`{ "error": "agent_paused", "shouldPause": true, "pauseReason": "paused", "pausedAt" }` and
+records nothing. Keep the spend report and re-send it with the same `idempotencyKey` after
+the user resumes the agent. When `projectedToHitCap` is `true`, tell the user and prefer
 cheaper models. Only spend reported in the cap currency counts toward the cap.

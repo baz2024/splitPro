@@ -613,6 +613,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  // The project page is the one place for a group now (members, settle up, export, settings).
+  // `?classic=1` keeps this older page reachable while anything still needs it.
+  if ('1' !== context.query.classic) {
+    return {
+      redirect: {
+        destination: `/projects/${group.id}`,
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: {
       ...(await customServerSideTranslations(context.locale, ['common', 'currencies', 'projects'])),

@@ -6,12 +6,16 @@ import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { toast } from 'sonner';
+import { isolateLtr } from '~/components/Project/format';
 import { CategoryIcon, CurrencyConversionIcon, SettleupIcon } from '~/components/ui/categoryIcons';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
 import type { ExpenseRouter } from '~/server/api/routers/expense';
 import { api } from '~/utils/api';
+import { isViewerInvolved } from '../Project/members';
 import { ReviewChip } from '../Review/ReviewChip';
+import { AddedByAgent } from '../Safi/AddedByAgent';
+import { Money } from '../Safi/Money';
 import { Separator } from '../ui/separator';
 
 type ExpensesOutput =
@@ -50,6 +54,9 @@ export const ExpenseList: React.FC<{
 
         const isSettlement = e.splitType === SplitType.SETTLEMENT;
         const isCurrencyConversion = e.splitType === SplitType.CURRENCY_CONVERSION;
+        // Rows that don't touch the viewer's balance read as context, not as "$0" items.
+        const isMuted =
+          isGroup && !isSettlement && !isCurrencyConversion && !isViewerInvolved(e, userId);
 
         return (
           <React.Fragment key={e.id}>
@@ -66,7 +73,11 @@ export const ExpenseList: React.FC<{
             )}
             <Link
               href={`/${isGroup ? 'groups' : 'balances'}/${contactId}/expenses/${e.id}`}
-              className={cn('flex items-center justify-between', isFirstOfMonth ? 'pb-2' : 'py-2')}
+              className={cn(
+                'flex items-center justify-between',
+                isFirstOfMonth ? 'pb-2' : 'py-2',
+                isMuted && 'opacity-60',
+              )}
             >
               {isSettlement && <Settlement e={e} userId={userId} />}
               {isCurrencyConversion && <CurrencyConversion e={e} userId={userId} />}
@@ -111,26 +122,33 @@ const Expense: ExpenseComponent = ({ e, userId }) => {
             {t(e.amount < 0n ? 'expense_list.user_received' : 'expense_list.user_paid', {
               actor: e.paidByUser.id === userId ? 'you' : 'other',
               user: displayName(e.paidByUser),
-              amount: toUIString(e.amount),
+              amount: isolateLtr(toUIString(e.amount)),
             })}
           </p>
+          {/* Full "Added by … agent" on its own line, so it never squeezes the name. */}
+          <AddedByAgent apiKey={e.reportedByApiKey} className="mt-0.5" />
         </div>
       </div>
       <div className="min-w-10 shrink-0">
-        {youPaid || 0n !== yourExpenseAmount ? (
+        {0n !== yourExpenseAmount ? (
           <>
-            <div className={`text-end text-xs ${youPaid ? 'text-positive' : 'text-negative'}`}>
+            <div className="text-muted text-end text-xs">
               {t(youPaid ? 'ui.expense.statements.you_lent' : 'ui.expense.statements.you_owe')}
             </div>
-            <div
-              className={`xs:max-w-full max-w-32 truncate text-end ${youPaid ? 'text-positive' : 'text-negative'}`}
-            >
-              <span dir="ltr">{toUIString(yourExpenseAmount)}</span>
+            <div className="xs:max-w-full max-w-32 truncate text-end">
+              <Money
+                amount={yourExpenseAmount}
+                currency={e.currency}
+                tone={youPaid ? 'owed' : 'owe'}
+              />
             </div>
           </>
         ) : (
           <div>
-            <p className="text-muted text-xs">{t('ui.not_involved')}</p>
+            {/* Paying exactly your own share is not "you lent $0". */}
+            <p className="text-muted text-xs">
+              {youPaid ? t('audit_c.expense_row.no_balance') : t('ui.not_involved')}
+            </p>
           </div>
         )}
       </div>
@@ -158,7 +176,7 @@ const Settlement: ExpenseComponent = ({ e, userId }) => {
             payerRole: e.paidByUser.id === userId ? 'you' : 'other',
             receiverRole: receiverId === userId ? 'you' : 'other',
             payer: displayName(e.paidByUser),
-            amount: toUIString(e.amount),
+            amount: isolateLtr(toUIString(e.amount)),
             receiver: displayName(userDetails.data),
           })}
         </p>

@@ -2,6 +2,8 @@ import { clsx } from 'clsx';
 import { useTranslation } from 'next-i18next';
 import React from 'react';
 
+import { CHIP_IDLE, CHIP_SELECTED } from '~/components/ui/chipStyles';
+
 import { SUBSCRIPTIONS_NAMESPACES } from './types';
 
 export const SUBSCRIPTION_FILTERS = ['upcoming', 'by_cycle', 'usage'] as const;
@@ -57,9 +59,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({ value, onChange }) => 
             onClick={() => onChange(filter)}
             className={clsx(
               'focus-visible:ring-focus focus-visible:ring-offset-background min-h-11 shrink-0 rounded-full px-4 text-[13px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
-              selected
-                ? 'bg-foreground text-background'
-                : 'border-border text-muted hover:text-foreground border bg-transparent',
+              selected ? CHIP_SELECTED : CHIP_IDLE,
             )}
           >
             {t(`tabs.${filter}`)}

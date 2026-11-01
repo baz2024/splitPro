@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { CHIP_IDLE, CHIP_SELECTED } from '~/components/ui/chipStyles';
 import { cn } from '~/lib/utils';
 
 export const DATAIO_NAMESPACES = ['dataio', 'common', 'categories', 'currencies'];
@@ -51,9 +52,7 @@ export const ChoiceChips = <T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               'focus-visible:ring-focus focus-visible:ring-offset-background min-h-11 rounded-full px-4 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-              selected
-                ? 'bg-foreground text-background'
-                : 'border-border text-muted hover:text-foreground border bg-transparent',
+              selected ? CHIP_SELECTED : CHIP_IDLE,
             )}
           >
             {option.label}

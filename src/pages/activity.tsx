@@ -3,6 +3,8 @@ import { type User } from 'next-auth';
 import Head from 'next/head';
 import Link from 'next/link';
 import MainLayout from '~/components/Layout/MainLayout';
+import { isolateLtr } from '~/components/Project/format';
+import { AddedByAgent } from '~/components/Safi/AddedByAgent';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { type NextPageWithUser } from '~/types';
 import { api } from '~/utils/api';
@@ -13,9 +15,14 @@ import { withI18nStaticProps } from '~/utils/i18n/server';
 import { ListIcon, RefreshCcwDot } from 'lucide-react';
 import { EmptyState } from '~/components/EmptyState';
 import { Button } from '~/components/ui/button';
+import { cn } from '~/lib/utils';
 import React from 'react';
 
-function getPaymentString(
+// Same tokens as the balances page and expense rows (Money's "owed" / "owe" tones).
+const POSITIVE = 'text-positive';
+const NEGATIVE = 'text-negative';
+
+const getPaymentString = (
   user: User,
   amount: bigint,
   paidBy: number,
@@ -24,36 +31,38 @@ function getPaymentString(
   t: TFunction,
   toUIString: (value: bigint) => string,
   isDeleted?: boolean,
-) {
+) => {
   if (isDeleted) {
     return null;
-  } else if (0n === expenseUserAmt) {
-    return <div className="text-muted text-sm">{t('ui.not_involved')}</div>;
-  } else if (isSettlement) {
+  }
+  const youPaid = user.id === paidBy;
+  if (0n === expenseUserAmt) {
+    // The payer is always involved: zero means they paid exactly their own share.
     return (
-      <div className={`${user.id === paidBy ? 'text-emerald-500' : 'text-orange-500'} text-sm`}>
-        {t(user.id === paidBy ? 'activity.you_paid_amount' : 'activity.you_received_amount', {
-          amount: toUIString(amount),
-        })}
-      </div>
-    );
-  } else {
-    return (
-      <div
-        className={`${(user.id === paidBy) !== amount < 0n ? 'text-emerald-500' : 'text-orange-500'} text-sm`}
-      >
-        {t(
-          (user.id === paidBy) !== amount < 0n
-            ? 'ui.expense.statements.you_lent_amount'
-            : 'ui.expense.statements.you_owe_amount',
-          {
-            amount: toUIString(expenseUserAmt),
-          },
-        )}
+      <div className="text-muted text-sm">
+        {youPaid ? t('audit_c.expense_row.no_balance') : t('ui.not_involved')}
       </div>
     );
   }
-}
+  if (isSettlement) {
+    return (
+      <div className={cn(youPaid ? POSITIVE : NEGATIVE, 'text-sm')}>
+        {t(youPaid ? 'activity.you_paid_amount' : 'activity.you_received_amount', {
+          amount: isolateLtr(toUIString(amount)),
+        })}
+      </div>
+    );
+  }
+  const youLent = youPaid !== amount < 0n;
+  return (
+    <div className={cn(youLent ? POSITIVE : NEGATIVE, 'text-sm')}>
+      {t(
+        youLent ? 'ui.expense.statements.you_lent_amount' : 'ui.expense.statements.you_owe_amount',
+        { amount: isolateLtr(toUIString(expenseUserAmt)) },
+      )}
+    </div>
+  );
+};
 
 const ActivityPage: NextPageWithUser = ({ user }) => {
   const { displayName, t, toUIDate, i18n } = useTranslationWithUtils();
@@ -121,7 +130,7 @@ const ActivityPage: NextPageWithUser = ({ user }) => {
                             : 'activity.user_received_for_expense',
                         {
                           user: displayName(e.expense.paidByUser),
-                          amount: toUIString(e.expense.amount),
+                          amount: isolateLtr(toUIString(e.expense.amount)),
                           expense: e.expense.name,
                         },
                       )}
@@ -138,6 +147,7 @@ const ActivityPage: NextPageWithUser = ({ user }) => {
                     toUIString,
                     !!e.expense.deletedBy,
                   )}
+                  <AddedByAgent apiKey={e.expense.reportedByApiKey} />
                   <p className="text-muted text-xs">{toUIDate(e.expense.expenseDate)}</p>
                 </div>
               </Link>

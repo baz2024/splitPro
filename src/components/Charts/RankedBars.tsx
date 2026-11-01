@@ -43,10 +43,13 @@ export const RankedBars: React.FC<RankedBarsProps> = ({ data, ariaLabel, classNa
                 {datum.hint ? <span className="text-muted text-[11px]">{datum.hint}</span> : null}
               </span>
               <span className="flex shrink-0 items-baseline gap-2">
-                <span dir="ltr" className="font-semibold tabular-nums">
+                <bdi dir="ltr" className="font-semibold tabular-nums">
                   {datum.display}
+                </bdi>
+                <span className="text-muted w-10 text-end text-xs tabular-nums">
+                  {/* Isolated LTR so "<1%" never flips to "1%>" in a right-to-left page. */}
+                  <bdi dir="ltr">{datum.share}</bdi>
                 </span>
-                <span className="text-muted w-10 text-end text-xs tabular-nums">{datum.share}</span>
               </span>
             </div>
             <div aria-hidden className="h-2">

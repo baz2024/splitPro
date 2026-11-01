@@ -28,24 +28,43 @@ export const toPlotPercent = (value: number, max: number): number => {
   return Math.min(100, (value / max) * 100);
 };
 
+/** Directional marks (LRM, RLM, ALM) some locales put around numbers and percent signs. */
+const BIDI_MARKS = /[\u200e\u200f\u061c]/g;
+
+/**
+ * Drops the locale's own directional marks so a label renders the same inside an LTR isolate
+ * (`<bdi dir="ltr">`) in every language. Visible characters are unchanged.
+ */
+export const stripBidiMarks = (text: string): string => text.replace(BIDI_MARKS, '');
+
+/** Arabic-Indic (٠-٩) and Persian (۰-۹) digits as Western digits, so every label uses one script. */
+export const toLatinDigits = (text: string): string =>
+  text
+    .replace(/[\u0660-\u0669]/g, (digit) => `${digit.charCodeAt(0) - 0x0660}`)
+    .replace(/[\u06f0-\u06f9]/g, (digit) => `${digit.charCodeAt(0) - 0x06f0}`);
+
 /**
  * Compact currency label for a value in major units ("$1.2K"). Falls back to a compact plain
  * number with the code when the runtime does not know the currency.
  */
 export const formatCompactMajor = (value: number, currency: string, locale: string): string => {
   try {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(value);
+    return stripBidiMarks(
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        notation: 'compact',
+        maximumFractionDigits: 1,
+        numberingSystem: 'latn',
+      }).format(value),
+    );
   } catch {
     const number = new Intl.NumberFormat(locale, {
       notation: 'compact',
       maximumFractionDigits: 1,
+      numberingSystem: 'latn',
     }).format(value);
-    return `${number} ${currency}`;
+    return `${stripBidiMarks(number)} ${currency}`;
   }
 };
 
@@ -56,9 +75,14 @@ export const formatCompactMoney = (minor: bigint, currency: string, locale: stri
 /** Whole-number share for labels: "<1%" for tiny non-zero shares so they never read as zero. */
 export const formatShare = (percent: number, locale: string): string => {
   if (0 < percent && 1 > percent) {
-    return `<${new Intl.NumberFormat(locale, { style: 'percent' }).format(0.01)}`;
+    const one = new Intl.NumberFormat(locale, { style: 'percent', numberingSystem: 'latn' });
+    return `<${stripBidiMarks(one.format(0.01))}`;
   }
-  return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(
-    percent / 100,
+  return stripBidiMarks(
+    new Intl.NumberFormat(locale, {
+      style: 'percent',
+      maximumFractionDigits: 0,
+      numberingSystem: 'latn',
+    }).format(percent / 100),
   );
 };

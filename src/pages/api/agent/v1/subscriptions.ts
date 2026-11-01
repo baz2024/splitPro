@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { authenticateApiKey } from '~/server/agent/apiKeys';
+import { agentPausedBody, authenticateApiKey } from '~/server/agent/apiKeys';
 import {
   listDetectedSubscriptions,
   recordDetectedSubscription,
@@ -27,6 +27,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const auth = await authenticateApiKey(db, req.headers.authorization);
   if (!auth) {
     return res.status(401).json({ error: 'unauthorized' });
+  }
+  if (auth.pausedAt) {
+    return res.status(403).json(agentPausedBody(auth.pausedAt));
   }
 
   if ('GET' === req.method) {

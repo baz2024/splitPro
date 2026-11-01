@@ -9,6 +9,7 @@ import { api } from '~/utils/api';
 import { toast } from 'sonner';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cronToBackend } from '~/lib/cron';
+import { notifiedParticipants } from '~/lib/notifyNote';
 import { cn } from '~/lib/utils';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -268,6 +269,8 @@ export const AddOrEditExpensePage: React.FC<{
     router.back();
   }, [router]);
 
+  const notified = notifiedParticipants(participants, currentUser?.id);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -351,6 +354,14 @@ export const AddOrEditExpensePage: React.FC<{
                   </SplitExpenseForm>
                 </div>
 
+                {0 < notified.length ? (
+                  <p className="text-muted mt-3 text-center text-xs" data-testid="notify-note">
+                    {t('audit_c.notify.will_be_notified', {
+                      count: notified.length,
+                      name: displayName(notified[0]),
+                    })}
+                  </p>
+                ) : null}
                 <div className="mt-4 flex items-start justify-between sm:mt-10">
                   <DateSelector
                     mode="single"

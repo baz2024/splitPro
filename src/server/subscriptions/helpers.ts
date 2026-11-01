@@ -96,6 +96,50 @@ export const monthlyAmount = (
   return BigMath.roundDiv(amount * BigInt(occurrencesPerYear(schedule, from)), 12n);
 };
 
+/**
+ * Yearly cost of one recurring charge in minor units: monthly × 12, yearly as is, weekly × 52,
+ * other crons → occurrences in the next 365 days × amount.
+ */
+export const yearlyAmount = (
+  amount: bigint,
+  cadence: SubscriptionCadence,
+  schedule: string,
+  from: Date,
+): bigint => {
+  if ('monthly' === cadence) {
+    return amount * 12n;
+  }
+  if ('yearly' === cadence) {
+    return amount;
+  }
+  if ('weekly' === cadence) {
+    return amount * 52n;
+  }
+  return amount * BigInt(occurrencesPerYear(schedule, from));
+};
+
+/** How many times the cron fires after `from` and strictly before `end` (capped at 400). */
+export const chargesBetween = (schedule: string, from: Date, end: Date): number => {
+  if (end.getTime() <= from.getTime()) {
+    return 0;
+  }
+  try {
+    const interval = cronParser.parseExpression(normaliseBackendCron(schedule), {
+      currentDate: from,
+      endDate: new Date(end.getTime() - 1),
+      tz: 'UTC',
+    });
+    let count = 0;
+    while (interval.hasNext() && count < MAX_OCCURRENCES_PER_YEAR) {
+      interval.next();
+      count += 1;
+    }
+    return count;
+  } catch {
+    return 0;
+  }
+};
+
 /** Whole days from `from` to `to`, counted on UTC calendar days (0 = today, 1 = tomorrow). */
 export const daysUntil = (to: Date, from: Date): number => {
   const startOfDay = (date: Date) =>

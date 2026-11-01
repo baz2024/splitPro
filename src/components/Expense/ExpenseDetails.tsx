@@ -23,6 +23,8 @@ import { BigMath } from '~/utils/numbers';
 import { SyncedBadge } from '../Billing/SyncedBadge';
 import { CurrencyConversion } from '../Friend/CurrencyConversion';
 import { ReviewReasonsCard } from '../Review/ReviewReasonsCard';
+import { AddedByAgent } from '../Safi/AddedByAgent';
+import { Money } from '../Safi/Money';
 import { EntityAvatar } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { CategoryIcon } from '../ui/categoryIcons';
@@ -89,7 +91,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               <SyncedBadge provider={expense.syncedFrom} className="self-start" />
             ) : null}
             <p className="text-2xl font-semibold">
-              <span dir="ltr">{toUIString(expense.amount)}</span>
+              <Money amount={expense.amount} currency={expense.currency} />
             </p>
             {!isSameDay(expense.expenseDate, expense.createdAt) ? (
               <p className="text-muted text-sm">{toUIDate(expense.expenseDate, { year: true })}</p>
@@ -120,6 +122,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
                 })}
               </p>
             )}
+            <AddedByAgent apiKey={expense.reportedByApiKey} />
             {expense.recurrence ? (
               <Link href="/recurring" className="text-primary text-sm hover:underline">
                 {t('recurrence.recurring')}
@@ -127,7 +130,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               </Link>
             ) : null}
             {expense.group ? (
-              <Link href={`/groups/${expense.group.id}`}>
+              <Link href={`/projects/${expense.group.id}`}>
                 <Button variant="outline" size="sm" className="mt-2 gap-2">
                   <div className="relative">
                     <Users className="size-4" />
@@ -167,9 +170,9 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               </Link>
             ),
             amount: (
-              <span dir="ltr" className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
+              <bdi dir="ltr" className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
                 {toUIString(expense.amount)}
-              </span>
+              </bdi>
             ),
           }}
         />
@@ -232,9 +235,9 @@ const ExpenseParticipantEntry: React.FC<{
             </Link>
           ),
           amount: (
-            <span dir="ltr" className={amountColorClass}>
+            <bdi dir="ltr" className={amountColorClass}>
               {toUIString(participant.amount)}
-            </span>
+            </bdi>
           ),
         }}
       />

@@ -1,5 +1,6 @@
 import { CATEGORIES } from '~/lib/category';
 import { type CurrencyCode, isCurrencyCode } from '~/lib/currency';
+import { type ReviewField, parseReviewReasons } from '~/lib/expenseReview';
 import { api } from '~/utils/api';
 
 export const SCAN_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'] as const;
@@ -71,6 +72,30 @@ export const parseScanDate = (date: string | null): Date | null => {
   }
   return parsed;
 };
+
+const REVIEW_FIELD_TO_SCAN_FIELD: Partial<Record<ReviewField, ScanField>> = {
+  merchant: 'merchant',
+  total: 'amount',
+  currency: 'currency',
+  date: 'date',
+  category: 'category',
+};
+
+/**
+ * Fields the scan confirmation card highlights in amber: the ones the scan flagged or could not
+ * read, plus any the stored review reasons name (confidence below the threshold).
+ */
+export const confirmationFlags = (
+  fields: readonly ScanField[],
+  reviewReasons: readonly string[],
+): Set<ScanField> =>
+  new Set([
+    ...fields,
+    ...parseReviewReasons(reviewReasons).flatMap((reason) => {
+      const field = 'field' === reason.kind ? REVIEW_FIELD_TO_SCAN_FIELD[reason.field] : undefined;
+      return field ? [field] : [];
+    }),
+  ]);
 
 /** Parses the decimal string returned by the scan ("20.00") into a JS number, or null. */
 export const parseScanAmount = (amount: string | null): number | null => {

@@ -11,7 +11,10 @@ import {
   SUBSCRIPTIONS_PANEL_ID,
   type SubscriptionFilter,
 } from '~/components/Subscriptions/FilterChips';
+import { MonthCashTiles } from '~/components/Subscriptions/MonthCashTiles';
+import { PaidForChecklist } from '~/components/Subscriptions/PaidForChecklist';
 import { RunRateCard } from '~/components/Subscriptions/RunRateCard';
+import { SavingsBanner } from '~/components/Subscriptions/SavingsBanner';
 import { SectionCard } from '~/components/Subscriptions/SectionCard';
 import { ServiceCostCard } from '~/components/Subscriptions/ServiceCostCard';
 import { SubscriptionRow } from '~/components/Subscriptions/SubscriptionRow';
@@ -78,12 +81,15 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
   );
 
   const addCta = (
-    <Link
-      href={addHref}
-      className="text-accent focus-visible:ring-focus mt-2 inline-flex min-h-11 items-center rounded-lg font-semibold focus-visible:ring-2 focus-visible:outline-none"
-    >
-      {t('empty.add_cta')}
-    </Link>
+    <div className="flex flex-col items-start">
+      <Link
+        href={addHref}
+        className="text-accent focus-visible:ring-focus mt-2 inline-flex min-h-11 items-center rounded-lg font-semibold focus-visible:ring-2 focus-visible:outline-none"
+      >
+        {t('empty.add_cta')}
+      </Link>
+      <PaidForChecklist groupId={groupId ?? null} />
+    </div>
   );
 
   const usageSection = overview ? (
@@ -207,6 +213,8 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
           {overview ? (
             <>
               <RunRateCard overview={overview} />
+              <SavingsBanner overview={overview} />
+              <MonthCashTiles overview={overview} now={now} />
               <ServiceCostCard overview={overview} />
               <FilterChips value={filter} onChange={setFilter} />
               <div

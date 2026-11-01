@@ -1,6 +1,14 @@
 import { getCategoryLabelKey } from '~/lib/category';
 
-import { formatCompactMoney, formatShare, minorToMajor, niceCeil, toPlotPercent } from './scale';
+import {
+  formatCompactMoney,
+  formatShare,
+  minorToMajor,
+  niceCeil,
+  stripBidiMarks,
+  toLatinDigits,
+  toPlotPercent,
+} from './scale';
 
 describe('minorToMajor', () => {
   it('should respect each currency precision', () => {
@@ -50,6 +58,29 @@ describe('formatShare', () => {
     expect(formatShare(42.4, 'en')).toBe('42%');
     expect(formatShare(0.3, 'en')).toBe('<1%');
     expect(formatShare(0, 'en')).toBe('0%');
+  });
+
+  it('should drop directional marks and keep Western digits in Arabic', () => {
+    expect(formatShare(0.3, 'ar')).toBe('<1%');
+    expect(formatShare(42.4, 'ar')).toBe('42%');
+  });
+});
+
+describe('Arabic labels', () => {
+  it('should format compact money without directional marks or Arabic-Indic digits', () => {
+    const label = formatCompactMoney(130_000n, 'USD', 'ar');
+    expect(label).toBe(stripBidiMarks(label));
+    expect(label).toMatch(/^1\.3\s/);
+  });
+
+  it('should convert Arabic-Indic and Persian digits to Western digits', () => {
+    expect(toLatinDigits('٦ أشهر')).toBe('6 أشهر');
+    expect(toLatinDigits('۱۲ months')).toBe('12 months');
+    expect(toLatinDigits('6M')).toBe('6M');
+  });
+
+  it('should strip LRM, RLM and ALM only', () => {
+    expect(stripBidiMarks('\u200f1\u200e%\u061c')).toBe('1%');
   });
 });
 

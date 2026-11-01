@@ -68,7 +68,7 @@ export const BudgetGauge: React.FC<BudgetGaugeProps> = ({
         <path
           d={ARC_PATH}
           fill="none"
-          className="stroke-default"
+          className="stroke-muted/25"
           strokeWidth="16"
           strokeLinecap="round"
         />

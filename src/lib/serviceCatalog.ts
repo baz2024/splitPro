@@ -2,6 +2,24 @@ import { type CategoryItem } from '~/lib/category';
 
 export type ServiceBilling = 'subscription' | 'usage';
 
+/** A known plan with its public list price, offered as a chip on Add cost. */
+export interface ServicePlan {
+  name: string;
+  /** Monthly list price in USD cents. A list price only: users should check their own plan. */
+  monthlyUsd: bigint;
+  /** Billed per seat (the price is for one seat). */
+  perSeat?: boolean;
+}
+
+/** Currency of every plan's `monthlyUsd`. */
+export const PLAN_PRICE_CURRENCY = 'USD';
+
+const CLAUDE_PLANS = [
+  { name: 'Claude Pro', monthlyUsd: 2000n },
+  { name: 'Claude Max', monthlyUsd: 10000n },
+  { name: 'Claude Max 20x', monthlyUsd: 20000n },
+] as const satisfies readonly ServicePlan[];
+
 export interface ServiceInfo {
   /** Same id the subscription-monitor skill reports as `fingerprint`. */
   id: string;
@@ -14,6 +32,8 @@ export interface ServiceInfo {
   billing: ServiceBilling;
   /** Show as a quick pick on the Add cost service grid. */
   featured?: boolean;
+  /** Common plans with list prices, shown as chips after picking the service. */
+  plans?: readonly ServicePlan[];
 }
 
 export const SERVICE_CATALOG = [
@@ -25,6 +45,7 @@ export const SERVICE_CATALOG = [
     category: 'cloudHosting',
     billing: 'subscription',
     featured: true,
+    plans: [{ name: 'Pro', monthlyUsd: 2000n, perSeat: true }],
   },
   {
     id: 'supabase',
@@ -34,6 +55,7 @@ export const SERVICE_CATALOG = [
     category: 'databases',
     billing: 'subscription',
     featured: true,
+    plans: [{ name: 'Pro', monthlyUsd: 2500n }],
   },
   {
     id: 'anthropic',
@@ -43,6 +65,7 @@ export const SERVICE_CATALOG = [
     category: 'aiApis',
     billing: 'usage',
     featured: true,
+    plans: CLAUDE_PLANS,
   },
   {
     id: 'openai',
@@ -52,6 +75,11 @@ export const SERVICE_CATALOG = [
     category: 'aiApis',
     billing: 'usage',
     featured: true,
+    plans: [
+      { name: 'ChatGPT Plus', monthlyUsd: 2000n },
+      { name: 'ChatGPT Pro', monthlyUsd: 20000n },
+      { name: 'ChatGPT Team', monthlyUsd: 3000n, perSeat: true },
+    ],
   },
   {
     id: 'cursor',
@@ -61,6 +89,10 @@ export const SERVICE_CATALOG = [
     category: 'codingAgents',
     billing: 'subscription',
     featured: true,
+    plans: [
+      { name: 'Pro', monthlyUsd: 2000n },
+      { name: 'Business', monthlyUsd: 4000n, perSeat: true },
+    ],
   },
   {
     id: 'github-copilot',
@@ -70,6 +102,10 @@ export const SERVICE_CATALOG = [
     category: 'devTools',
     billing: 'subscription',
     featured: true,
+    plans: [
+      { name: 'Copilot Pro', monthlyUsd: 1000n },
+      { name: 'Copilot Business', monthlyUsd: 1900n, perSeat: true },
+    ],
   },
   {
     id: 'figma',
@@ -79,6 +115,7 @@ export const SERVICE_CATALOG = [
     category: 'devTools',
     billing: 'subscription',
     featured: true,
+    plans: [{ name: 'Professional', monthlyUsd: 1500n, perSeat: true }],
   },
   {
     id: 'claude-code',
@@ -87,6 +124,7 @@ export const SERVICE_CATALOG = [
     color: '#9a3412',
     category: 'codingAgents',
     billing: 'subscription',
+    plans: CLAUDE_PLANS,
   },
   {
     id: 'google-gemini',
@@ -197,4 +235,27 @@ export const serviceInitials = (name: string): string => {
   const letters =
     1 < words.length ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}` : name.trim().slice(0, 2);
   return letters.toUpperCase() || '?';
+};
+
+/** Badge colours for services outside the catalog; all dark enough for white initials. */
+const FALLBACK_BADGE_COLORS = [
+  '#334155',
+  '#1e40af',
+  '#065f46',
+  '#7c2d12',
+  '#5b21b6',
+  '#9d174d',
+  '#155e75',
+  '#3f6212',
+] as const;
+
+/** Brand colour for a catalog service, else a stable colour picked from the name. */
+export const serviceColor = (name: string): string => {
+  const known = findService(name);
+  if (known) {
+    return known.color;
+  }
+  const key = normalise(name);
+  const hash = key.split('').reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) % 1_000_003, 7);
+  return FALLBACK_BADGE_COLORS[hash % FALLBACK_BADGE_COLORS.length] ?? '#334155';
 };

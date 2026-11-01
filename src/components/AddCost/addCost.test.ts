@@ -25,8 +25,12 @@ describe('addCost', () => {
       expect(parseCostType({ type: ['usage'] })).toBe('usage');
     });
 
-    it('should default to one-off for scan/manual links and unknown values', () => {
-      expect(parseCostType({ mode: 'scan' })).toBe('oneoff');
+    it('should open the Scan segment for mode=scan links', () => {
+      expect(parseCostType({ mode: 'scan' })).toBe('scan');
+      expect(parseCostType({ mode: ['scan'], groupId: '7' })).toBe('scan');
+    });
+
+    it('should default to one-off for manual links and unknown values', () => {
       expect(parseCostType({ mode: 'manual', friendId: '3' })).toBe('oneoff');
       expect(parseCostType({ groupId: '7' })).toBe('oneoff');
       expect(parseCostType({ type: 'bogus' })).toBe('oneoff');

@@ -1,4 +1,4 @@
-import { type PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 
 import { type SpendRow } from './shape';
 
@@ -6,6 +6,7 @@ interface RawSpendRow {
   month: string;
   currency: string;
   category?: string;
+  source?: string;
   total: bigint | number | string | null;
   count: number | bigint;
 }
@@ -14,6 +15,7 @@ const toSpendRow = (row: RawSpendRow): SpendRow => ({
   month: row.month,
   currency: row.currency,
   ...(undefined === row.category ? {} : { category: row.category }),
+  ...(undefined === row.source ? {} : { source: 'agent' === row.source ? 'agent' : 'human' }),
   total: BigInt(row.total ?? 0),
   count: Number(row.count),
 });
@@ -24,20 +26,43 @@ const toSpendRow = (row: RawSpendRow): SpendRow => ({
  */
 const iso = (date: Date) => date.toISOString();
 
+/** Period buckets a project chart can be drawn in. Fixed values, so inlining them is safe. */
+const PERIOD_SQL = {
+  month: { unit: Prisma.raw(`'month'`), format: Prisma.raw(`'YYYY-MM'`) },
+  day: { unit: Prisma.raw(`'day'`), format: Prisma.raw(`'YYYY-MM-DD'`) },
+} as const;
+
+export type SpendGranularity = keyof typeof PERIOD_SQL;
+
 /**
- * Group spend per local month × currency × category, aggregated in Postgres. Settlements,
- * currency conversions and deleted expenses are excluded, as in the project summary. Amounts are
- * the full expense totals (what the project spent), not one member's share.
+ * Group spend per local month (or day) × currency × category × source, aggregated in Postgres.
+ * Settlements, currency conversions and deleted expenses are excluded, as in the project summary.
+ * Amounts are the full expense totals (what the project spent), not one member's share. `source`
+ * is "agent" for costs reported through an agent API key (`reportedByApiKeyId`), else "human".
  */
-export const getGroupMonthlySpend = async (
+export const getGroupPeriodSpend = async (
   db: PrismaClient,
-  { groupId, start, end, tzOffset }: { groupId: number; start: Date; end: Date; tzOffset: number },
+  {
+    groupId,
+    start,
+    end,
+    tzOffset,
+    granularity = 'month',
+  }: {
+    groupId: number;
+    start: Date;
+    end: Date;
+    tzOffset: number;
+    granularity?: SpendGranularity;
+  },
 ): Promise<SpendRow[]> => {
+  const { unit, format } = PERIOD_SQL[granularity];
   const rows = await db.$queryRaw<RawSpendRow[]>`
     SELECT
-      to_char(date_trunc('month', e."expenseDate" - make_interval(mins => ${tzOffset}::int)), 'YYYY-MM') AS "month",
+      to_char(date_trunc(${unit}, e."expenseDate" - make_interval(mins => ${tzOffset}::int)), ${format}) AS "month",
       e."currency" AS "currency",
       e."category" AS "category",
+      CASE WHEN e."reportedByApiKeyId" IS NULL THEN 'human' ELSE 'agent' END AS "source",
       SUM(e."amount")::bigint AS "total",
       COUNT(*)::int AS "count"
     FROM "public"."Expense" e
@@ -46,10 +71,16 @@ export const getGroupMonthlySpend = async (
       AND e."splitType" NOT IN ('SETTLEMENT', 'CURRENCY_CONVERSION')
       AND e."expenseDate" >= (${iso(start)}::timestamptz AT TIME ZONE 'UTC')
       AND e."expenseDate" < (${iso(end)}::timestamptz AT TIME ZONE 'UTC')
-    GROUP BY 1, 2, 3
+    GROUP BY 1, 2, 3, 4
   `;
   return rows.map(toSpendRow);
 };
+
+/** Monthly project spend (see getGroupPeriodSpend). */
+export const getGroupMonthlySpend = (
+  db: PrismaClient,
+  args: { groupId: number; start: Date; end: Date; tzOffset: number },
+): Promise<SpendRow[]> => getGroupPeriodSpend(db, { ...args, granularity: 'month' });
 
 /**
  * The signed-in user's own share of spending per local month × currency, across every group and

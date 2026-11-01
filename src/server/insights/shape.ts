@@ -10,11 +10,18 @@ export interface MonthSlot {
   month: number;
 }
 
-/** A spend aggregate row: one month × currency (× category for project rows). */
+/** Who recorded a cost: a person, or a coding agent through its API key. */
+export type SpendSource = 'human' | 'agent';
+
+/**
+ * A spend aggregate row: one period × currency (× category × source for project rows).
+ * `month` is the period key: "YYYY-MM" for monthly rows, "YYYY-MM-DD" for daily rows.
+ */
 export interface SpendRow {
   month: string;
   currency: string;
   category?: string;
+  source?: SpendSource;
   total: bigint;
   /** Number of expenses behind the total; used to pick the main currency. */
   count: number;
@@ -88,24 +95,109 @@ export const pickChartCurrency = (rows: SpendRow[], preferred?: string | null): 
   return top?.[0] ?? preferred ?? 'USD';
 };
 
-/** Expense currencies of one month, one entry per expense (input for `pickProjectCurrency`). */
+/**
+ * Expense currencies of one month, one entry per expense (input for `pickProjectCurrency`).
+ * Works for monthly ("YYYY-MM") and daily ("YYYY-MM-DD") rows alike.
+ */
 export const currenciesInMonth = (rows: SpendRow[], monthKey: string): string[] =>
   rows
-    .filter((row) => monthKey === row.month)
+    .filter((row) => monthKey === row.month || row.month.startsWith(`${monthKey}-`))
     .flatMap((row) => Array.from({ length: row.count }, () => row.currency));
 
-/** One total per slot in `currency`; months with no spend are 0 so the axis has no gaps. */
-export const monthlyTotals = (
-  slots: MonthSlot[],
+/** One total per slot in `currency`; periods with no spend are 0 so the axis has no gaps. */
+export const periodTotals = <S extends { key: string }>(
+  slots: S[],
   rows: SpendRow[],
   currency: string,
-): MonthTotal[] =>
+): (S & { total: bigint })[] =>
   slots.map((slot) => ({
     ...slot,
     total: rows
       .filter((row) => slot.key === row.month && currency === row.currency)
       .reduce((sum, row) => sum + row.total, 0n),
   }));
+
+export const monthlyTotals = (
+  slots: MonthSlot[],
+  rows: SpendRow[],
+  currency: string,
+): MonthTotal[] => periodTotals(slots, rows, currency);
+
+/** One local calendar day on a daily chart (`month` is 0-based). */
+export interface DaySlot extends MonthSlot {
+  /** "YYYY-MM-DD", the same shape the daily database aggregation returns. */
+  key: string;
+  day: number;
+}
+
+export const dayKeyOf = (year: number, month: number, day: number) =>
+  `${monthKeyOf(year, month)}-${String(day).padStart(2, '0')}`;
+
+const DAY_MS = 24 * 60 * 60_000;
+
+/** The last `count` local days up to and including today, and the UTC instants that bound them. */
+export const getDailyWindow = (now: Date, tzOffsetMinutes = 0, count = 30) => {
+  const days = Math.min(Math.max(Math.trunc(count), 1), 62);
+  const current = getMonthWindow(now, tzOffsetMinutes);
+  const slots = Array.from({ length: days }, (_, index): DaySlot => {
+    const date = new Date(
+      Date.UTC(current.year, current.month, current.dayOfMonth - (days - 1 - index)),
+    );
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const day = date.getUTCDate();
+    return { key: dayKeyOf(year, month, day), year, month, day };
+  });
+
+  return {
+    slots,
+    start: new Date(current.todayStart.getTime() - (days - 1) * DAY_MS),
+    end: new Date(current.todayStart.getTime() + DAY_MS),
+    current,
+  };
+};
+
+/**
+ * Mean spend per period from the first period with any spend to the end of the window, so a
+ * project that started two months ago isn't averaged against months before it existed.
+ * Null when nothing was spent.
+ */
+export const averagePerPeriod = (totals: { total: bigint }[]): bigint | null => {
+  const firstIndex = totals.findIndex((period) => 0n !== period.total);
+  if (-1 === firstIndex) {
+    return null;
+  }
+  const active = totals.slice(firstIndex);
+  return BigMath.roundDiv(
+    active.reduce((sum, period) => sum + period.total, 0n),
+    BigInt(active.length),
+  );
+};
+
+/** Spend in `currency` split by who recorded it. */
+export const totalsBySource = (rows: SpendRow[], currency: string): Record<SpendSource, bigint> =>
+  rows
+    .filter((row) => currency === row.currency)
+    .reduce<Record<SpendSource, bigint>>(
+      (acc, row) => {
+        acc['agent' === row.source ? 'agent' : 'human'] += row.total;
+        return acc;
+      },
+      { human: 0n, agent: 0n },
+    );
+
+/** Top categories overall, for people only and for agents only (rows without a source are human). */
+export const topCategoriesBySource = (rows: SpendRow[], currency: string) => ({
+  all: topCategories(rows, currency),
+  human: topCategories(
+    rows.filter((row) => 'agent' !== row.source),
+    currency,
+  ),
+  agent: topCategories(
+    rows.filter((row) => 'agent' === row.source),
+    currency,
+  ),
+});
 
 /** Totals for every currency except the charted one, largest first; zero totals dropped. */
 export const otherCurrencyTotals = (rows: SpendRow[], currency: string): CurrencyTotal[] => {

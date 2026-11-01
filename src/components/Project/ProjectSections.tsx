@@ -2,13 +2,13 @@ import { Bot } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { ReviewChip } from '~/components/Review/ReviewChip';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
 import { SPEND_BUCKETS, type SpendBucket, percentOf } from '~/server/project/budget';
 import { type RouterOutputs } from '~/utils/api';
 
+import { Money } from '../Safi/Money';
 import { isolateLtr } from './format';
 
 export type ProjectSummary = RouterOutputs['project']['summary'];
@@ -52,7 +52,7 @@ export const ProjectStatsCard: React.FC<{ summary: ProjectSummary }> = ({ summar
     <section className="bg-surface border-border mt-1 flex flex-col rounded-[20px] border">
       <StatRow
         label={t('stats.spent')}
-        value={<span dir="ltr">{toUIString(summary.spent)}</span>}
+        value={<Money amount={summary.spent} currency={summary.currency} />}
       />
       <StatRow
         label={t('stats.renewals')}
@@ -148,14 +148,17 @@ export const WhereItGoes: React.FC<{ summary: ProjectSummary; detailsHref: strin
 };
 
 const MAX_AVATARS = 3;
-const AGENT_ICON_KEYS = ['agent-a', 'agent-b'] as const;
+const MAX_AGENT_ICONS = 2;
 
 export const PeopleAndAgents: React.FC<{ summary: ProjectSummary; manageHref: string }> = ({
   summary,
   manageHref,
 }) => {
   const { t } = useTranslationWithUtils(NS);
-  const agentIcons = AGENT_ICON_KEYS.slice(0, summary.agentsCount);
+  // One icon per agent up to the cap, then "+N", so the icons always match the count in words.
+  const shownAgents = Math.min(summary.agentsCount, MAX_AGENT_ICONS);
+  const extraAgents = summary.agentsCount - shownAgents;
+  const agentIcons = Array.from({ length: shownAgents }, (_, index) => `agent-${index}`);
 
   return (
     <section className="bg-surface border-border mt-[18px] flex items-center justify-between gap-3 rounded-[20px] border px-4 py-3">
@@ -169,14 +172,26 @@ export const PeopleAndAgents: React.FC<{ summary: ProjectSummary; manageHref: st
               <EntityAvatar entity={member} size={32} />
             </span>
           ))}
-          {agentIcons.map((key) => (
-            <span
-              key={key}
-              className="bg-default ring-surface text-accent -ms-2 inline-flex size-8 items-center justify-center rounded-[10px] ring-2"
-            >
-              <Bot className="size-4" />
+          {0 < shownAgents ? (
+            <span className="ms-2 flex items-center gap-1">
+              {agentIcons.map((key) => (
+                <span
+                  key={key}
+                  className="bg-accent/15 border-accent/40 text-accent inline-flex size-8 items-center justify-center rounded-[10px] border"
+                >
+                  <Bot className="size-4" />
+                </span>
+              ))}
+              {0 < extraAgents ? (
+                <span
+                  className="bg-default border-border text-foreground inline-flex h-8 min-w-8 items-center justify-center rounded-[10px] border px-1.5 text-xs font-semibold"
+                  dir="ltr"
+                >
+                  +{extraAgents}
+                </span>
+              ) : null}
             </span>
-          ))}
+          ) : null}
         </div>
         <span className="text-muted ms-2.5 truncate text-[13px]">
           {t('people.summary', { people: summary.members.length, agents: summary.agentsCount })}
@@ -188,62 +203,6 @@ export const PeopleAndAgents: React.FC<{ summary: ProjectSummary; manageHref: st
       >
         {t('people.manage')}
       </Link>
-    </section>
-  );
-};
-
-export const TodayList: React.FC<{ summary: ProjectSummary; currentUserId: number }> = ({
-  summary,
-  currentUserId,
-}) => {
-  const { t, displayName, getCurrencyHelpersCached } = useTranslationWithUtils(NS);
-
-  return (
-    <section className="mt-6 flex flex-col gap-2" aria-labelledby="project-today-title">
-      <h2
-        id="project-today-title"
-        className="text-muted text-[11px] font-semibold tracking-wider uppercase"
-      >
-        {t('today.title')}
-      </h2>
-      {0 === summary.today.length ? (
-        <p className="text-muted text-sm">{t('today.empty')}</p>
-      ) : (
-        <ul className="bg-surface border-border flex flex-col rounded-[16px] border">
-          {summary.today.map((expense) => (
-            <li key={expense.id} className="border-border border-b last:border-b-0">
-              <Link
-                href={`/groups/${summary.id}/expenses/${expense.id}`}
-                className="focus-visible:ring-focus flex min-h-14 items-center justify-between gap-3 rounded-[16px] px-4 py-3 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
-              >
-                <div className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm font-medium">{expense.description}</span>
-                  <span className="text-muted truncate text-xs">
-                    {t('today.paid_by', {
-                      // `actors.you` lives in common, which this projects-first `t` doesn't search.
-                      name:
-                        currentUserId === expense.paidBy.id
-                          ? t('actors.you', { ns: 'common' })
-                          : displayName(expense.paidBy),
-                      source: expense.isRecurring
-                        ? t('today.recurring')
-                        : expense.hasReceipt
-                          ? t('today.receipt')
-                          : t('today.manual'),
-                    })}
-                  </span>
-                </div>
-                <span className="flex shrink-0 items-center gap-2">
-                  {expense.needsReview ? <ReviewChip /> : null}
-                  <span className="text-sm font-semibold" dir="ltr">
-                    {getCurrencyHelpersCached(expense.currency).toUIString(expense.amount)}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
     </section>
   );
 };

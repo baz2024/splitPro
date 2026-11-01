@@ -771,5 +771,119 @@
       "error": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
       "details": "{count, plural, =0 {التفاصيل} zero {التفاصيل} one {التفاصيل · دليل واحد} two {التفاصيل · دليلان} few {التفاصيل · # أدلة} many {التفاصيل · # دليلًا} other {التفاصيل · # دليل}}"
     }
+  },
+  "audit_a": {
+    "switchers": {
+      "button_label": "اللغة والعملة",
+      "language": "اللغة",
+      "currency": "العملة"
+    },
+    "headline": {
+      "owed_by_one": "إجمالاً، {name} مدين لك بـ <amount/>",
+      "owed": "إجمالاً، لك <amount/>",
+      "owe_to_one": "إجمالاً، أنت مدين لـ {name} بـ <amount/>",
+      "owe": "إجمالاً، أنت مدين بـ <amount/>",
+      "mixed": "إجمالاً، لك <owed/> وعليك <owe/>",
+      "settled": "حساباتك كلها مسوّاة"
+    },
+    "row": {
+      "owes_you": "مدين لك",
+      "you_owe": "أنت مدين"
+    },
+    "detected": {
+      "summary": "وجد وكيل البرمجة {count, plural, one {خدمة جديدة واحدة} two {خدمتين جديدتين} few {# خدمات جديدة} many {# خدمة جديدة} other {# خدمة جديدة}}",
+      "review": "مراجعة",
+      "hide": "إخفاء"
+    },
+    "signin": {
+      "page_title": "تسجيل الدخول إلى Safi",
+      "by_kafo": "من Kafo AI",
+      "invite_question": "لديك دعوة؟",
+      "invite_hint": "افتح رابط الدعوة للانضمام إلى المشروع مباشرة."
+    }
+  },
+  "audit_b": {
+    "addcost": {
+      "scan": "مسح",
+      "plans": "الخطط",
+      "list_price_note": "سعر القائمة بالدولار، تحقّق من خطتك",
+      "per_seat": "/ مقعد"
+    }
+  },
+  "audit_c": {
+    "pace": {
+      "on_track": "على المسار · متبقٍ {left}",
+      "at_risk": "بهذا المعدل ستنفق {projected} بحلول {date}، أي {over} فوق الميزانية",
+      "over": "تجاوزت الميزانية بمقدار {over} · بهذا المعدل ستصل إلى {projected} بحلول {date}"
+    },
+    "project": {
+      "archived_on": "مؤرشف في {date}",
+      "all_expenses": "كل المصروفات"
+    },
+    "expense_row": {
+      "no_balance": "لا رصيد"
+    },
+    "settings": {
+      "title": "إعدادات المشروع",
+      "deleted": "تم حذف المشروع",
+      "archived": "تمت أرشفة المشروع",
+      "unarchived": "تمت استعادة المشروع",
+      "remove_member": "إزالة {name}",
+      "remove": "إزالة",
+      "delete": "حذف المشروع",
+      "delete_title": "حذف {name}؟",
+      "delete_description": "سيُحذف المشروع وكل مصروفاته للجميع. لا يمكن التراجع عن ذلك."
+    },
+    "members": {
+      "title": "الأعضاء · {count}",
+      "settle_up": "تسوية",
+      "all_settled": "الجميع متساوون، لا توجد مبالغ مستحقة.",
+      "invite_link": "رابط الدعوة",
+      "exported": "{count, plural, zero {لم يُصدَّر أي مصروف} one {تم تصدير مصروف واحد} two {تم تصدير مصروفين} few {تم تصدير # مصروفات} many {تم تصدير # مصروفًا} other {تم تصدير # مصروف}}",
+      "export_failed": "تعذّر تصدير هذا المشروع",
+      "settled": "تمت التسوية",
+      "is_owed": "مستحق له {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "owes": "عليه {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "you_are_owed": "مستحق لك {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "you_owe": "عليك {amount}{count, plural, =0 {} other { + # أخرى}}"
+    },
+    "scan": {
+      "title": "ما قرأناه",
+      "check": "تحقّق",
+      "check_count": "{count, plural, one {تحقّق من الحقل المميّز} two {تحقّق من الحقلين المميّزين} few {تحقّق من # حقول مميّزة} many {تحقّق من # حقلًا مميّزًا} other {تحقّق من # حقل مميّز}}",
+      "all_clear": "مقروء من إيصالك"
+    },
+    "notify": {
+      "will_be_notified": "{count, plural, one {سيتم إشعار {name}} two {سيتم إشعار شخصين} few {سيتم إشعار # أشخاص} many {سيتم إشعار # شخصًا} other {سيتم إشعار # شخص}}",
+      "was_notified": "{count, plural, one {تم إشعار {name}} two {تم إشعار شخصين} few {تم إشعار # أشخاص} many {تم إشعار # شخصًا} other {تم إشعار # شخص}}",
+      "saved_title": "تم حفظ المصروف",
+      "add_another": "إضافة آخر",
+      "done": "تم"
+    },
+    "invite": {
+      "preview_sms": "رسالة نصية إلى {to}",
+      "preview_email": "بريد إلكتروني إلى {to}",
+      "subject": "الموضوع: {subject}",
+      "preview_note": "لن يُرسل شيء حتى تضغط إرسال الدعوة.",
+      "send": "إرسال الدعوة"
+    }
+  },
+  "audit_d": {
+    "agent": {
+      "added_by": "أضافه الوكيل {name}"
+    },
+    "journey": {
+      "import_link": "استيراد من البنك بدلاً من ذلك",
+      "leave_import": "إلغاء الاستيراد"
+    }
+  },
+  "audit_f": {
+    "pace": {
+      "early": "أنفقت {spent} حتى الآن هذا الشهر · يتبقى {left} من الميزانية",
+      "over_early": "تجاوزت الميزانية بمقدار {over}"
+    }
+  },
+  "audit_g": {
+    "skill_create_key": "اضغط «إضافة وكيل والحصول على رمز» وانسخ المفتاح الذي يظهر لك."
   }
 }

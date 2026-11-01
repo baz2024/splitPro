@@ -10,6 +10,7 @@ import {
   USAGE_CATEGORIES,
   type UsageSummary,
   cadenceFromCron,
+  chargesBetween,
   monthStart,
   monthlyAmount,
   nextRunDate,
@@ -17,6 +18,7 @@ import {
   summariseRunRates,
   summariseUsage,
   usageServiceKey,
+  yearlyAmount,
 } from './helpers';
 import {
   type UsageSignalKind,
@@ -35,6 +37,10 @@ export interface SubscriptionItem {
   category: string;
   cadence: SubscriptionCadence;
   monthlyAmount: bigint;
+  /** What this subscription costs over a year (monthly × 12, weekly × 52, yearly as is). */
+  yearlyAmount: bigint;
+  /** Charges still due between now and the end of this UTC month, in minor units. */
+  remainingThisMonth: bigint;
   nextDueDate: Date | null;
   paidBy: { id: number; name: string | null; email: string | null };
   split: SplitKind;
@@ -54,8 +60,15 @@ export interface ProjectBudgetShare {
   percent: number;
 }
 
+export interface MonthCash {
+  currency: string;
+  amount: bigint;
+}
+
 export interface SubscriptionsOverview {
   items: SubscriptionItem[];
+  /** Subscription charges already made this UTC month, per currency (full charge amounts). */
+  paidThisMonth: MonthCash[];
   runRates: RunRate[];
   usage: UsageSummary[];
   budget: ProjectBudgetShare | null;
@@ -255,6 +268,10 @@ export const listSubscriptions = async (
           category: expense.category,
           cadence,
           monthlyAmount: monthlyAmount(expense.amount, cadence, recurrence.job.schedule, now),
+          yearlyAmount: yearlyAmount(expense.amount, cadence, recurrence.job.schedule, now),
+          remainingThisMonth:
+            expense.amount *
+            BigInt(chargesBetween(recurrence.job.schedule, now, monthStart(now, 1))),
           nextDueDate: nextRunDate(recurrence.job.schedule, now),
           paidBy: expense.paidByUser,
           split: splitKindFromParticipants(expense.expenseParticipants),
@@ -269,6 +286,25 @@ export const listSubscriptions = async (
     .sort(
       (a, b) => (a.nextDueDate?.getTime() ?? Infinity) - (b.nextDueDate?.getTime() ?? Infinity),
     );
+
+  const recurrenceIds = items.map(({ recurrenceId }) => recurrenceId);
+  const paidRows =
+    0 < recurrenceIds.length
+      ? await db.expense.groupBy({
+          by: ['currency'],
+          where: {
+            ...expenseScope,
+            recurrenceId: { in: recurrenceIds },
+            expenseDate: { gte: monthStart(now), lte: now },
+          },
+          _sum: { amount: true },
+        })
+      : [];
+  const paidThisMonth = paidRows.map((row) => ({
+    currency: row.currency,
+    // oxlint-disable-next-line no-underscore-dangle -- Prisma's aggregate field name
+    amount: row._sum.amount ?? 0n,
+  }));
 
   const syncedImports =
     0 < usageExpenses.length
@@ -305,6 +341,7 @@ export const listSubscriptions = async (
 
   return {
     items,
+    paidThisMonth,
     runRates,
     usage,
     budget,

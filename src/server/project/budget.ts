@@ -24,6 +24,8 @@ export interface BudgetExpense {
   currency: string;
   category: string;
   isRecurring: boolean;
+  /** Set when an agent reported the cost through its API key; such costs count as agent runs. */
+  reportedByApiKeyId?: string | null;
 }
 
 export interface MonthWindow {
@@ -71,7 +73,12 @@ export const getMonthWindow = (now: Date, tzOffsetMinutes = 0): MonthWindow => {
 export const bucketFor = ({
   category,
   isRecurring,
-}: Pick<BudgetExpense, 'category' | 'isRecurring'>): SpendBucket => {
+  reportedByApiKeyId,
+}: Pick<BudgetExpense, 'category' | 'isRecurring' | 'reportedByApiKeyId'>): SpendBucket => {
+  // Anything an agent reported is an agent run, whatever category it was filed under.
+  if (reportedByApiKeyId) {
+    return 'agentRuns';
+  }
   if (isRecurring) {
     return 'subscriptions';
   }
@@ -111,9 +118,33 @@ export const summarizeSpend = (expenses: BudgetExpense[], currency: string): Spe
     },
   );
 
+/** A straight-line projection needs at least this many days of the month behind it… */
+export const MIN_PROJECTION_DAYS = 7;
+/** …or at least this share of the month (whichever comes first). */
+export const MIN_PROJECTION_SHARE = 0.25;
+
+/**
+ * True once enough of the month has passed for a month-end projection to mean something.
+ * On day 1 a single $1,346 bill would otherwise "project" to $40,000.
+ */
+export const hasEnoughPaceData = ({
+  dayOfMonth,
+  daysInMonth,
+}: {
+  dayOfMonth: number;
+  daysInMonth: number;
+}): boolean => {
+  if (MIN_PROJECTION_DAYS <= dayOfMonth) {
+    return true;
+  }
+  return 0 < daysInMonth && MIN_PROJECTION_SHARE <= dayOfMonth / daysInMonth;
+};
+
 /**
  * On track while the month-end projection at the current pace stays within budget.
  * At risk when the projection exceeds the budget; over once spending has passed it.
+ * Early in the month (see hasEnoughPaceData) there is no projection, so it is only
+ * "over" or "on track" by what has actually been spent.
  */
 export const getBudgetStatus = ({
   budget,
@@ -132,8 +163,77 @@ export const getBudgetStatus = ({
   if (spent > budget) {
     return 'over';
   }
-  const projected = BigMath.roundDiv(spent * BigInt(daysInMonth), BigInt(Math.max(dayOfMonth, 1)));
+  if (!hasEnoughPaceData({ dayOfMonth, daysInMonth })) {
+    return 'on_track';
+  }
+  const projected = getMonthEndProjection({ spent, dayOfMonth, daysInMonth });
   return projected > budget ? 'at_risk' : 'on_track';
+};
+
+/**
+ * What the month will end at if spending keeps its current daily rate
+ * (spent ÷ days so far × days in the month). This is the number getBudgetStatus compares
+ * with the budget, so the headline and the status always agree.
+ */
+export const getMonthEndProjection = ({
+  spent,
+  dayOfMonth,
+  daysInMonth,
+}: {
+  spent: bigint;
+  dayOfMonth: number;
+  daysInMonth: number;
+}): bigint => {
+  if (0n >= spent) {
+    return 0n;
+  }
+  const day = Math.min(Math.max(dayOfMonth, 1), Math.max(daysInMonth, 1));
+  return BigMath.roundDiv(spent * BigInt(daysInMonth), BigInt(day));
+};
+
+/** One consistent headline for a project's month: what to say and the numbers it needs. */
+export type PaceSummary =
+  | { kind: 'no_budget' }
+  /** Too early in the month to project: "Spent $120 so far this month · $1,880 left in budget". */
+  | { kind: 'early'; spent: bigint; left: bigint }
+  /** Projection stays within budget: "On track · $654 left". */
+  | { kind: 'on_track'; left: bigint; projected: bigint }
+  /** Projection passes the budget: "On pace to spend $3,280 by 30 Nov, $1,280 over budget". */
+  | { kind: 'at_risk'; projected: bigint; overBy: bigint; left: bigint }
+  /**
+   * Already past the budget: "Over budget by $120 · on pace to spend $2,600 by 30 Nov".
+   * `projected` is null while it is too early in the month to project.
+   */
+  | { kind: 'over'; projected: bigint | null; overBy: bigint };
+
+export const describePace = ({
+  budget,
+  spent,
+  dayOfMonth,
+  daysInMonth,
+}: {
+  budget: bigint | null;
+  spent: bigint;
+  dayOfMonth: number;
+  daysInMonth: number;
+}): PaceSummary => {
+  const status = getBudgetStatus({ budget, spent, dayOfMonth, daysInMonth });
+  if ('no_budget' === status || null === budget) {
+    return { kind: 'no_budget' };
+  }
+  if (!hasEnoughPaceData({ dayOfMonth, daysInMonth })) {
+    return spent > budget
+      ? { kind: 'over', projected: null, overBy: spent - budget }
+      : { kind: 'early', spent, left: budget - spent };
+  }
+  const projected = getMonthEndProjection({ spent, dayOfMonth, daysInMonth });
+  if ('over' === status) {
+    return { kind: 'over', projected, overBy: spent - budget };
+  }
+  if ('at_risk' === status) {
+    return { kind: 'at_risk', projected, overBy: projected - budget, left: budget - spent };
+  }
+  return { kind: 'on_track', left: budget - spent, projected };
 };
 
 /** Number of days in a 0-based `month` of `year`. */

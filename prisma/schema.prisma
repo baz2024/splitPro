@@ -349,6 +349,12 @@ model ApiKey {
   groupId          Int?
   agentLabel       String?
   model            String?
+  /// Set while the owner has paused the agent: the agent API rejects it and tells it to stop.
+  pausedAt         DateTime?
+  /// Last four characters of the token, for a masked "safi_AbC…wxyz" display.
+  lastFour         String?
+  /// Providers (catalog ids) or models this agent may report spend for; empty means anything.
+  allowList        String[]  @default([])
   group            Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
   reportedExpenses Expense[]
 

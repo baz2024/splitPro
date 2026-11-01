@@ -62,6 +62,12 @@ describe('apiKeys', () => {
       expect(hashedKey).toBe(hashApiKey(token));
       expect(hashedKey).not.toContain(token);
     });
+
+    it('should keep the last four characters for the masked key', () => {
+      const { token, lastFour } = createApiKeyRecord();
+      expect(lastFour).toBe(token.slice(-4));
+      expect(lastFour).toHaveLength(4);
+    });
   });
 
   describe('parseBearerToken', () => {

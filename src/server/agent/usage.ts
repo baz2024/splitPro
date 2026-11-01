@@ -48,10 +48,26 @@ export interface UsageReporter {
   label: string;
 }
 
+export interface ProviderRow {
+  /** `service:<id>`, or `other` for spend not matched to a known provider. */
+  key: string;
+  /** Catalog id, or null for the `other` row. */
+  serviceId: string | null;
+  name: string;
+  amount: bigint;
+  /** Categories in the `other` row (e.g. aiApis), for its sub-label. */
+  categories: string[];
+}
+
 export interface UsageSummary {
   currency: string | null;
   total: bigint;
   rows: UsageRow[];
+  /**
+   * The same spend grouped by provider only (whoever reported it). Spend that matches no known
+   * provider is one `other` row at the end, never a category posing as a spender.
+   */
+  providers: ProviderRow[];
   /** Currencies with AI spend that are not included in `total` (no conversion is applied). */
   otherCurrencies: string[];
 }
@@ -154,12 +170,38 @@ export const aggregateUsage = ({
       return acc;
     }, new Map<string, UsageRow>());
 
+  const providers = shares
+    .filter(({ expense }) => expense.currency === currency)
+    .reduce((acc, { expense, share }) => {
+      const service = findService(expense.name) ?? findService(expense.name.split('·')[0]);
+      const key = service ? `service:${service.id}` : 'other';
+      const existing = acc.get(key) ?? {
+        key,
+        serviceId: service?.id ?? null,
+        name: service?.name ?? 'other',
+        amount: 0n,
+        categories: [],
+      };
+      existing.amount += share;
+      if (!service && !existing.categories.includes(expense.category)) {
+        existing.categories.push(expense.category);
+      }
+      acc.set(key, existing);
+      return acc;
+    }, new Map<string, ProviderRow>());
+
   return {
     currency,
     total: currency ? (totals.get(currency) ?? 0n) : 0n,
     rows: [...rows.values()].sort((a, b) =>
       a.amount === b.amount ? a.name.localeCompare(b.name) : a.amount > b.amount ? -1 : 1,
     ),
+    providers: [...providers.values()].sort((a, b) => {
+      if ('other' === a.key || 'other' === b.key) {
+        return 'other' === a.key ? 1 : -1;
+      }
+      return a.amount === b.amount ? a.name.localeCompare(b.name) : a.amount > b.amount ? -1 : 1;
+    }),
     otherCurrencies: [...totals.keys()].filter((code) => code !== currency).sort(),
   };
 };

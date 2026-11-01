@@ -23,6 +23,12 @@ interface MainLayoutProps {
   loading?: boolean;
   /** Hides the mobile bottom tab bar (full-screen flows with their own pinned actions). */
   hideAppBar?: boolean;
+  /**
+   * Shows the "EN · USD" language and currency chip. Defaults to on for pages with a `title`
+   * (it sits beside the title) and off for pages that draw their own header, so they don't get
+   * an extra row above it.
+   */
+  showSwitchers?: boolean;
 }
 
 interface NavEntry {
@@ -56,10 +62,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   title,
   loading,
   hideAppBar = false,
+  showSwitchers,
 }) => {
   const { t } = useTranslation();
   const router = useRouter();
   const currentPath = router.pathname;
+  const switchersVisible = !hideAppBar && (showSwitchers ?? Boolean(title));
 
   const labels: Record<NavEntry['key'], string> = {
     balances: t('navigation.balances'),
@@ -98,18 +106,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </nav>
         <div className="lg:border-border w-full overflow-auto lg:border-x lg:px-6" id="mainlayout">
           {title ? (
-            <div className="mb-2 flex items-center justify-between gap-3 px-4 py-4">
-              <div className="text-foreground min-w-0 truncate text-3xl font-bold">{title}</div>
-              <div className="flex shrink-0 items-center gap-2">
+            <div className="mb-2 flex items-start justify-between gap-3 px-4 py-4">
+              {/* Wraps instead of truncating, so long or translated titles stay readable. */}
+              <div className="text-foreground min-w-0 flex-1 text-3xl leading-tight font-bold wrap-break-word">
+                {title}
+              </div>
+              <div className="flex min-h-9 shrink-0 items-center gap-2">
                 {actions}
-                {hideAppBar ? null : <ToolbarSwitchers />}
+                {switchersVisible ? <ToolbarSwitchers /> : null}
               </div>
             </div>
-          ) : hideAppBar ? null : (
+          ) : switchersVisible ? (
             <div className="flex justify-end px-4 pt-4">
               <ToolbarSwitchers />
             </div>
-          )}
+          ) : null}
           <div className="px-4">
             {loading ? (
               <div className="mt-10 flex justify-center">

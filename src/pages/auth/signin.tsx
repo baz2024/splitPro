@@ -10,7 +10,7 @@ import {
   SiGoogle,
   SiKeycloak,
 } from '@icons-pack/react-simple-icons';
-import { Phone, Sparkles } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { type GetServerSideProps, type NextPage } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -25,6 +25,7 @@ import { z } from 'zod';
 import { PhoneSignIn } from '~/components/Auth/PhoneSignIn';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { LoadingSpinner } from '~/components/ui/spinner';
+import { cn } from '~/lib/utils';
 import { env } from '~/env';
 import { getServerAuthSession } from '~/server/auth';
 import { customServerSideTranslations } from '~/utils/i18n/server';
@@ -203,20 +204,28 @@ const Home: NextPage<{
   }
 
   const oauthProviders = providers.filter((provider) => 'email' !== provider.id);
+  const googleProvider = oauthProviders.find((provider) => 'google' === provider.id);
+  const otherOauthProviders = oauthProviders.filter((provider) => 'google' !== provider.id);
   const hasEmailProvider = providers.some((provider) => 'email' === provider.id);
   const emailError = emailForm.formState.errors.email?.message;
 
   return (
     <>
       <Head>
-        <title>{t('auth.welcome.page_title')}</title>
+        <title>{t('audit_a.signin.page_title')}</title>
       </Head>
       <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col px-4 pt-6 pb-8">
         <header className="flex items-center justify-between">
-          <p className="flex items-center gap-2 text-lg font-semibold">
-            <Sparkles className="text-accent size-5" aria-hidden />
-            {t('auth.welcome.brand')}
-          </p>
+          <div className="flex items-center gap-2.5">
+            {/* oxlint-disable-next-line next/no-img-element -- static brand mark, no optimisation needed. */}
+            <img src="/logo.svg" alt="" aria-hidden className="size-9 rounded-xl" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-foreground text-lg font-semibold">
+                {t('meta.application_name')}
+              </span>
+              <span className="text-muted text-xs">{t('audit_a.signin.by_kafo')}</span>
+            </div>
+          </div>
           <LanguageSelector />
         </header>
 
@@ -233,18 +242,34 @@ const Home: NextPage<{
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <Button
-              fullWidth
-              size="lg"
-              variant="primary"
-              isDisabled={isAppleLoading}
-              onPress={() => void onAppleSignIn()}
-            >
-              <SiApple className="size-4" aria-hidden />
-              {t('auth.welcome.continue_apple')}
-            </Button>
+            {/* Apple and Google carry equal weight, side by side when both exist. */}
+            <div className={cn('grid gap-3', googleProvider ? 'grid-cols-2' : 'grid-cols-1')}>
+              <Button
+                fullWidth
+                size="lg"
+                variant="secondary"
+                aria-label={t('auth.welcome.continue_apple')}
+                isDisabled={isAppleLoading}
+                onPress={() => void onAppleSignIn()}
+              >
+                <SiApple className="size-4" aria-hidden />
+                {googleProvider ? 'Apple' : t('auth.welcome.continue_apple')}
+              </Button>
+              {googleProvider ? (
+                <Button
+                  fullWidth
+                  size="lg"
+                  variant="secondary"
+                  aria-label={t('auth.welcome.continue_google')}
+                  onPress={() => void signIn(googleProvider.id, { callbackUrl })}
+                >
+                  {providerSvgs.google}
+                  Google
+                </Button>
+              ) : null}
+            </div>
 
-            {oauthProviders.map((provider) => (
+            {otherOauthProviders.map((provider) => (
               <Button
                 key={provider.id}
                 fullWidth
@@ -253,9 +278,7 @@ const Home: NextPage<{
                 onPress={() => void signIn(provider.id, { callbackUrl })}
               >
                 {providerTypeGuard(provider.id) && providerSvgs[provider.id]}
-                {'google' === provider.id
-                  ? t('auth.welcome.continue_google')
-                  : t('auth.continue_with', { provider: provider.name })}
+                {t('auth.continue_with', { provider: provider.name })}
               </Button>
             ))}
 
@@ -310,6 +333,11 @@ const Home: NextPage<{
             )}
           </div>
         )}
+
+        <p className="text-muted mt-6 text-center text-sm">
+          <span className="text-foreground font-medium">{t('audit_a.signin.invite_question')}</span>{' '}
+          {t('audit_a.signin.invite_hint')}
+        </p>
 
         <footer className="text-muted mt-auto flex flex-col items-center gap-3 pt-10 text-center text-xs">
           {feedbackEmail && (

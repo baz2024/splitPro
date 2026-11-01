@@ -8,13 +8,15 @@ import { UNUSED_NAMESPACES, UnusedRow } from './UnusedRow';
 
 interface UnusedSheetProps {
   overview: SubscriptionsOverview;
+  /** Custom opener (e.g. the savings banner); defaults to the "N unused 30+ days" link. */
+  trigger?: React.ReactNode;
 }
 
 /**
  * "N unused 30+ days" link for the run-rate card. Opens a sheet listing those subscriptions.
  * Renders nothing when no subscription is unused.
  */
-export const UnusedSheet: React.FC<UnusedSheetProps> = ({ overview }) => {
+export const UnusedSheet: React.FC<UnusedSheetProps> = ({ overview, trigger }) => {
   const { t } = useTranslationWithUtils(UNUSED_NAMESPACES);
   const unused = overview.items.filter((item) => item.unused);
 
@@ -27,12 +29,14 @@ export const UnusedSheet: React.FC<UnusedSheetProps> = ({ overview }) => {
       title={t('sheet.title')}
       className="max-h-[85vh]"
       trigger={
-        <button
-          type="button"
-          className="text-warning focus-visible:ring-focus min-h-6 rounded text-end text-xs font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-        >
-          {t('summary', { count: unused.length })}
-        </button>
+        trigger ?? (
+          <button
+            type="button"
+            className="text-warning focus-visible:ring-focus min-h-6 rounded text-end text-xs font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+          >
+            {t('summary', { count: unused.length })}
+          </button>
+        )
       }
     >
       <div className="flex flex-col gap-3">

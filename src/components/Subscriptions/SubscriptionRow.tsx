@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 import { toast } from 'sonner';
 
+import { Money } from '~/components/Safi/Money';
 import { ServiceBadge } from '~/components/Safi/ServiceBadge';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { DEFAULT_REMIND_DAYS_BEFORE } from '~/server/reminders/dueDate';
@@ -133,13 +134,29 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
               </Chip>
             ) : null}
           </span>
-          <span className={clsx('line-clamp-2 text-xs', isSoon ? 'text-warning' : 'text-muted')}>
-            {due} · {secondary}
+          {/* Wrap between the two facts, never inside one, so no word is left alone on a line. */}
+          <span
+            className={clsx(
+              'flex min-w-0 flex-wrap gap-x-1 text-xs',
+              isSoon ? 'text-warning' : 'text-muted',
+            )}
+          >
+            <span className="whitespace-nowrap">{due} ·</span>
+            <span className="max-w-full truncate whitespace-nowrap">{secondary}</span>
           </span>
         </span>
-        <span dir="ltr" className="text-foreground shrink-0 text-sm font-semibold">
-          {amountLabel}
-        </span>
+        {showCycle && cycleKey ? (
+          <span dir="ltr" className="text-foreground shrink-0 text-sm font-semibold">
+            {amountLabel}
+          </span>
+        ) : (
+          <Money
+            amount={item.amount}
+            currency={item.currency}
+            tone={isSoon ? 'warn' : 'neutral'}
+            className="text-foreground shrink-0 text-sm"
+          />
+        )}
       </Link>
       <ReminderToggle recurrenceId={item.recurrenceId} name={item.description} />
     </li>

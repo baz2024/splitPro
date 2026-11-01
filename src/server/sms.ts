@@ -1,4 +1,5 @@
 import { env } from '~/env';
+import { buildInviteSmsText } from '~/lib/inviteMessage';
 
 const TWILIO_API_BASE = 'https://api.twilio.com/2010-04-01';
 
@@ -8,7 +9,7 @@ export const isSmsInviteEnabled = (): boolean =>
   Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_MESSAGING_SERVICE_SID);
 
 export const buildInviteSmsBody = (inviterName: string): string =>
-  `${'' === inviterName.trim() ? 'A friend' : inviterName.trim()} invited you to Safi to share expenses. Sign in with this phone number: ${env.NEXTAUTH_URL}`;
+  buildInviteSmsText(inviterName, env.NEXTAUTH_URL);
 
 /**
  * Sends an SMS invite through Twilio's Messages API. Returns false when Twilio is not

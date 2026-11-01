@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
+import { checkAllowList } from '~/lib/agentControls';
 import { isCurrencyCode } from '~/lib/currency';
 import { findService } from '~/lib/serviceCatalog';
 
@@ -8,6 +9,7 @@ import {
   AGENT_KEY_SELECT,
   type AgentKeyRow,
   type AgentSpend,
+  type PauseReason,
   buildAgentSpend,
   loadKeyMonthSpend,
 } from './caps';
@@ -113,7 +115,25 @@ export interface SpendStatusResponse {
   shouldPause: boolean;
   projectedToHitCap: boolean;
   otherCurrencies: string[];
+  /** The owner paused this agent in Safi. */
+  paused: boolean;
+  /** Why shouldPause is true: "paused", "cap_reached" or "not_allowed"; null otherwise. */
+  pauseReason: PauseReason | null;
+  /** Providers or models this agent may report for; empty means anything. */
+  allowList: string[];
+  /** Human-readable explanation when shouldPause is true. */
+  message: string | null;
 }
+
+const pauseMessage = (spend: AgentSpend): string | null => {
+  if ('paused' === spend.pauseReason) {
+    return 'This agent was paused in Safi. Stop spending until the owner resumes it.';
+  }
+  if ('cap_reached' === spend.pauseReason) {
+    return 'This agent has reached its monthly cap. Stop spending until next month or a higher cap.';
+  }
+  return null;
+};
 
 /** JSON-safe view of a key's spend: amounts as decimal strings in `currency`. */
 export const serializeAgentSpend = (spend: AgentSpend): SpendStatusResponse => {
@@ -134,6 +154,36 @@ export const serializeAgentSpend = (spend: AgentSpend): SpendStatusResponse => {
     shouldPause: spend.shouldPause,
     projectedToHitCap: spend.projectedToHitCap,
     otherCurrencies: spend.otherCurrencies,
+    paused: spend.paused,
+    pauseReason: spend.pauseReason,
+    allowList: spend.allowList,
+    message: pauseMessage(spend),
+  };
+};
+
+/**
+ * A report for a provider/model outside the key's allow-list is still recorded (the money is
+ * spent), but the agent is told to pause with the reason. Paused / over-cap reasons win.
+ */
+export const applyAllowList = (
+  status: AgentSpend,
+  report: Pick<SpendReport, 'service' | 'model'>,
+  keyModel: string | null,
+): { status: AgentSpend; allowListReason: string | null } => {
+  const check = checkAllowList(status.allowList, {
+    service: report.service,
+    model: report.model ?? keyModel,
+  });
+  if (check.allowed) {
+    return { status, allowListReason: null };
+  }
+  return {
+    status: {
+      ...status,
+      shouldPause: true,
+      pauseReason: status.pauseReason ?? 'not_allowed',
+    },
+    allowListReason: check.reason,
   };
 };
 
@@ -178,17 +228,26 @@ export const recordSpendReport = async (
   { userId, apiKeyId }: { userId: number; apiKeyId: string },
   report: SpendReport,
   now = new Date(),
-): Promise<{ expenseId: string; duplicate: boolean; status: AgentSpend }> => {
+): Promise<{
+  expenseId: string;
+  duplicate: boolean;
+  status: AgentSpend;
+  allowListReason: string | null;
+}> => {
+  const key = await loadKey(db, apiKeyId);
+  const withAllowList = (status: AgentSpend) => applyAllowList(status, report, key.model);
+
   const existing = await findExisting(db, apiKeyId, report.idempotencyKey);
   if (existing) {
     return {
       expenseId: existing.id,
       duplicate: true,
-      status: await loadKeySpendStatus(db, apiKeyId, { now, currency: existing.currency }),
+      ...withAllowList(
+        await loadKeySpendStatus(db, apiKeyId, { now, currency: existing.currency }),
+      ),
     };
   }
 
-  const key = await loadKey(db, apiKeyId);
   const membership = key.groupId
     ? await db.groupUser.findFirst({
         where: { groupId: key.groupId, userId },
@@ -227,7 +286,7 @@ export const recordSpendReport = async (
     return {
       expenseId: expense.id,
       duplicate: false,
-      status: await loadKeySpendStatus(db, apiKeyId, { now, currency: report.currency }),
+      ...withAllowList(await loadKeySpendStatus(db, apiKeyId, { now, currency: report.currency })),
     };
   } catch (error) {
     if (!isUniqueViolation(error)) {
@@ -241,7 +300,7 @@ export const recordSpendReport = async (
     return {
       expenseId: winner.id,
       duplicate: true,
-      status: await loadKeySpendStatus(db, apiKeyId, { now, currency: winner.currency }),
+      ...withAllowList(await loadKeySpendStatus(db, apiKeyId, { now, currency: winner.currency })),
     };
   }
 };

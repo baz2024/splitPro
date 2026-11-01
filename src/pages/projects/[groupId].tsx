@@ -7,34 +7,33 @@ import { useRouter } from 'next/router';
 import React, { useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { ExpenseList } from '~/components/Expense/ExpenseList';
 import MainLayout from '~/components/Layout/MainLayout';
 import { BudgetGauge } from '~/components/Project/BudgetGauge';
 import { BudgetSheet } from '~/components/Project/BudgetSheet';
 import { isolateLtr, monthName, useTzOffset } from '~/components/Project/format';
+import { monthEndLabel, paceMessage } from '~/components/Project/paceMessage';
+import { ProjectMembers } from '~/components/Project/ProjectMembers';
 import {
   PeopleAndAgents,
   ProjectStatsCard,
   type ProjectSummary,
-  TodayList,
   WhereItGoes,
 } from '~/components/Project/ProjectSections';
+import { ProjectSettingsSheet } from '~/components/Project/ProjectSettingsSheet';
 import { ProjectSpendCharts } from '~/components/Project/SpendCharts';
+import { env } from '~/env';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
+import { isCurrencyCode } from '~/lib/currency';
 import { cn } from '~/lib/utils';
-import { daysInMonthOf, getPaceAmount, percentOf } from '~/server/project/budget';
+import { daysInMonthOf, describePace, getPaceAmount, percentOf } from '~/server/project/budget';
+import { useCurrencyPreferenceStore } from '~/store/currencyPreferenceStore';
 import { type NextPageWithUser } from '~/types';
 import { api } from '~/utils/api';
 import { customServerSideTranslations } from '~/utils/i18n/server';
 import { isStringQueryParam } from '~/utils/queryParams';
 
 const NS = ['projects', 'common'];
-
-const STATUS_TEXT = {
-  on_track: 'text-success',
-  at_risk: 'text-warning',
-  over: 'text-danger',
-  no_budget: 'text-muted',
-} as const;
 
 const ROUND_ICON_BUTTON =
   'bg-surface border-border text-foreground focus-visible:ring-focus inline-flex size-11 shrink-0 items-center justify-center rounded-full border focus-visible:ring-2 focus-visible:outline-none';
@@ -102,35 +101,78 @@ const BudgetOverview: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
   );
 };
 
-/** "At risk" says why: how far spending is ahead of an even pace for the month. */
-const StatusReason: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
-  const { t, getCurrencyHelpersCached } = useTranslationWithUtils(NS);
-  const pace = paceOf(summary);
-  if ('at_risk' !== summary.status || !pace || summary.spent <= pace.amount) {
+const PACE_TONE = {
+  neutral: 'text-muted',
+  success: 'text-success',
+  warning: 'text-warning',
+  danger: 'text-danger',
+} as const;
+
+/**
+ * One sentence about the month that agrees with the gauge: "On pace to spend $3,280 by 30 Nov,
+ * $1,280 over budget" rather than "$1,279 over pace" next to "$654 left to spend".
+ */
+const PaceLine: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
+  const { t, i18n, getCurrencyHelpersCached } = useTranslationWithUtils();
+  const { toUIString } = getCurrencyHelpersCached(summary.currency);
+  const daysInMonth = daysInMonthOf(summary.year, summary.month);
+  const message = paceMessage(
+    describePace({
+      budget: summary.budget,
+      spent: summary.spent,
+      dayOfMonth: daysInMonth - summary.daysLeft,
+      daysInMonth,
+    }),
+    {
+      money: (minor) => isolateLtr(toUIString(minor)),
+      monthEnd: monthEndLabel(i18n.language, summary.year, summary.month),
+    },
+  );
+  if (!message) {
     return null;
   }
-  const { toUIString } = getCurrencyHelpersCached(summary.currency);
   return (
-    <span className="text-warning">
+    <>
       {' · '}
-      {t('status.over_pace', { amount: isolateLtr(toUIString(summary.spent - pace.amount)) })}
-    </span>
+      <span className={PACE_TONE[message.tone]}>{t(message.key, message.values)}</span>
+    </>
   );
 };
 
-const ProjectPage: NextPageWithUser = ({ user }) => {
+const ProjectPage: NextPageWithUser<{ enableSendingInvites: boolean }> = ({
+  user,
+  enableSendingInvites,
+}) => {
   const { t, i18n } = useTranslationWithUtils(NS);
+  const { t: tc } = useTranslationWithUtils();
   const router = useRouter();
   const groupId = isStringQueryParam(router.query.groupId)
     ? parseInt(router.query.groupId)
     : Number.NaN;
 
   const tzOffset = useTzOffset();
-  const summaryQuery = api.project.summary.useQuery(
-    { groupId, tzOffset },
-    { enabled: router.isReady && !Number.isNaN(groupId) },
-  );
+  const enabled = router.isReady && !Number.isNaN(groupId);
+  const summaryQuery = api.project.summary.useQuery({ groupId, tzOffset }, { enabled });
   const summary = summaryQuery.data;
+  const groupQuery = api.group.getGroupDetails.useQuery({ groupId }, { enabled });
+  const group = groupQuery.data;
+  const expensesQuery = api.expense.getGroupExpenses.useQuery({ groupId }, { enabled });
+  const utils = api.useUtils();
+  const setGroupDefaultCurrency = useCurrencyPreferenceStore((s) => s.setGroupDefaultCurrency);
+
+  useEffect(() => {
+    if (isCurrencyCode(group?.defaultCurrency)) {
+      setGroupDefaultCurrency(groupId, group.defaultCurrency);
+    }
+  }, [group?.defaultCurrency, setGroupDefaultCurrency, groupId]);
+
+  const refreshProject = () => {
+    Promise.all([
+      groupQuery.refetch(),
+      utils.project.summary.invalidate({ groupId }),
+      utils.insights.projectSpend.invalidate({ groupId }),
+    ]).catch(console.error);
+  };
 
   // The add-expense flow can land here with ?saved=1 to confirm the save (Figma screen 6).
   useEffect(() => {
@@ -162,13 +204,13 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
               {t('status.manual')}
             </span>
           ) : null}
-          <Link
-            href={Number.isNaN(groupId) ? '/groups' : `/groups/${groupId}`}
-            aria-label={t('settings')}
-            className={ROUND_ICON_BUTTON}
-          >
-            <Settings className="size-5" aria-hidden />
-          </Link>
+          {group ? (
+            <ProjectSettingsSheet group={group} userId={user.id} onChanged={refreshProject} />
+          ) : (
+            <span className={cn(ROUND_ICON_BUTTON, 'opacity-50')} aria-hidden>
+              <Settings className="size-5" />
+            </span>
+          )}
         </header>
 
         {summaryQuery.isError ? (
@@ -183,16 +225,17 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
                 {null === summary.budget
                   ? t('status.month_spending', { month })
                   : t('status.month_budget', { month })}
-                {'no_budget' !== summary.status ? (
-                  <>
-                    {' · '}
-                    <span className={STATUS_TEXT[summary.status]}>
-                      {t(`status.${summary.status}`)}
-                    </span>
-                    <StatusReason summary={summary} />
-                  </>
-                ) : null}
+                <PaceLine summary={summary} />
               </p>
+              {group?.archivedAt ? (
+                <p className="text-muted mt-2 text-xs">
+                  {tc('audit_c.project.archived_on', {
+                    date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(
+                      group.archivedAt,
+                    ),
+                  })}
+                </p>
+              ) : null}
             </div>
 
             <BudgetOverview summary={summary} />
@@ -200,9 +243,9 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
             {summary.skippedOtherCurrencies || summary.renewalsDue.skippedOtherCurrencies ? (
               <p className="text-muted mt-2 text-xs">{t('stats.other_currencies')}</p>
             ) : null}
-            <WhereItGoes summary={summary} detailsHref={`/groups/${summary.id}`} />
+            <WhereItGoes summary={summary} detailsHref="#project-expenses" />
             <ProjectSpendCharts groupId={summary.id} />
-            <PeopleAndAgents summary={summary} manageHref={`/groups/${summary.id}`} />
+            <PeopleAndAgents summary={summary} manageHref="#project-members" />
 
             <div className="mt-4 flex gap-2.5">
               <Link
@@ -226,7 +269,34 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
               </Link>
             </div>
 
-            <TodayList summary={summary} currentUserId={user.id} />
+            {group ? (
+              <ProjectMembers
+                group={group}
+                userId={user.id}
+                enableSendingInvites={enableSendingInvites}
+              />
+            ) : null}
+
+            {expensesQuery.data && 0 < expensesQuery.data.length ? (
+              <section
+                id="project-expenses"
+                className="mt-6 flex flex-col gap-2"
+                aria-labelledby="project-expenses-title"
+              >
+                <h2
+                  id="project-expenses-title"
+                  className="text-muted text-[11px] font-semibold tracking-wider uppercase"
+                >
+                  {tc('audit_c.project.all_expenses')}
+                </h2>
+                <ExpenseList
+                  userId={user.id}
+                  expenses={expensesQuery.data}
+                  contactId={summary.id}
+                  isGroup
+                />
+              </section>
+            ) : null}
           </div>
         ) : null}
       </MainLayout>
@@ -240,6 +310,7 @@ export default ProjectPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => ({
   props: {
+    enableSendingInvites: env.ENABLE_SENDING_INVITES,
     ...(await customServerSideTranslations(context.locale, [
       'common',
       'projects',

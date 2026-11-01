@@ -29,7 +29,7 @@ const DetectedRow: React.FC<{
     0 < item.evidence.length || Boolean(item.vendor ?? item.agent ?? item.pricingUrl);
 
   return (
-    <li className="flex flex-col gap-3 px-4 py-3">
+    <li className="flex flex-col gap-3 py-3">
       <div className="flex items-start gap-3">
         <div className="bg-accent/10 text-accent flex size-10 shrink-0 items-center justify-center rounded-xl">
           <CategoryIcon category={category} className="size-5" aria-hidden />

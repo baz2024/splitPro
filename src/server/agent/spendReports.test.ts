@@ -114,14 +114,18 @@ describe('recordSpendReport', () => {
     membership = { groupId: 7 },
     monthSpend = 0n,
     createError = null,
+    keyOverrides = {},
   }: {
     existing?: { id: string; currency: string } | null;
     membership?: { groupId: number } | null;
     monthSpend?: bigint;
     createError?: unknown;
+    keyOverrides?: Record<string, unknown>;
   } = {}) => {
     const db = {
-      apiKey: { findUniqueOrThrow: jest.fn().mockResolvedValue(keyRow) },
+      apiKey: {
+        findUniqueOrThrow: jest.fn().mockResolvedValue({ ...keyRow, ...keyOverrides }),
+      },
       groupUser: { findFirst: jest.fn().mockResolvedValue(membership) },
       expense: {
         findUnique: jest.fn().mockResolvedValue(existing),
@@ -212,6 +216,70 @@ describe('recordSpendReport', () => {
 
     const result = await recordSpendReport(client, { userId: USER, apiKeyId: KEY }, parsed(), NOW);
     expect(result).toMatchObject({ expenseId: 'exp_winner', duplicate: true });
+  });
+
+  describe('allow-list', () => {
+    it('should record a report inside the allow-list without pausing', async () => {
+      const { db, client } = makeDb({
+        monthSpend: 1250n,
+        keyOverrides: { allowList: ['anthropic'] },
+      });
+      const result = await recordSpendReport(
+        client,
+        { userId: USER, apiKeyId: KEY },
+        parsed(),
+        NOW,
+      );
+      expect(db.expense.create).toHaveBeenCalled();
+      expect(result.allowListReason).toBeNull();
+      expect(serializeAgentSpend(result.status)).toMatchObject({
+        shouldPause: false,
+        pauseReason: null,
+        allowList: ['anthropic'],
+      });
+    });
+
+    it('should record a report outside the allow-list but tell the agent to pause', async () => {
+      const { db, client } = makeDb({ monthSpend: 1250n, keyOverrides: { allowList: ['openai'] } });
+      const result = await recordSpendReport(
+        client,
+        { userId: USER, apiKeyId: KEY },
+        parsed(),
+        NOW,
+      );
+      expect(db.expense.create).toHaveBeenCalled();
+      expect(result.allowListReason).toContain('anthropic / claude-sonnet');
+      expect(serializeAgentSpend(result.status)).toMatchObject({
+        shouldPause: true,
+        pauseReason: 'not_allowed',
+        overCap: false,
+      });
+    });
+
+    it('should keep cap_reached as the reason when both apply', async () => {
+      const { client } = makeDb({ monthSpend: 30500n, keyOverrides: { allowList: ['openai'] } });
+      const result = await recordSpendReport(
+        client,
+        { userId: USER, apiKeyId: KEY },
+        parsed(),
+        NOW,
+      );
+      expect(result.status.pauseReason).toBe('cap_reached');
+      expect(result.allowListReason).not.toBeNull();
+    });
+  });
+
+  it('should report a paused key as paused with shouldPause', async () => {
+    const pausedAt = new Date('2026-11-15T00:00:00Z');
+    const { client } = makeDb({ monthSpend: 100n, keyOverrides: { pausedAt } });
+    const result = await recordSpendReport(client, { userId: USER, apiKeyId: KEY }, parsed(), NOW);
+    expect(serializeAgentSpend(result.status)).toMatchObject({
+      paused: true,
+      shouldPause: true,
+      pauseReason: 'paused',
+      overCap: false,
+    });
+    expect(serializeAgentSpend(result.status).message).toContain('paused');
   });
 
   it('should tell the agent to pause at or over its cap', async () => {

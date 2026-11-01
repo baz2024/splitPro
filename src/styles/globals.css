@@ -400,3 +400,21 @@ input[type='number'] {
     transform: rotate(360deg);
   }
 }
+
+/*
+  Disabled solid HeroUI buttons (primary, danger): HeroUI only fades them, which still reads as
+  an active blue button. Swap to a muted outline with muted text in both themes. Pending buttons
+  keep their colour so a save in progress doesn't look disabled.
+*/
+.button:is(.button--primary, .button--danger):is(
+    :disabled,
+    [aria-disabled='true'],
+    [data-disabled='true']
+  ):not([data-pending='true']) {
+  --button-bg: var(--default);
+  --button-bg-hover: var(--default);
+  --button-bg-pressed: var(--default);
+  --button-fg: var(--muted);
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px var(--border);
+}

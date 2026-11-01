@@ -9,7 +9,7 @@ import { Noto_Sans_Arabic, Poppins } from 'next/font/google';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
-import { Toaster } from 'sonner';
+import { Toaster } from '~/components/ui/sonner';
 import { LoadingSpinner } from '~/components/ui/spinner';
 import { ThemeProvider } from 'next-themes';
 import { ThemeColorMeta } from '~/components/Layout/ThemeColorMeta';

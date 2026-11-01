@@ -123,7 +123,7 @@ const AccountPage: NextPageWithUser<{
         <div className="mt-8 flex flex-col gap-4">
           <LanguagePicker>
             <AccountButton>
-              <Languages className="size-5 text-green-600 dark:text-green-500" />
+              <Languages className="text-muted size-5" />
               {t('account.change_language')}
             </AccountButton>
           </LanguagePicker>
@@ -133,7 +133,7 @@ const AccountPage: NextPageWithUser<{
             bankConnection={bankConnection}
           >
             <AccountButton>
-              <CreditCard className="size-5 text-teal-600 dark:text-teal-500" />
+              <CreditCard className="text-muted size-5" />
               {userQuery.data?.obapiProviderId ? t('actions.reconnect') : t('actions.connect')}{' '}
               {t('bank_transactions.to_bank')}
             </AccountButton>
@@ -142,7 +142,7 @@ const AccountPage: NextPageWithUser<{
           <ThemePicker />
 
           <AccountButton href="/agents">
-            <Bot className="size-5 text-sky-600 dark:text-sky-500" />
+            <Bot className="text-muted size-5" />
             {t('agents.account_entry')}
           </AccountButton>
 
@@ -152,40 +152,39 @@ const AccountPage: NextPageWithUser<{
 
           <DownloadAppDrawer>
             <AccountButton>
-              <Download className="size-5 text-blue-600 dark:text-blue-500" />
+              <Download className="text-muted size-5" />
               {t('account.download_app')}
             </AccountButton>
           </DownloadAppDrawer>
 
           <AccountButton onClick={downloadData} disabled={downloading} loading={downloading}>
-            <FileDown className="size-5 text-teal-600 dark:text-teal-500" />
+            <FileDown className="text-muted size-5" />
             {t('account.download_splitpro_data')}
           </AccountButton>
 
           <AccountButton href="/data">
-            <FileSpreadsheet className="size-5 text-emerald-600 dark:text-emerald-500" />
+            <FileSpreadsheet className="text-muted size-5" />
             {t('account_entry', { ns: 'dataio' })}
           </AccountButton>
 
           <AccountButton href="/import-splitwise">
-            <DownloadCloud className="size-5 text-violet-600 dark:text-violet-500" />
+            <DownloadCloud className="text-muted size-5" />
             {t('account.import_from_splitwise')}
           </AccountButton>
 
-          <DebugInfo>
-            <AccountButton>
-              <BadgeInfo className="size-5 text-red-700" />
-              {t('account.debug_info')}
-            </AccountButton>
-          </DebugInfo>
+          {/* Debug info is for local development only. */}
+          {'production' !== process.env.NODE_ENV ? (
+            <DebugInfo>
+              <AccountButton>
+                <BadgeInfo className="text-muted size-5" />
+                {t('account.debug_info')}
+              </AccountButton>
+            </DebugInfo>
+          ) : null}
         </div>
 
         <div className="mt-2 flex justify-center">
-          <Button
-            variant="ghost"
-            className="text-orange-700 hover:text-orange-700/90 dark:text-orange-600 dark:hover:text-orange-600/90"
-            onClick={onSignOut}
-          >
+          <Button variant="ghost" className="text-danger hover:text-danger/90" onClick={onSignOut}>
             {t('account.logout')}
           </Button>
         </div>

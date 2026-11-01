@@ -33,7 +33,11 @@ export const InstallSkillSection: React.FC = () => {
       <Card.Content className="flex flex-col gap-4">
         <ol className="text-muted flex list-decimal flex-col gap-1 ps-5 text-sm">
           {STEPS.map((step) => (
-            <li key={step}>{t(`agents.skill.steps.${step}`)}</li>
+            <li key={step}>
+              {'create_key' === step
+                ? t('audit_g.skill_create_key')
+                : t(`agents.skill.steps.${step}`)}
+            </li>
           ))}
         </ol>
         <div className="flex flex-col gap-2">

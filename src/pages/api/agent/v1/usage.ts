@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { authenticateApiKey } from '~/server/agent/apiKeys';
+import { agentPausedBody, authenticateApiKey } from '~/server/agent/apiKeys';
 import {
   loadKeySpendStatus,
   recordSpendReport,
@@ -19,7 +19,9 @@ export const config = {
 
 /**
  * Agents report their own API spend (POST) and read month-to-date spend against their cap (GET).
- * When `shouldPause` is true the agent has reached its monthly cap and must stop spending.
+ * When `shouldPause` is true the agent must stop spending; `pauseReason` says why ("paused" by
+ * the owner, "cap_reached", or "not_allowed" for a provider/model outside the key's allow-list).
+ * A paused key may still GET its status, but POST answers 403 `agent_paused` and records nothing.
  */
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -39,6 +41,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(200).json(serializeAgentSpend(status));
   }
 
+  if (auth.pausedAt) {
+    return res.status(403).json(agentPausedBody(auth.pausedAt));
+  }
+
   const parsed = spendReportSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
@@ -48,10 +54,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const result = await recordSpendReport(db, auth, parsed.data);
+  const status = serializeAgentSpend(result.status);
   return res.status(result.duplicate ? 200 : 201).json({
     expenseId: result.expenseId,
     duplicate: result.duplicate,
-    ...serializeAgentSpend(result.status),
+    ...status,
+    message: [status.message, result.allowListReason].filter(Boolean).join(' ') || null,
   });
 };
 

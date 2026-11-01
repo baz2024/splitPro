@@ -1,81 +1,34 @@
-import { Alert, Button, Card, Chip, Input } from '@heroui/react';
-import { KeyRound, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Card } from '@heroui/react';
+import { Bot } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import { SimpleConfirmationDialog } from '~/components/SimpleConfirmationDialog';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
+import { type AgentSpend } from '~/server/agent/caps';
 import { api } from '~/utils/api';
 
-import { AgentKeySheet } from './AgentKeySheet';
-import { CopyField } from './CopyField';
+import { AgentCard } from './AgentCard';
 
-const MAX_KEY_NAME_LENGTH = 100;
-
-/** DOM ids the Agents page uses to scroll to and focus the create-key form. */
-export const API_KEYS_SECTION_ID = 'agent-api-keys';
-export const API_KEY_NAME_INPUT_ID = 'agent-api-key-name';
-
-interface CreatedKey {
-  id: string;
-  name: string;
-  token: string;
-}
-
-export const ApiKeysSection: React.FC = () => {
-  const { t, toUIDate, getCurrencyHelpersCached } = useTranslationWithUtils([
-    'common',
-    'agentcaps',
-  ]);
+/**
+ * One control card per active agent key (spend vs cap, Pause / Edit cap / Rename, settings,
+ * revoke) and a short list of revoked keys. New agents are added from the page's sticky
+ * "Add agent & get token" button (AgentCreateSheet).
+ */
+export const ApiKeysSection: React.FC<{ agents?: AgentSpend[] }> = ({ agents = [] }) => {
+  const { t, toUIDate } = useTranslationWithUtils(['common', 'agentcaps']);
+  const [now] = useState(() => new Date());
+  const spendByKey = new Map(agents.map((agent) => [agent.apiKeyId, agent] as const));
   const utils = api.useUtils();
   const keysQuery = api.agent.listApiKeys.useQuery();
-  const createMutation = api.agent.createApiKey.useMutation();
   const revokeMutation = api.agent.revokeApiKey.useMutation();
 
-  const [name, setName] = useState('');
-  const [createdKey, setCreatedKey] = useState<CreatedKey | null>(null);
   const [revokeId, setRevokeId] = useState<string | null>(null);
 
-  const trimmedName = name.trim();
   const keys = keysQuery.data ?? [];
   const keyToRevoke = keys.find((key) => key.id === revokeId);
-  const groupsQuery = api.group.getAllGroups.useQuery();
-  const groupNames = new Map(
-    (groupsQuery.data ?? []).map(({ group }) => [group.id, group.name] as const),
-  );
-
-  const keySettings = (key: (typeof keys)[number]) => {
-    const label = key.agentLabel?.trim();
-    const cap =
-      null !== key.monthlyCapAmount && key.capCurrency
-        ? t('key_row.cap', {
-            ns: 'agentcaps',
-            cap: getCurrencyHelpersCached(key.capCurrency).toUIString(key.monthlyCapAmount),
-          })
-        : t('key_row.no_cap', { ns: 'agentcaps' });
-    const projectName = null === key.groupId ? undefined : groupNames.get(key.groupId);
-    const project = projectName
-      ? t('key_row.project', { ns: 'agentcaps', project: projectName })
-      : t('key_row.personal', { ns: 'agentcaps' });
-    return [label && label !== key.name ? label : null, key.model, cap, project]
-      .filter(Boolean)
-      .join(' · ');
-  };
-
-  const onCreate = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if ('' === trimmedName) {
-      return;
-    }
-    try {
-      const result = await createMutation.mutateAsync({ name: trimmedName });
-      setCreatedKey({ id: result.id, name: result.name, token: result.token });
-      setName('');
-      utils.agent.listApiKeys.invalidate().catch(console.error);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('agents.keys.create_error'));
-    }
-  };
+  const activeKeys = keys.filter((key) => !key.revokedAt);
+  const revokedKeys = keys.filter((key) => key.revokedAt);
 
   const onRevoke = async () => {
     if (!revokeId) {
@@ -83,11 +36,10 @@ export const ApiKeysSection: React.FC = () => {
     }
     try {
       await revokeMutation.mutateAsync({ id: revokeId });
-      if (createdKey?.id === revokeId) {
-        setCreatedKey(null);
-      }
       toast.success(t('agents.keys.revoke_success'));
-      utils.agent.listApiKeys.invalidate().catch(console.error);
+      Promise.all([utils.agent.listApiKeys.invalidate(), utils.agent.usage.invalidate()]).catch(
+        console.error,
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('agents.keys.revoke_error'));
     } finally {
@@ -96,118 +48,56 @@ export const ApiKeysSection: React.FC = () => {
   };
 
   return (
-    <Card variant="secondary" id={API_KEYS_SECTION_ID} className="scroll-mt-4">
+    <Card variant="secondary">
       <Card.Header>
         <Card.Title className="flex items-center gap-2">
-          <KeyRound className="text-accent size-4" aria-hidden />
-          {t('agents.keys.title')}
+          <Bot className="text-accent size-4" aria-hidden />
+          {t('audit_g.section_title', { ns: 'agentcaps' })}
         </Card.Title>
-        <Card.Description>{t('agents.keys.description')}</Card.Description>
+        <Card.Description>{t('audit_g.section_description', { ns: 'agentcaps' })}</Card.Description>
       </Card.Header>
       <Card.Content className="flex flex-col gap-4">
-        <form onSubmit={onCreate} className="flex items-center gap-2">
-          <Input
-            id={API_KEY_NAME_INPUT_ID}
-            aria-label={t('agents.keys.name_label')}
-            placeholder={t('agents.keys.name_placeholder')}
-            value={name}
-            maxLength={MAX_KEY_NAME_LENGTH}
-            onChange={(e) => setName(e.target.value)}
-            className="min-h-11 min-w-0 flex-1"
-            variant="secondary"
-          />
-          <Button
-            type="submit"
-            isDisabled={'' === trimmedName || createMutation.isPending}
-            isPending={createMutation.isPending}
-          >
-            <Plus className="size-4" aria-hidden />
-            {t('agents.keys.create')}
-          </Button>
-        </form>
-
-        {createdKey && (
-          <Alert status="warning">
-            <Alert.Indicator />
-            <Alert.Content className="flex min-w-0 flex-col gap-2">
-              <Alert.Title>{t('agents.keys.created_title', { name: createdKey.name })}</Alert.Title>
-              <Alert.Description>{t('agents.keys.created_warning')}</Alert.Description>
-              <CopyField value={createdKey.token} label={t('agents.keys.token_label')} multiline />
-              <Button
-                size="sm"
-                variant="tertiary"
-                className="self-end"
-                onPress={() => setCreatedKey(null)}
-              >
-                {t('agents.keys.created_done')}
-              </Button>
-            </Alert.Content>
-          </Alert>
-        )}
-
         {keysQuery.isPending ? (
           <p className="text-muted text-sm">{t('agents.loading')}</p>
-        ) : 0 === keys.length ? (
-          <p className="text-muted text-sm">{t('agents.keys.empty')}</p>
+        ) : 0 === activeKeys.length ? (
+          <p className="text-muted text-sm">{t('audit_g.empty', { ns: 'agentcaps' })}</p>
         ) : (
-          <ul className="divide-border border-border divide-y rounded-xl border">
-            {keys.map((key) => (
-              <li key={key.id} className="flex items-center gap-3 px-3 py-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-medium">{key.name}</span>
-                    {key.revokedAt && (
-                      <Chip size="sm" color="danger" variant="soft">
-                        {t('agents.keys.revoked')}
-                      </Chip>
-                    )}
-                  </div>
-                  <code dir="ltr" className="text-muted self-start font-mono text-xs">
-                    {key.prefix}…
-                  </code>
-                  <span className="text-muted text-xs">
-                    {t('agents.keys.created_on', {
-                      date: toUIDate(key.createdAt, { year: true }),
-                    })}
-                    {' · '}
-                    {key.lastUsedAt
-                      ? t('agents.keys.last_used', {
-                          date: toUIDate(key.lastUsedAt, { useToday: true, year: true }),
-                        })
-                      : t('agents.keys.never_used')}
-                  </span>
-                  {!key.revokedAt && (
-                    <span className="text-muted truncate text-xs">{keySettings(key)}</span>
-                  )}
-                </div>
-                {!key.revokedAt && (
-                  <AgentKeySheet
-                    apiKey={key}
-                    trigger={
-                      <button
-                        type="button"
-                        aria-label={t('key_row.edit_label', { ns: 'agentcaps', name: key.name })}
-                        className="bg-default text-foreground focus-visible:ring-focus inline-flex size-11 shrink-0 items-center justify-center rounded-xl focus-visible:ring-2 focus-visible:outline-none"
-                      >
-                        <Pencil className="size-4" aria-hidden />
-                      </button>
-                    }
-                  />
-                )}
-                {!key.revokedAt && (
-                  <Button
-                    size="sm"
-                    variant="danger-soft"
-                    isIconOnly
-                    aria-label={`${t('agents.keys.revoke')}: ${key.name}`}
-                    onPress={() => setRevokeId(key.id)}
-                  >
-                    <Trash2 className="size-4" aria-hidden />
-                  </Button>
-                )}
-              </li>
+          <ul className="flex flex-col gap-3">
+            {activeKeys.map((key) => (
+              <AgentCard
+                key={key.id}
+                apiKey={key}
+                spend={spendByKey.get(key.id)}
+                now={now}
+                onRevoke={setRevokeId}
+              />
             ))}
           </ul>
+        )}
+
+        {0 < revokedKeys.length && (
+          <details className="group">
+            <summary className="text-muted focus-visible:ring-focus min-h-11 cursor-pointer rounded-lg px-1 py-3 text-xs font-semibold tracking-wider uppercase focus-visible:ring-2 focus-visible:outline-none">
+              {t('revoked.title', { ns: 'agentcaps' })} · {revokedKeys.length}
+            </summary>
+            <ul className="divide-border border-border divide-y rounded-xl border">
+              {revokedKeys.map((key) => (
+                <li key={key.id} className="flex flex-col gap-0.5 px-3 py-3">
+                  <span className="truncate text-sm font-medium">
+                    {key.agentLabel?.trim() || key.name}
+                  </span>
+                  <span className="text-muted text-xs">
+                    <code dir="ltr" className="font-mono">
+                      {key.prefix}…{key.lastFour ?? ''}
+                    </code>
+                    {' · '}
+                    {t('agents.keys.revoked')}{' '}
+                    {key.revokedAt ? toUIDate(key.revokedAt, { year: true }) : ''}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </Card.Content>
 

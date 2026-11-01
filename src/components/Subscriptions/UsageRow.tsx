@@ -3,6 +3,7 @@ import Link from 'next/link';
 import React from 'react';
 
 import { billingProviderName } from '~/components/Billing/SyncedBadge';
+import { Money } from '~/components/Safi/Money';
 import { ServiceBadge } from '~/components/Safi/ServiceBadge';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 
@@ -15,8 +16,7 @@ interface UsageRowProps {
 }
 
 export const UsageRow: React.FC<UsageRowProps> = ({ item, lastMonthLabel }) => {
-  const { t, i18n, getCurrencyHelpersCached } = useTranslationWithUtils(SUBSCRIPTIONS_NAMESPACES);
-  const { toUIString } = getCurrencyHelpersCached(item.currency);
+  const { t, i18n } = useTranslationWithUtils(SUBSCRIPTIONS_NAMESPACES);
 
   const change =
     null === item.changePercent
@@ -42,9 +42,7 @@ export const UsageRow: React.FC<UsageRowProps> = ({ item, lastMonthLabel }) => {
           </span>
         </span>
         <span className="flex shrink-0 flex-col items-end">
-          <span dir="ltr" className="text-foreground text-sm font-semibold">
-            {toUIString(item.thisMonth)}
-          </span>
+          <Money amount={item.thisMonth} currency={item.currency} className="text-sm" />
           <span
             className={clsx(
               'text-[11px]',

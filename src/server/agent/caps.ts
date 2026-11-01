@@ -145,7 +145,12 @@ export interface AgentKeyRow {
   monthlyCapAmount: bigint | null;
   capCurrency: string | null;
   group: { id: number; name: string } | null;
+  /** Optional so older callers and test doubles without these columns still work. */
+  pausedAt?: Date | null;
+  allowList?: string[];
 }
+
+export type PauseReason = 'paused' | 'cap_reached' | 'not_allowed';
 
 export interface AgentSpend extends CapStatus {
   apiKeyId: string;
@@ -156,6 +161,13 @@ export interface AgentSpend extends CapStatus {
   monthToDate: bigint;
   /** Currencies this key reported in that are not counted (no conversion is applied). */
   otherCurrencies: string[];
+  /** The owner paused this agent; it must stop spending until resumed. */
+  paused: boolean;
+  pausedAt: Date | null;
+  /** Providers or models this agent may report for; empty means anything. */
+  allowList: string[];
+  /** Why `shouldPause` is true (paused wins over cap); null when the agent may keep going. */
+  pauseReason: PauseReason | null;
 }
 
 /** Per-key month-to-date spend with cap status, for the Agents page and the usage endpoint. */
@@ -168,6 +180,9 @@ export const buildAgentSpend = (
   const cap = key.capCurrency ? key.monthlyCapAmount : null;
   const currency = pickKeyCurrency(perCurrency, cap ? key.capCurrency : null, fallbackCurrency);
   const monthToDate = currency ? (perCurrency?.get(currency) ?? 0n) : 0n;
+  const capStatus = computeCapStatus({ monthToDate, cap, now });
+  const pausedAt = key.pausedAt ?? null;
+  const paused = null !== pausedAt;
 
   return {
     apiKeyId: key.id,
@@ -177,7 +192,12 @@ export const buildAgentSpend = (
     currency,
     monthToDate,
     otherCurrencies: [...(perCurrency?.keys() ?? [])].filter((code) => code !== currency).sort(),
-    ...computeCapStatus({ monthToDate, cap, now }),
+    ...capStatus,
+    shouldPause: paused || capStatus.shouldPause,
+    paused,
+    pausedAt,
+    allowList: key.allowList ?? [],
+    pauseReason: paused ? 'paused' : capStatus.shouldPause ? 'cap_reached' : null,
   };
 };
 
@@ -188,6 +208,8 @@ export const AGENT_KEY_SELECT = {
   model: true,
   monthlyCapAmount: true,
   capCurrency: true,
+  pausedAt: true,
+  allowList: true,
   group: { select: { id: true, name: true } },
 } as const;
 

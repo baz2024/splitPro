@@ -1,4 +1,5 @@
 import { Tabs } from '@heroui/react';
+import { ScanLine } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
@@ -14,14 +15,18 @@ const TAB_LABEL_KEYS = {
   subscription: 'types.subscription',
   usage: 'types.usage',
   oneoff: 'types.oneoff',
+  scan: 'audit_b.addcost.scan',
 } as const satisfies Record<CostType, string>;
+
+/** The Scan label lives in common (audit_b); the other segment labels in addcost. */
+const TAB_LABEL_NS = { scan: 'common' } as const satisfies Partial<Record<CostType, string>>;
 
 const isCostType = (value: unknown): value is CostType => COST_TYPES.some((type) => type === value);
 
 /**
- * /add: "Add cost" with Subscription | API usage | One-off. One-off is the existing add-expense
- * journey under this page's single header (its own header only on deep steps); the other two
- * tabs share CostForm.
+ * /add: "Add cost" with Subscription | API usage | One-off | Scan. One-off and Scan are the
+ * existing add-expense journey (Scan opens it on the receipt camera, as `/add?mode=scan` does)
+ * under this page's single header; the first two tabs share CostForm.
  */
 export const AddCostPage: React.FC<{
   enableSendingInvites: boolean;
@@ -45,19 +50,20 @@ export const AddCostPage: React.FC<{
     setDescription('');
     setCategory(DEFAULT_CATEGORY);
     setCronExpression('');
-    setCostType(key);
 
-    const { type: _type, service: _service, ...rest } = router.query;
-    router
-      .replace(
-        {
-          pathname: router.pathname,
-          query: 'oneoff' === key ? rest : { ...rest, type: key },
-        },
-        undefined,
-        { shallow: true },
-      )
-      .catch(console.error);
+    const { type: _type, service: _service, mode: _mode, ...rest } = router.query;
+    const query =
+      'oneoff' === key ? rest : 'scan' === key ? { ...rest, mode: 'scan' } : { ...rest, type: key };
+    const navigation = router.replace({ pathname: router.pathname, query }, undefined, {
+      shallow: true,
+    });
+    if ('scan' === key || 'oneoff' === key) {
+      // The journey reads `mode` once when it mounts, so switch after the URL is updated.
+      navigation.then(() => setCostType(key)).catch(console.error);
+      return;
+    }
+    setCostType(key);
+    navigation.catch(console.error);
   };
 
   const onCancel = () => {
@@ -69,8 +75,9 @@ export const AddCostPage: React.FC<{
   };
 
   const isOneOff = 'oneoff' === costType;
+  const isJourney = isOneOff || 'scan' === costType;
   // Deep one-off steps (reading, review, split) show the journey's own back header instead.
-  const showChrome = !isOneOff || journeyOnEntryScreen;
+  const showChrome = !isJourney || journeyOnEntryScreen;
 
   return (
     <div className="bg-background text-foreground mx-auto flex min-h-full w-full max-w-md flex-col gap-4">
@@ -92,8 +99,15 @@ export const AddCostPage: React.FC<{
         <Tabs.ListContainer className={showChrome ? undefined : 'hidden'}>
           <Tabs.List aria-label={t('type_label')} className="w-full">
             {COST_TYPES.map((type) => (
-              <Tabs.Tab key={type} id={type} className="min-h-11 flex-1">
-                {t(TAB_LABEL_KEYS[type])}
+              <Tabs.Tab
+                key={type}
+                id={type}
+                className="min-h-11 flex-auto gap-1 px-2.5 text-[13px] whitespace-nowrap"
+              >
+                {'scan' === type ? <ScanLine className="size-3.5 shrink-0" aria-hidden /> : null}
+                {'scan' === type
+                  ? t(TAB_LABEL_KEYS[type], { ns: TAB_LABEL_NS.scan })
+                  : t(TAB_LABEL_KEYS[type])}
                 <Tabs.Indicator />
               </Tabs.Tab>
             ))}
@@ -123,6 +137,20 @@ export const AddCostPage: React.FC<{
               enableSendingInvites={enableSendingInvites}
               bankConnectionEnabled={bankConnectionEnabled}
               hideHeader
+              hideModeSwitch
+              initialMode="manual"
+              onEntryScreenChange={setJourneyOnEntryScreen}
+            />
+          ) : null}
+        </Tabs.Panel>
+        <Tabs.Panel id="scan" className={showChrome ? 'px-0 pt-4' : 'px-0 pt-2'}>
+          {'scan' === costType ? (
+            <AddExpenseJourney
+              enableSendingInvites={enableSendingInvites}
+              bankConnectionEnabled={bankConnectionEnabled}
+              hideHeader
+              hideModeSwitch
+              initialMode="scan"
               onEntryScreenChange={setJourneyOnEntryScreen}
             />
           ) : null}

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from 'react';
+import { type ReactNode, memo, useCallback, useMemo } from 'react';
 
 import { CURRENCIES, type CurrencyCode, isCurrencyCode, parseCurrencyCode } from '~/lib/currency';
 
@@ -12,11 +12,18 @@ const CurrencyPickerInner = ({
   currentCurrency,
   onCurrencyPick,
   allowClear = false,
+  trigger: customTrigger,
+  open,
+  onOpenChange,
 }: {
   className?: string;
   currentCurrency?: CurrencyCode | null;
   onCurrencyPick: (currency: CurrencyCode | null) => void;
   allowClear?: boolean;
+  /** Replaces the default code button, e.g. with a menu row. */
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   const { t, getCurrencyName } = useTranslationWithUtils(['currencies']);
   const { recentCurrencies, addToRecentCurrencies } = useCurrencyPreferenceStore();
@@ -34,12 +41,13 @@ const CurrencyPickerInner = ({
   }, [onCurrencyPick]);
 
   const trigger = useMemo(
-    () => (
-      <Button variant="outline" className="w-[70px] rounded-lg py-2 text-base">
-        {currentCurrency ?? ''}
-      </Button>
-    ),
-    [currentCurrency],
+    () =>
+      customTrigger ?? (
+        <Button variant="outline" className="w-[70px] rounded-lg py-2 text-base">
+          {currentCurrency ?? ''}
+        </Button>
+      ),
+    [currentCurrency, customTrigger],
   );
 
   const recentCurrencyObjects = useMemo(
@@ -124,6 +132,8 @@ const CurrencyPickerInner = ({
       extractKeywords={extractKeywords}
       selected={selectedOption}
       render={renderCurrencyItem}
+      open={open}
+      onOpenChange={onOpenChange}
     />
   );
 };

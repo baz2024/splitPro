@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Camera, PencilLine, Upload } from 'lucide-react';
+import { Bell, Camera, Check, PencilLine, Upload } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -9,6 +9,7 @@ import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cronToBackend } from '~/lib/cron';
 import { type CurrencyCode } from '~/lib/currency';
 import { REVIEW_SCAN_SKIPPED } from '~/lib/expenseReview';
+import { notifiedParticipants } from '~/lib/notifyNote';
 import { useAddExpenseStore } from '~/store/addStore';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
@@ -79,7 +80,21 @@ export const AddExpenseJourney: React.FC<{
   hideHeader?: boolean;
   /** Told whether the journey is on an entry screen (Scan / Manual / Import) or a deep step. */
   onEntryScreenChange?: (isEntryScreen: boolean) => void;
-}> = ({ enableSendingInvites, bankConnectionEnabled, hideHeader = false, onEntryScreenChange }) => {
+  /**
+   * The host page already has its own Scan / One-off switch (Add cost): hide the journey's
+   * Scan / Manual / Import segments. Import stays reachable through a small link.
+   */
+  hideModeSwitch?: boolean;
+  /** Mode to start in, instead of reading `?mode=` from the URL. */
+  initialMode?: AddMode;
+}> = ({
+  enableSendingInvites,
+  bankConnectionEnabled,
+  hideHeader = false,
+  onEntryScreenChange,
+  hideModeSwitch = false,
+  initialMode,
+}) => {
   const { t, displayName, getCurrencyHelpersCached } = useTranslationWithUtils([
     'common',
     'categories',
@@ -89,7 +104,7 @@ export const AddExpenseJourney: React.FC<{
   const utils = api.useUtils();
 
   const [mode, setMode] = useState<AddMode>(() =>
-    parseAddMode(router.query.mode, bankConnectionEnabled),
+    parseAddMode(initialMode ?? router.query.mode, bankConnectionEnabled),
   );
   const [step, setStep] = useState<Step>(() => firstStep(mode));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -111,6 +126,11 @@ export const AddExpenseJourney: React.FC<{
   const description = useAddExpenseStore((s) => s.description);
   const isFileUploading = useAddExpenseStore((s) => s.isFileUploading);
   const canSplitScreenClosed = useAddExpenseStore((s) => s.canSplitScreenClosed);
+  const participants = useAddExpenseStore((s) => s.participants);
+  const currentUserId = useAddExpenseStore((s) => s.currentUser?.id);
+  /** Who Save will notify, for the note above the button. */
+  const notifiedNow = notifiedParticipants(participants, currentUserId);
+  const [savedSheet, setSavedSheet] = useState<SavedSummary | null>(null);
   const {
     setAmount,
     setAmountStr,
@@ -154,6 +174,25 @@ export const AddExpenseJourney: React.FC<{
         shallow: true,
       })
       .catch(console.error);
+  };
+
+  /** "Add another" after a save: same project and people, fresh amount and details. */
+  const startAnother = () => {
+    resetScanReview();
+    setPreviewUrl(null);
+    setReadingFields(null);
+    setScanFlags({ fields: [], note: null });
+    useAddExpenseStore.setState({
+      description: '',
+      fileKey: '',
+      transactionId: undefined,
+      cronExpression: '',
+      detectedSubscriptionId: undefined,
+    });
+    setAmountStr('');
+    setAmount(0n);
+    setExpenseDate(new Date());
+    setStep(firstStep(mode));
   };
 
   const onModeTab = (next: AddMode) => {
@@ -344,7 +383,7 @@ export const AddExpenseJourney: React.FC<{
     }
     const { friendId } = router.query;
     if (groupId) {
-      await router.push(`/groups/${groupId}`);
+      await router.push(`/projects/${groupId}`);
       return;
     }
     await router.push(
@@ -398,17 +437,23 @@ export const AddExpenseJourney: React.FC<{
         utils.agent.listDetectedSubscriptions.invalidate().catch(console.error);
       }
 
-      const others = state.participants.filter((p) => p.id !== state.currentUser?.id);
-      toast.success(
-        t('add_journey.saved_notified', {
-          count: others.length,
-          name: displayName(others[0], state.currentUser?.id),
-        }),
-      );
+      const notified = notifiedParticipants(state.participants, state.currentUser?.id);
       update((session: any) => ({
         ...session,
         user: { ...(session?.user ?? {}), currency: state.currency },
       })).catch(console.error);
+      // A shared cost gets a small confirmation sheet on this screen; a personal one just leaves.
+      if (0 < notified.length) {
+        setSavedSheet({
+          groupId: state.group?.id,
+          amount: getCurrencyHelpersCached(state.currency).toUIString(state.amount),
+          description: state.description.trim(),
+          notified: notified.length,
+          name: displayName(notified[0]),
+        });
+        return;
+      }
+      toast.success(t('add_journey.saved_notified', { count: 0, name: '' }));
       await leaveAfterSave(state.group?.id);
     } catch (error) {
       console.error(error);
@@ -471,18 +516,32 @@ export const AddExpenseJourney: React.FC<{
     }
     if ('split' === step) {
       return (
-        <Button
-          fullWidth
-          size="lg"
-          className={PRIMARY_CTA_CLASS}
-          isDisabled={!canSave}
-          isPending={addExpenseMutation.isPending || isFileUploading}
-          onPress={() => {
-            saveExpense().catch(console.error);
-          }}
-        >
-          {t('add_journey.save')}
-        </Button>
+        <div className="flex flex-col gap-2">
+          {0 < notifiedNow.length ? (
+            <p
+              className="text-muted flex items-center justify-center gap-1.5 text-center text-xs"
+              data-testid="notify-note"
+            >
+              <Bell className="size-3.5 shrink-0" aria-hidden />
+              {t('audit_c.notify.will_be_notified', {
+                count: notifiedNow.length,
+                name: displayName(notifiedNow[0]),
+              })}
+            </p>
+          ) : null}
+          <Button
+            fullWidth
+            size="lg"
+            className={PRIMARY_CTA_CLASS}
+            isDisabled={!canSave}
+            isPending={addExpenseMutation.isPending || isFileUploading}
+            onPress={() => {
+              saveExpense().catch(console.error);
+            }}
+          >
+            {t('add_journey.save')}
+          </Button>
+        </div>
       );
     }
     return null;
@@ -561,7 +620,7 @@ export const AddExpenseJourney: React.FC<{
         />
       )}
 
-      {isEntryScreen ? (
+      {isEntryScreen && !hideModeSwitch ? (
         <Segmented
           ariaLabel={t('add_journey.mode_label')}
           items={modeItems}
@@ -570,9 +629,92 @@ export const AddExpenseJourney: React.FC<{
         />
       ) : null}
 
+      {isEntryScreen && hideModeSwitch && bankConnectionEnabled ? (
+        <button
+          type="button"
+          onClick={() => changeMode('import' === mode ? (initialMode ?? 'manual') : 'import')}
+          className="text-accent focus-visible:ring-focus inline-flex min-h-11 items-center gap-1.5 self-center rounded-lg px-2 text-[13px] font-medium outline-none focus-visible:ring-2"
+        >
+          {'import' === mode ? null : MODE_ICONS.import}
+          {'import' === mode ? t('audit_d.journey.leave_import') : t('audit_d.journey.import_link')}
+        </button>
+      ) : null}
+
       {stepContent}
 
-      {footer ? <PinnedFooter>{footer}</PinnedFooter> : null}
+      {footer && !savedSheet ? <PinnedFooter>{footer}</PinnedFooter> : null}
+
+      {savedSheet ? (
+        <SavedSheet
+          saved={savedSheet}
+          onDone={() => {
+            const { groupId } = savedSheet;
+            setSavedSheet(null);
+            leaveAfterSave(groupId).catch(console.error);
+          }}
+          onAddAnother={() => {
+            setSavedSheet(null);
+            startAnother();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+};
+
+interface SavedSummary {
+  groupId: number | undefined;
+  amount: string;
+  description: string;
+  notified: number;
+  name: string;
+}
+
+/**
+ * Small confirmation sheet after saving a shared cost: what was saved and who was told,
+ * without leaving the screen until the user taps Done.
+ */
+const SavedSheet: React.FC<{
+  saved: SavedSummary;
+  onDone: () => void;
+  onAddAnother: () => void;
+}> = ({ saved, onDone, onAddAnother }) => {
+  const { t } = useTranslationWithUtils();
+  return (
+    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saved-sheet-title"
+        className="bg-surface border-border w-full max-w-md rounded-t-3xl border px-5 pt-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-xl"
+      >
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="bg-success/15 text-success inline-flex size-12 items-center justify-center rounded-full">
+            <Check className="size-6" aria-hidden />
+          </span>
+          <h2 id="saved-sheet-title" className="text-base font-semibold">
+            {t('audit_c.notify.saved_title')}
+          </h2>
+          <p className="text-sm">
+            <span dir="ltr" className="font-semibold tabular-nums">
+              {saved.amount}
+            </span>
+            {saved.description ? ` · ${saved.description}` : null}
+          </p>
+          <p className="text-muted flex items-center gap-1.5 text-xs">
+            <Bell className="size-3.5" aria-hidden />
+            {t('audit_c.notify.was_notified', { count: saved.notified, name: saved.name })}
+          </p>
+        </div>
+        <div className="mt-5 flex gap-2">
+          <Button variant="secondary" size="lg" className="h-12 flex-1" onPress={onAddAnother}>
+            {t('audit_c.notify.add_another')}
+          </Button>
+          <Button size="lg" className="h-12 flex-1" onPress={onDone} autoFocus>
+            {t('audit_c.notify.done')}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

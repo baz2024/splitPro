@@ -26,9 +26,18 @@ export interface ColumnReference {
   label: string;
 }
 
+/**
+ * Where the reference label sits: above the line, or below it when the line is near the top so
+ * the label never leaves the plot or lines up with the top tick label.
+ */
+export const referenceLabelPlacement = (percent: number): 'above' | 'below' =>
+  85 < percent ? 'below' : 'above';
+
 interface ColumnChartProps {
   data: ColumnDatum[];
   reference?: ColumnReference | null;
+  /** Optional dotted average line, explained in the legend under the chart. */
+  average?: ColumnReference | null;
   /** Compact tick label for a value in major units. */
   formatTick: (value: number) => string;
   /** Accessible summary of the whole chart. */
@@ -51,6 +60,7 @@ const PLOT_HEIGHT = 144;
 export const ColumnChart: React.FC<ColumnChartProps> = ({
   data,
   reference,
+  average,
   formatTick,
   ariaLabel,
   tableHeaders,
@@ -61,12 +71,12 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
   const max = niceCeil(peak);
   const ticks = [max, max / 2, 0];
   const referencePercent = reference ? toPlotPercent(reference.value, max) : null;
+  const averagePercent = average && 0 < average.value ? toPlotPercent(average.value, max) : null;
+  const dense = 14 < data.length;
+  const figureLabel = [ariaLabel, reference?.label, average?.label].filter(Boolean).join('. ');
 
   return (
-    <figure
-      className={cn('m-0 flex flex-col gap-2', className)}
-      aria-label={reference ? `${ariaLabel}. ${reference.label}` : ariaLabel}
-    >
+    <figure className={cn('m-0 flex flex-col gap-2', className)} aria-label={figureLabel}>
       <div className="relative" style={{ height: PLOT_HEIGHT }}>
         {/* Recessive solid hairline grid with compact ticks on the inline-start edge. */}
         {ticks.map((tick) => (
@@ -80,7 +90,8 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
             style={{ bottom: `${toPlotPercent(tick, max)}%`, transform: 'translateY(50%)' }}
           >
             <span className="text-muted w-10 shrink-0 text-[10px] leading-none tabular-nums">
-              {formatTick(tick)}
+              {/* Isolated LTR so "$2K" never reorders inside a right-to-left page. */}
+              <bdi dir="ltr">{formatTick(tick)}</bdi>
             </span>
             <span
               className={cn('h-px flex-1', 0 === tick ? 'bg-chart-baseline' : 'bg-chart-grid')}
@@ -97,7 +108,10 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
                 role="img"
                 tabIndex={0}
                 aria-label={`${datum.fullLabel}: ${datum.display}`}
-                className="group focus-visible:ring-focus relative flex h-full flex-1 items-end justify-center rounded-md outline-none focus-visible:ring-2"
+                className={cn(
+                  'group focus-visible:ring-focus relative flex h-full flex-1 items-end justify-center rounded-md outline-none focus-visible:ring-2',
+                  dense && 'px-px',
+                )}
               >
                 <div
                   className={cn(
@@ -108,23 +122,23 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
                   style={{ height: 0 < height ? `${height}%` : '1px' }}
                 />
                 {datum.highlight && datum.capLabel ? (
-                  <span
+                  <bdi
                     aria-hidden
                     dir="ltr"
                     className="text-foreground pointer-events-none absolute mb-1 text-[11px] font-semibold whitespace-nowrap group-hover:invisible group-focus-visible:invisible"
                     style={{ bottom: `${height}%` }}
                   >
                     {datum.capLabel}
-                  </span>
+                  </bdi>
                 ) : null}
                 <div
                   role="tooltip"
                   className="bg-overlay text-overlay-foreground border-border pointer-events-none absolute z-10 mb-2 hidden flex-col items-center rounded-lg border px-2.5 py-1.5 shadow-md group-hover:flex group-focus-visible:flex"
                   style={{ bottom: `${height}%` }}
                 >
-                  <span dir="ltr" className="text-xs font-semibold whitespace-nowrap">
+                  <bdi dir="ltr" className="text-xs font-semibold whitespace-nowrap">
                     {datum.display}
-                  </span>
+                  </bdi>
                   <span className="text-muted text-[11px] whitespace-nowrap">
                     {datum.fullLabel}
                   </span>
@@ -134,16 +148,37 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
           })}
         </div>
 
+        {null !== averagePercent ? (
+          <div
+            aria-hidden
+            data-testid="column-chart-average"
+            className="border-chart-reference pointer-events-none absolute start-12 end-0 border-t border-dotted opacity-60"
+            style={{ bottom: `${averagePercent}%` }}
+          />
+        ) : null}
+
         {reference && null !== referencePercent ? (
           <div
             aria-hidden
-            className="pointer-events-none absolute start-12 end-0 flex flex-col items-start"
+            className="pointer-events-none absolute start-12 end-0"
             style={{ bottom: `${referencePercent}%` }}
           >
-            <span className="bg-surface text-muted mb-0.5 rounded px-1 text-[10px] leading-tight">
+            <span className="bg-chart-reference block h-px w-full opacity-70" />
+            {/*
+              Inside the plot: below the line when it is near the top, so the label never sits on
+              the same row as the top tick label ("$2K") or spills out of the plot.
+            */}
+            <span
+              data-testid="column-chart-reference-label"
+              className={cn(
+                'bg-surface text-muted absolute start-1 rounded px-1 text-[10px] leading-tight whitespace-nowrap',
+                'above' === referenceLabelPlacement(referencePercent)
+                  ? 'bottom-full mb-0.5'
+                  : 'top-full mt-0.5',
+              )}
+            >
               {reference.label}
             </span>
-            <span className="bg-chart-reference h-px w-full opacity-70" />
           </div>
         ) : null}
       </div>
@@ -153,7 +188,7 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
           <span
             key={datum.key}
             className={cn(
-              'flex-1 text-center text-[11px]',
+              'flex-1 text-center text-[11px] whitespace-nowrap',
               datum.highlight ? 'text-foreground font-semibold' : 'text-muted',
             )}
           >
@@ -161,6 +196,16 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
           </span>
         ))}
       </div>
+
+      {average && null !== averagePercent ? (
+        <p className="text-muted ms-12 flex items-center gap-1.5 text-[11px]">
+          <span
+            aria-hidden
+            className="border-chart-reference inline-block w-4 border-t border-dotted opacity-80"
+          />
+          {average.label}
+        </p>
+      ) : null}
 
       <details>
         <summary className="text-accent focus-visible:ring-focus inline-flex min-h-11 cursor-pointer items-center rounded-md text-xs focus-visible:ring-2 focus-visible:outline-none">
@@ -184,7 +229,7 @@ export const ColumnChart: React.FC<ColumnChartProps> = ({
                   {datum.fullLabel}
                 </th>
                 <td className="py-1.5 text-end tabular-nums">
-                  <span dir="ltr">{datum.display}</span>
+                  <bdi dir="ltr">{datum.display}</bdi>
                 </td>
               </tr>
             ))}

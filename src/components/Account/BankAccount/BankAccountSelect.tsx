@@ -39,7 +39,7 @@ export const BankAccountSelect = ({
           className="text-md hover:text-foreground/80 w-full justify-between px-0"
         >
           <div className="flex items-center gap-4">
-            <Landmark className="h-5 w-5 text-blue-500" />
+            <Landmark className="text-muted h-5 w-5" />
             <p>{t('bank_transactions.choose_bank_provider')}</p>
           </div>
           <ChevronRight className="text-muted h-6 w-6 rtl:rotate-180" />

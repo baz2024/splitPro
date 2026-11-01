@@ -771,5 +771,119 @@
       "error": "Something went wrong. Please try again.",
       "details": "{count, plural, =0 {Details} one {Details · # clue} other {Details · # clues}}"
     }
+  },
+  "audit_a": {
+    "switchers": {
+      "button_label": "Language and currency",
+      "language": "Language",
+      "currency": "Currency"
+    },
+    "headline": {
+      "owed_by_one": "Overall, {name} owes you <amount/>",
+      "owed": "Overall, you are owed <amount/>",
+      "owe_to_one": "Overall, you owe {name} <amount/>",
+      "owe": "Overall, you owe <amount/>",
+      "mixed": "Overall, you are owed <owed/> and you owe <owe/>",
+      "settled": "You're all settled up"
+    },
+    "row": {
+      "owes_you": "owes you",
+      "you_owe": "you owe"
+    },
+    "detected": {
+      "summary": "Your coding agent found {count, plural, one {# new service} other {# new services}}",
+      "review": "Review",
+      "hide": "Hide"
+    },
+    "signin": {
+      "page_title": "Sign in to Safi",
+      "by_kafo": "by Kafo AI",
+      "invite_question": "Got an invite?",
+      "invite_hint": "Open your invite link to join the project straight away."
+    }
+  },
+  "audit_b": {
+    "addcost": {
+      "scan": "Scan",
+      "plans": "Plans",
+      "list_price_note": "List price in USD, check your plan",
+      "per_seat": "/ seat"
+    }
+  },
+  "audit_c": {
+    "pace": {
+      "on_track": "On track · {left} left",
+      "at_risk": "On pace to spend {projected} by {date}, {over} over budget",
+      "over": "Over budget by {over} · on pace for {projected} by {date}"
+    },
+    "project": {
+      "archived_on": "Archived on {date}",
+      "all_expenses": "All expenses"
+    },
+    "expense_row": {
+      "no_balance": "No balance"
+    },
+    "settings": {
+      "title": "Project settings",
+      "deleted": "Project deleted",
+      "archived": "Project archived",
+      "unarchived": "Project restored",
+      "remove_member": "Remove {name}",
+      "remove": "Remove",
+      "delete": "Delete project",
+      "delete_title": "Delete {name}?",
+      "delete_description": "This deletes the project and all its expenses for everyone. It can't be undone."
+    },
+    "members": {
+      "title": "Members · {count}",
+      "settle_up": "Settle up",
+      "all_settled": "Everyone is settled up.",
+      "invite_link": "Invite link",
+      "exported": "{count, plural, one {Exported # expense} other {Exported # expenses}}",
+      "export_failed": "Could not export this project",
+      "settled": "Settled up",
+      "is_owed": "is owed {amount}{count, plural, =0 {} other { + # more}}",
+      "owes": "owes {amount}{count, plural, =0 {} other { + # more}}",
+      "you_are_owed": "you are owed {amount}{count, plural, =0 {} other { + # more}}",
+      "you_owe": "you owe {amount}{count, plural, =0 {} other { + # more}}"
+    },
+    "scan": {
+      "title": "What we read",
+      "check": "Check",
+      "check_count": "{count, plural, one {Check the highlighted field} other {Check the # highlighted fields}}",
+      "all_clear": "Read from your receipt"
+    },
+    "notify": {
+      "will_be_notified": "{count, plural, one {{name} will be notified} other {# people will be notified}}",
+      "was_notified": "{count, plural, one {{name} was notified} other {# people were notified}}",
+      "saved_title": "Expense saved",
+      "add_another": "Add another",
+      "done": "Done"
+    },
+    "invite": {
+      "preview_sms": "Text message to {to}",
+      "preview_email": "Email to {to}",
+      "subject": "Subject: {subject}",
+      "preview_note": "Nothing is sent until you tap Send invite.",
+      "send": "Send invite"
+    }
+  },
+  "audit_d": {
+    "agent": {
+      "added_by": "Added by {name} agent"
+    },
+    "journey": {
+      "import_link": "Import from your bank instead",
+      "leave_import": "Cancel import"
+    }
+  },
+  "audit_f": {
+    "pace": {
+      "early": "Spent {spent} so far this month · {left} left in budget",
+      "over_early": "Over budget by {over}"
+    }
+  },
+  "audit_g": {
+    "skill_create_key": "Tap \"Add agent & get token\" and copy the key it shows you."
   }
 }

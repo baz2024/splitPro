@@ -9,8 +9,15 @@ import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { type CategoryItem } from '~/lib/category';
 import { cronToBackend } from '~/lib/cron';
 import { type CurrencyCode } from '~/lib/currency';
-import { FEATURED_SERVICES, type ServiceInfo, findService } from '~/lib/serviceCatalog';
+import {
+  FEATURED_SERVICES,
+  PLAN_PRICE_CURRENCY,
+  type ServiceInfo,
+  type ServicePlan,
+  findService,
+} from '~/lib/serviceCatalog';
 import { cn } from '~/lib/utils';
+import { CHIP_IDLE, CHIP_SELECTED } from '~/components/ui/chipStyles';
 import { DEFAULT_REMIND_DAYS_BEFORE } from '~/server/reminders/dueDate';
 import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
@@ -25,10 +32,13 @@ import {
   defaultNextRenewal,
   fromMonthInputValue,
   lastChargeDate,
+  planPriceInput,
+  servicePlans,
   toMonthInputValue,
   usageExpenseDate,
 } from './addCost';
 import { PaidBySplitRow } from './PaidBySplitRow';
+import { PlanChips } from './PlanChips';
 import { OTHER_SERVICE, ServiceGrid } from './ServiceGrid';
 
 const Row: React.FC<{ label: string; htmlFor?: string; children: React.ReactNode }> = ({
@@ -160,10 +170,20 @@ export const CostForm: React.FC<{
     setNextRenewal(defaultNextRenewal(next));
   };
 
+  /** A plan chip fills the plan name and its monthly USD list price. */
+  const onPlanPick = (picked: ServicePlan) => {
+    const price = planPriceInput(picked);
+    setPlan(picked.name);
+    onCadence('monthly');
+    setCurrency(PLAN_PRICE_CURRENCY);
+    setAmountStr(price);
+    setAmount(getCurrencyHelpersCached(PLAN_PRICE_CURRENCY).toSafeBigInt(price));
+  };
+
   const goAfterSave = () => {
     const savedGroup = useAddExpenseStore.getState().group;
     if (savedGroup) {
-      return router.push(`/groups/${savedGroup.id}`);
+      return router.push(`/projects/${savedGroup.id}`);
     }
     return router.push(isSubscription ? '/subscriptions' : '/balances');
   };
@@ -221,6 +241,10 @@ export const CostForm: React.FC<{
     <div className="flex flex-col gap-5 pb-[calc(7rem+env(safe-area-inset-bottom))]">
       <ServiceGrid services={services} selected={serviceId} onSelect={setServiceId} />
 
+      {isSubscription ? (
+        <PlanChips plans={servicePlans(service)} selectedPlan={plan} onPick={onPlanPick} />
+      ) : null}
+
       {isOther ? (
         <div className="bg-surface border-border flex flex-col gap-3 rounded-2xl border p-4">
           <label htmlFor="addcost-other-name" className="text-sm">
@@ -244,10 +268,8 @@ export const CostForm: React.FC<{
                   aria-pressed={option === otherCategory}
                   onClick={() => setOtherCategory(option)}
                   className={cn(
-                    'focus-visible:ring-focus min-h-11 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2',
-                    option === otherCategory
-                      ? 'bg-foreground text-background border-transparent'
-                      : 'border-border text-muted hover:text-foreground',
+                    'focus-visible:ring-focus min-h-11 rounded-full px-3 text-xs font-medium outline-none focus-visible:ring-2',
+                    option === otherCategory ? CHIP_SELECTED : CHIP_IDLE,
                   )}
                 >
                   {'tech' === option
@@ -301,9 +323,7 @@ export const CostForm: React.FC<{
                     onClick={() => onCadence(option)}
                     className={cn(
                       'focus-visible:ring-focus min-h-11 rounded-full px-4 text-xs font-medium outline-none focus-visible:ring-2',
-                      option === cadence
-                        ? 'bg-foreground text-background'
-                        : 'border-border text-muted hover:text-foreground border',
+                      option === cadence ? CHIP_SELECTED : CHIP_IDLE,
                     )}
                   >
                     {t(`fields.${option}`)}

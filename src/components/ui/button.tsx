@@ -11,13 +11,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // Solid buttons turn into a muted outline when disabled, so they never read as active.
+        default:
+          'bg-primary text-primary-foreground hover:bg-primary/90 disabled:border disabled:border-border disabled:bg-transparent disabled:text-muted disabled:opacity-100',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:border disabled:border-border disabled:bg-transparent disabled:text-muted disabled:opacity-100',
         outline: 'border border-input bg-background hover:bg-default hover:text-default-foreground',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:text-primary/70 p-0',
         link: 'text-primary underline-offset-4 hover:underline',
-        blue: 'text-primary bg-blue-700',
+        blue: 'text-primary bg-blue-700 disabled:border disabled:border-border disabled:bg-transparent disabled:text-muted disabled:opacity-100',
       },
       size: {
         default: 'h-10 px-4 py-2',

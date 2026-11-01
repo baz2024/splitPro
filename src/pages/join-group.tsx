@@ -37,7 +37,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       const { id } = await joinGroup(session.user.id, groupId);
       return {
         redirect: {
-          destination: `/groups/${id}`,
+          destination: `/projects/${id}`,
           permanent: false,
         },
       };

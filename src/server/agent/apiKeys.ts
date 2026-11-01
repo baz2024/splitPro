@@ -21,9 +21,17 @@ export const hashApiKey = (token: string): string =>
 export const getApiKeyDisplayPrefix = (token: string): string =>
   token.slice(0, API_KEY_DISPLAY_PREFIX_LENGTH);
 
+/** Last 4 chars of the token, shown after the prefix in the masked key ("safi_AbC…wxyz"). */
+export const getApiKeyLastFour = (token: string): string => token.slice(-4);
+
 export const createApiKeyRecord = () => {
   const token = generateApiKey();
-  return { token, prefix: getApiKeyDisplayPrefix(token), hashedKey: hashApiKey(token) };
+  return {
+    token,
+    prefix: getApiKeyDisplayPrefix(token),
+    lastFour: getApiKeyLastFour(token),
+    hashedKey: hashApiKey(token),
+  };
 };
 
 /** Extracts the bearer token from an Authorization header value, or null. */
@@ -40,14 +48,31 @@ export const parseBearerToken = (header: string | string[] | undefined): string 
   return token;
 };
 
+export interface ApiKeyAuth {
+  userId: number;
+  apiKeyId: string;
+  /** Set while the owner has paused this agent; endpoints reject it (see agentPausedBody). */
+  pausedAt: Date | null;
+}
+
+/** 403 body for a paused agent key: the agent must stop spending until it is resumed. */
+export const agentPausedBody = (pausedAt: Date) => ({
+  error: 'agent_paused' as const,
+  shouldPause: true,
+  pauseReason: 'paused' as const,
+  pausedAt: pausedAt.toISOString(),
+  message: 'This agent was paused in Safi. Stop spending until the owner resumes it.',
+});
+
 /**
  * Resolves an Authorization header to the owning user id, or null when the key is missing,
- * malformed, unknown, or revoked. Updates lastUsedAt on success.
+ * malformed, unknown, or revoked. Updates lastUsedAt on success. Paused keys still resolve (with
+ * `pausedAt` set) so endpoints can answer 403 with a reason instead of 401.
  */
 export const authenticateApiKey = async (
   db: PrismaClient,
   authorizationHeader: string | string[] | undefined,
-): Promise<{ userId: number; apiKeyId: string } | null> => {
+): Promise<ApiKeyAuth | null> => {
   const token = parseBearerToken(authorizationHeader);
   if (!token) {
     return null;
@@ -55,7 +80,7 @@ export const authenticateApiKey = async (
 
   const apiKey = await db.apiKey.findUnique({
     where: { hashedKey: hashApiKey(token) },
-    select: { id: true, userId: true, revokedAt: true },
+    select: { id: true, userId: true, revokedAt: true, pausedAt: true },
   });
 
   if (!apiKey || apiKey.revokedAt) {
@@ -64,5 +89,5 @@ export const authenticateApiKey = async (
 
   await db.apiKey.update({ where: { id: apiKey.id }, data: { lastUsedAt: new Date() } });
 
-  return { userId: apiKey.userId, apiKeyId: apiKey.id };
+  return { userId: apiKey.userId, apiKeyId: apiKey.id, pausedAt: apiKey.pausedAt ?? null };
 };

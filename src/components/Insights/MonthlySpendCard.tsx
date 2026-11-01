@@ -82,12 +82,9 @@ export const MonthlySpendCard: React.FC<{ className?: string }> = ({ className }
         <h2 id="my-spend-title" className="text-muted text-xs font-normal">
           {t('my_spend.label')}
         </h2>
-        <span
-          dir="ltr"
-          className="text-foreground self-start text-2xl font-semibold tracking-tight"
-        >
+        <bdi dir="ltr" className="text-foreground self-start text-2xl font-semibold tracking-tight">
           {toUIString(comparison.current)}
-        </span>
+        </bdi>
         <span className="text-xs">{renderDelta()}</span>
         {others ? (
           <span className="text-muted text-xs">{t('other_currencies', { amounts: others })}</span>

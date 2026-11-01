@@ -95,7 +95,7 @@ const ExpensesPage: NextPageWithUser = ({ user }) => {
       <MainLayout
         title={
           <div className="flex items-center justify-between gap-2">
-            <Link href={`/groups/${groupId}`}>
+            <Link href={`/projects/${groupId}`}>
               <ChevronLeftIcon className="me-1 h-6 w-6 rtl:rotate-180" />
             </Link>
             <p className="w-full text-center text-[16px] font-normal">{t('ui.expense_details')}</p>

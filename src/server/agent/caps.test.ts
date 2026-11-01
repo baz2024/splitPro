@@ -149,6 +149,45 @@ describe('buildAgentSpend', () => {
   });
 });
 
+describe('buildAgentSpend pause state', () => {
+  const key = {
+    id: 'k1',
+    name: 'ci-key',
+    agentLabel: null,
+    model: null,
+    monthlyCapAmount: 10000n,
+    capCurrency: 'USD',
+    group: null,
+  };
+
+  it('should not pause an active key under its cap', () => {
+    const spend = buildAgentSpend(key, new Map([['USD', 1000n]]), MID_MONTH);
+    expect(spend).toMatchObject({ paused: false, shouldPause: false, pauseReason: null });
+    expect(spend.allowList).toEqual([]);
+  });
+
+  it('should pause a paused key even under its cap', () => {
+    const pausedAt = new Date('2026-11-10T00:00:00Z');
+    const spend = buildAgentSpend({ ...key, pausedAt }, new Map([['USD', 1000n]]), MID_MONTH);
+    expect(spend).toMatchObject({
+      paused: true,
+      pausedAt,
+      shouldPause: true,
+      pauseReason: 'paused',
+    });
+    expect(spend.state).toBe('ok');
+  });
+
+  it('should give cap_reached at the cap', () => {
+    const spend = buildAgentSpend(key, new Map([['USD', 10000n]]), MID_MONTH);
+    expect(spend).toMatchObject({
+      shouldPause: true,
+      pauseReason: 'cap_reached',
+      state: 'reached',
+    });
+  });
+});
+
 describe('agentsNeedingAttention', () => {
   const agent = (apiKeyId: string, monthToDate: bigint) =>
     buildAgentSpend(

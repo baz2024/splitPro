@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { CurrencyPicker } from '~/components/AddExpense/CurrencyPicker';
 import { AppDrawer } from '~/components/ui/drawer';
 import { NativeSelect, NativeSelectOption } from '~/components/ui/native-select';
+import { parseAllowListInput } from '~/lib/agentControls';
 import { type CurrencyCode, isCurrencyCode } from '~/lib/currency';
 import { api } from '~/utils/api';
 
@@ -21,6 +22,7 @@ export interface EditableAgentKey {
   groupId: number | null;
   monthlyCapAmount: bigint | null;
   capCurrency: string | null;
+  allowList?: string[];
 }
 
 interface AgentKeySheetProps {
@@ -29,7 +31,7 @@ interface AgentKeySheetProps {
   fallbackCurrency?: string | null;
 }
 
-/** Sheet to set an agent key's display name, model, project and monthly cap. */
+/** Sheet to set an agent key's display name, model, project, monthly cap and allow-list. */
 export const AgentKeySheet: React.FC<AgentKeySheetProps> = ({
   apiKey,
   trigger,
@@ -51,6 +53,7 @@ export const AgentKeySheet: React.FC<AgentKeySheetProps> = ({
   const [model, setModel] = useState('');
   const [groupId, setGroupId] = useState('');
   const [cap, setCap] = useState('');
+  const [allowList, setAllowList] = useState('');
   const [currency, setCurrency] = useState<CurrencyCode>(initialCurrency);
 
   const groups = (groupsQuery.data ?? [])
@@ -64,6 +67,7 @@ export const AgentKeySheet: React.FC<AgentKeySheetProps> = ({
       setLabel(apiKey.agentLabel ?? '');
       setModel(apiKey.model ?? '');
       setGroupId(null === apiKey.groupId ? '' : String(apiKey.groupId));
+      setAllowList((apiKey.allowList ?? []).join(', '));
       setCurrency(initialCurrency);
       setCap(
         null !== apiKey.monthlyCapAmount && isCurrencyCode(apiKey.capCurrency)
@@ -87,6 +91,7 @@ export const AgentKeySheet: React.FC<AgentKeySheetProps> = ({
         model,
         groupId: '' === groupId ? null : Number(groupId),
         cap: '' === normalizedCap ? null : { amount: normalizedCap, currency },
+        allowList: parseAllowListInput(allowList),
       },
       {
         onSuccess: () => {
@@ -211,6 +216,26 @@ export const AgentKeySheet: React.FC<AgentKeySheetProps> = ({
           </div>
           <p id={fieldId('cap-hint')} className="text-muted text-xs">
             {capValid ? t('sheet.cap_hint') : t('sheet.invalid_cap')}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor={fieldId('allow')} className="text-sm font-medium">
+            {t('allow.label')}
+          </label>
+          <Input
+            id={fieldId('allow')}
+            dir="ltr"
+            value={allowList}
+            autoComplete="off"
+            placeholder={t('allow.placeholder')}
+            onChange={(e) => setAllowList(e.target.value)}
+            className="min-h-11"
+            variant="secondary"
+            aria-describedby={fieldId('allow-hint')}
+          />
+          <p id={fieldId('allow-hint')} className="text-muted text-xs">
+            {t('allow.hint')}
           </p>
         </div>
       </form>

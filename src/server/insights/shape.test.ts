@@ -1,16 +1,22 @@
 import {
   type SpendRow,
+  averagePerPeriod,
   compareToAverage,
   currenciesInMonth,
+  dayKeyOf,
+  getDailyWindow,
   getTrendWindow,
   hasAnySpend,
   monthKeyOf,
   monthlyCostByService,
   monthlyTotals,
   otherCurrencyTotals,
+  periodTotals,
   pickChartCurrency,
   rankWithOther,
   topCategories,
+  topCategoriesBySource,
+  totalsBySource,
 } from './shape';
 
 const row = (
@@ -258,5 +264,86 @@ describe('hasAnySpend', () => {
     expect(hasAnySpend(zero, [])).toBe(false);
     expect(hasAnySpend(zero, [{ currency: 'EUR', total: 1n }])).toBe(true);
     expect(hasAnySpend([{ ...zero[0]!, total: 5n }], [])).toBe(true);
+  });
+});
+
+describe('getDailyWindow', () => {
+  it('should return the last 30 local days ending today', () => {
+    const window = getDailyWindow(new Date('2026-11-01T10:00:00Z'), 0, 30);
+    expect(window.slots).toHaveLength(30);
+    expect(window.slots[0]?.key).toBe('2026-10-03');
+    expect(window.slots.at(-1)?.key).toBe('2026-11-01');
+    expect(window.start.toISOString()).toBe('2026-10-03T00:00:00.000Z');
+    expect(window.end.toISOString()).toBe('2026-11-02T00:00:00.000Z');
+  });
+
+  it('should use the viewer local day (UTC+3 is offset -180)', () => {
+    const window = getDailyWindow(new Date('2026-10-31T22:30:00Z'), -180, 2);
+    expect(window.slots.map((slot) => slot.key)).toEqual(['2026-10-31', '2026-11-01']);
+    expect(window.start.toISOString()).toBe('2026-10-30T21:00:00.000Z');
+  });
+
+  it('should zero-pad day keys', () => {
+    expect(dayKeyOf(2026, 0, 5)).toBe('2026-01-05');
+  });
+});
+
+describe('periodTotals', () => {
+  it('should total daily rows per day slot', () => {
+    const slots = [{ key: '2026-11-01' }, { key: '2026-11-02' }];
+    const rows = [
+      row('2026-11-01', 'USD', 100n),
+      row('2026-11-01', 'USD', 50n, 'aiApis'),
+      row('2026-11-02', 'EUR', 999n),
+    ];
+    expect(periodTotals(slots, rows, 'USD').map((slot) => slot.total)).toEqual([150n, 0n]);
+  });
+});
+
+describe('currenciesInMonth with daily rows', () => {
+  it('should read daily rows of the month too', () => {
+    const rows = [row('2026-11-01', 'USD', 1n, undefined, 2), row('2026-10-31', 'EUR', 1n)];
+    expect(currenciesInMonth(rows, '2026-11')).toEqual(['USD', 'USD']);
+  });
+});
+
+describe('averagePerPeriod', () => {
+  it('should average from the first period with spend', () => {
+    expect(averagePerPeriod([{ total: 0n }, { total: 0n }, { total: 300n }, { total: 0n }])).toBe(
+      150n,
+    );
+  });
+
+  it('should round to the nearest minor unit', () => {
+    expect(averagePerPeriod([{ total: 100n }, { total: 0n }, { total: 0n }])).toBe(33n);
+  });
+
+  it('should be null with no spend', () => {
+    expect(averagePerPeriod([{ total: 0n }])).toBeNull();
+    expect(averagePerPeriod([])).toBeNull();
+  });
+});
+
+describe('Human vs agent', () => {
+  const rows: SpendRow[] = [
+    { ...row('2026-11', 'USD', 500n, 'aiApis'), source: 'agent' },
+    { ...row('2026-11', 'USD', 200n, 'codingAgents'), source: 'agent' },
+    { ...row('2026-11', 'USD', 300n, 'hotel'), source: 'human' },
+    row('2026-11', 'USD', 100n, 'diningOut'),
+    { ...row('2026-11', 'EUR', 900n, 'aiApis'), source: 'agent' },
+  ];
+
+  it('should split totals by source, counting unmarked rows as human', () => {
+    expect(totalsBySource(rows, 'USD')).toEqual({ human: 400n, agent: 700n });
+  });
+
+  it('should rank categories per source', () => {
+    const ranked = topCategoriesBySource(rows, 'USD');
+    expect(ranked.agent.map((item) => [item.key, item.total])).toEqual([
+      ['aiApis', 500n],
+      ['codingAgents', 200n],
+    ]);
+    expect(ranked.human.map((item) => item.key)).toEqual(['hotel', 'diningOut']);
+    expect(ranked.all).toHaveLength(4);
   });
 });

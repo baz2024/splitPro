@@ -260,7 +260,7 @@ export async function sendGroupSimplifyDebtsToggleNotification(
       title: togglerName,
       message: `turned ${stateText} debt simplification for ${group.name}`,
       data: {
-        url: `/groups/${groupId}`,
+        url: `/projects/${groupId}`,
       },
     };
 

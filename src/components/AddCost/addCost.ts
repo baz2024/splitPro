@@ -1,7 +1,13 @@
 import { CATEGORIES, type CategoryItem } from '~/lib/category';
-import { SERVICE_CATALOG, type ServiceInfo, findService } from '~/lib/serviceCatalog';
+import {
+  SERVICE_CATALOG,
+  type ServiceInfo,
+  type ServicePlan,
+  findService,
+} from '~/lib/serviceCatalog';
 
-export const COST_TYPES = ['subscription', 'usage', 'oneoff'] as const;
+/** Add cost segments. Scan opens the one-off journey's receipt scan (`/add?mode=scan`). */
+export const COST_TYPES = ['subscription', 'usage', 'oneoff', 'scan'] as const;
 export type CostType = (typeof COST_TYPES)[number];
 
 export type BillingCadence = 'monthly' | 'yearly';
@@ -27,15 +33,26 @@ const firstQueryValue = (value: unknown): string | undefined => {
 };
 
 /**
- * Which tab /add opens on. `?type=subscription|usage` picks those tabs; everything else
- * (including the existing `?mode=scan|manual` links) opens the one-off journey.
+ * Which tab /add opens on. `?type=subscription|usage` picks those tabs, `?mode=scan` the Scan
+ * segment; everything else (including `?mode=manual` links) opens the one-off journey.
  */
 export const parseCostType = (query: Record<string, unknown>): CostType => {
   const type = firstQueryValue(query.type);
   if ('subscription' === type || 'usage' === type) {
     return type;
   }
-  return 'oneoff';
+  return 'scan' === firstQueryValue(query.mode) ? 'scan' : 'oneoff';
+};
+
+/** Plan chips for a picked service (none for "Other" or services without known plans). */
+export const servicePlans = (service: ServiceInfo | undefined): readonly ServicePlan[] =>
+  service?.plans ?? [];
+
+/** A plan's USD list price as the plain decimal the price field takes ("20", "19.99"). */
+export const planPriceInput = (plan: ServicePlan): string => {
+  const dollars = plan.monthlyUsd / 100n;
+  const cents = plan.monthlyUsd % 100n;
+  return 0n === cents ? `${dollars}` : `${dollars}.${cents.toString().padStart(2, '0')}`;
 };
 
 /** Optional `?service=<id or name>` preselection; only honoured for catalog services. */

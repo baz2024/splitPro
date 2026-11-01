@@ -6,7 +6,9 @@ import { api } from '~/utils/api';
 import { getSupportedLanguages } from '~/utils/i18n/client';
 import { GeneralPicker } from '../GeneralPicker';
 
-export const LanguagePicker: React.FC<PropsWithChildren> = ({ children }) => {
+export const LanguagePicker: React.FC<
+  PropsWithChildren<{ open?: boolean; onOpenChange?: (open: boolean) => void }>
+> = ({ children, open, onOpenChange }) => {
   const router = useRouter();
   const { i18n, t } = useTranslation();
   const updateUser = api.user.updateUserDetail.useMutation();
@@ -52,6 +54,8 @@ export const LanguagePicker: React.FC<PropsWithChildren> = ({ children }) => {
       extractKey={extractKey}
       selected={selected}
       render={render}
+      open={open}
+      onOpenChange={onOpenChange}
     />
   );
 };

@@ -21,7 +21,14 @@ export const getMonthExpenses = async (
       splitType: { notIn: NON_SPEND_SPLIT_TYPES },
       expenseDate: { gte: start, lt: end },
     },
-    select: { groupId: true, amount: true, currency: true, category: true, recurrenceId: true },
+    select: {
+      groupId: true,
+      amount: true,
+      currency: true,
+      category: true,
+      recurrenceId: true,
+      reportedByApiKeyId: true,
+    },
   });
 
   return rows.map((row) => ({
@@ -30,5 +37,6 @@ export const getMonthExpenses = async (
     currency: row.currency,
     category: row.category,
     isRecurring: null !== row.recurrenceId,
+    reportedByApiKeyId: row.reportedByApiKeyId,
   }));
 };

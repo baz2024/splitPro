@@ -1,6 +1,7 @@
 import { type Transporter, createTransport } from 'nodemailer';
 
 import { env } from '~/env';
+import { INVITE_EMAIL_SUBJECT, buildInviteEmailText } from '~/lib/inviteMessage';
 import { escapeHtml } from '~/lib/utils';
 
 import { sendToDiscord } from './service-notification';
@@ -67,8 +68,8 @@ export async function sendInviteEmail(email: string, name: string) {
     return true;
   }
 
-  const subject = 'Invitation to Safi';
-  const text = `Hey,\n\nYou have been invited to Safi by ${name}. Safi keeps your team's expenses, receipts and project budgets in one place. You can sign in to Safi by clicking the below URL:\n${env.NEXTAUTH_URL}\n\nThanks,\nSafi Team`;
+  const subject = INVITE_EMAIL_SUBJECT;
+  const text = buildInviteEmailText(name, env.NEXTAUTH_URL);
   const html = `<p>Hey,</p> <p>You have been invited to Safi by ${escapeHtml(name)}. Safi keeps your team's expenses, receipts and project budgets in one place. You can sign in to Safi by clicking the below URL:</p><p><a href="${env.NEXTAUTH_URL}">Sign in to ${host}</a></p><br><p>Thanks,<br/>Safi Team</p>`;
 
   return await sendMail(email, subject, text, html);
