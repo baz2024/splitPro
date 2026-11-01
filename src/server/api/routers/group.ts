@@ -420,6 +420,14 @@ export const groupRouter = createTRPCRouter({
         });
       }
 
+      // Archiving hides the project for everyone, so it sits with delete: creator only.
+      if (ctx.session.user.id !== group.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only the project creator can archive or unarchive it',
+        });
+      }
+
       const isArchiving = !group.archivedAt;
 
       // Only check balances when archiving (not when unarchiving)

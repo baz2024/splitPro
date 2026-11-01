@@ -361,7 +361,11 @@ export const ProjectSettingsSheet: React.FC<{
                 <Archive className="size-4" aria-hidden />
                 {t('group_details.group_info.archive_group')}
               </span>
-              {!isArchived && balancesOpen ? (
+              {!isCreator ? (
+                <span className="text-muted ms-6 text-xs">
+                  {t('audit_c.settings.archive_creator_only')}
+                </span>
+              ) : !isArchived && balancesOpen ? (
                 <span className="text-muted ms-6 text-xs">
                   {t('group_details.group_info.archive_group_details.cant_archive')}
                 </span>
@@ -370,7 +374,7 @@ export const ProjectSettingsSheet: React.FC<{
             <Switch
               id="project-archive"
               checked={isArchived}
-              disabled={archiveMutation.isPending || (!isArchived && balancesOpen)}
+              disabled={!isCreator || archiveMutation.isPending || (!isArchived && balancesOpen)}
               onCheckedChange={onToggleArchive}
             />
           </label>

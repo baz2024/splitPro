@@ -437,6 +437,7 @@ const BalancePage: NextPageWithUser<{
                     <Switch
                       id="archive-group"
                       checked={groupDetailQuery.data?.archivedAt !== null}
+                      disabled={!isAdmin}
                       onCheckedChange={() => {
                         toggleArchiveMutation.mutate(
                           { groupId },

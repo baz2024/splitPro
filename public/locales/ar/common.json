@@ -828,6 +828,7 @@
       "deleted": "تم حذف المشروع",
       "archived": "تمت أرشفة المشروع",
       "unarchived": "تمت استعادة المشروع",
+      "archive_creator_only": "يمكن لمنشئ المشروع فقط أرشفته.",
       "remove_member": "إزالة {name}",
       "remove": "إزالة",
       "delete": "حذف المشروع",

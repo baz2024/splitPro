@@ -828,6 +828,7 @@
       "deleted": "Project deleted",
       "archived": "Project archived",
       "unarchived": "Project restored",
+      "archive_creator_only": "Only the project creator can archive it.",
       "remove_member": "Remove {name}",
       "remove": "Remove",
       "delete": "Delete project",
