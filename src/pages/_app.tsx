@@ -8,7 +8,7 @@ import { type AppProps } from 'next/app';
 import { Noto_Sans_Arabic, Poppins } from 'next/font/google';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { LoadingSpinner } from '~/components/ui/spinner';
 import { ThemeProvider } from 'next-themes';
@@ -127,6 +127,8 @@ const Auth: React.FC<{ Page: PageWithAuth; pageProps: AppProps['pageProps'] }> =
   const [showSpinner, setShowSpinner] = useState(false);
   const updateUser = api.user.updateUserDetail.useMutation();
   const router = useRouter();
+  // Remembers the locale we already switched to, so a mismatch can never cause a redirect loop.
+  const switchedLocale = useRef<string | null>(null);
 
   const { setWebPushPublicKey } = useAppStore((s) => s.actions);
 
@@ -178,8 +180,15 @@ const Auth: React.FC<{ Page: PageWithAuth; pageProps: AppProps['pageProps'] }> =
             }),
           )
           .catch(console.error);
-      } else if (data.user.preferredLanguage && data.user.preferredLanguage !== router.locale) {
-        // Set user's preferred language by changing the locale
+      } else if (
+        data.user.preferredLanguage &&
+        data.user.preferredLanguage !== router.locale &&
+        data.user.preferredLanguage !== switchedLocale.current &&
+        i18nConfig.i18n.locales.includes(data.user.preferredLanguage) &&
+        'default' !== data.user.preferredLanguage
+      ) {
+        // Set user's preferred language by changing the locale (once per target locale)
+        switchedLocale.current = data.user.preferredLanguage;
         router
           .push(router.asPath, router.asPath, {
             locale: data.user.preferredLanguage,
