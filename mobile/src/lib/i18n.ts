@@ -89,6 +89,7 @@ const en = {
   googleCouldNotStart: 'Google sign-in could not start.',
   googleNoCode: 'Google sign-in did not return a code.',
   googleFailed: 'Google sign-in failed.',
+  appleFailed: 'Apple sign-in failed.',
 };
 
 export type Strings = typeof en;
@@ -125,6 +126,7 @@ const ar: Strings = {
   googleCouldNotStart: 'تعذّر بدء تسجيل الدخول باستخدام Google.',
   googleNoCode: 'لم يُرجع تسجيل الدخول باستخدام Google رمزًا.',
   googleFailed: 'تعذّر تسجيل الدخول باستخدام Google.',
+  appleFailed: 'تعذّر تسجيل الدخول باستخدام Apple.',
 };
 
 const STRINGS: Record<AppLanguage, Strings> = { en, ar };

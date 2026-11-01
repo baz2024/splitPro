@@ -58,6 +58,7 @@ interface WebAppScreenProps {
   onSignedIn: () => void;
   onSignedOut: (error?: string) => void;
   onGoogleRequested: () => void;
+  onAppleRequested: () => void;
   onBackToWelcome: () => void;
 }
 
@@ -101,6 +102,13 @@ const isGoogleAuthUrl = (url: URL) =>
   'accounts.google.com' === url.hostname ||
   (isAppUrl(url) && url.pathname.startsWith('/api/auth/signin/google'));
 
+// Supabase OAuth (Apple / Google from the web sign-in page). Opening it in Safari would leave
+// the app, so the native sign-in flows handle it instead.
+const supabaseAuthProvider = (url: URL): string | null =>
+  url.hostname.endsWith('.supabase.co') && url.pathname.startsWith('/auth/v1/authorize')
+    ? (url.searchParams.get('provider') ?? '')
+    : null;
+
 // Schemes the WebView must load itself rather than hand to the OS.
 const isInternalScheme = (url: string) =>
   url.startsWith('about:') || url.startsWith('data:') || url.startsWith('blob:');
@@ -127,6 +135,7 @@ export const WebAppScreen = ({
   onSignedIn,
   onSignedOut,
   onGoogleRequested,
+  onAppleRequested,
   onBackToWelcome,
 }: WebAppScreenProps) => {
   const webViewRef = useRef<WebViewHandle>(null);
@@ -223,6 +232,18 @@ export const WebAppScreen = ({
         return false;
       }
 
+      const provider = supabaseAuthProvider(parsed);
+      if (null !== provider) {
+        if ('apple' === provider) {
+          onAppleRequested();
+        } else if ('google' === provider) {
+          onGoogleRequested();
+        } else {
+          onBackToWelcome();
+        }
+        return false;
+      }
+
       // Let iframes (payments, embeds, analytics) load normally.
       if (false === request.isTopFrame) {
         return true;
@@ -236,7 +257,7 @@ export const WebAppScreen = ({
       openExternal(url);
       return false;
     },
-    [onGoogleRequested, openExternal],
+    [onAppleRequested, onBackToWelcome, onGoogleRequested, openExternal],
   );
 
   const handleOpenWindow = useCallback(
@@ -247,6 +268,17 @@ export const WebAppScreen = ({
         onGoogleRequested();
         return;
       }
+      const provider = parsed ? supabaseAuthProvider(parsed) : null;
+      if (null !== provider) {
+        if ('apple' === provider) {
+          onAppleRequested();
+        } else if ('google' === provider) {
+          onGoogleRequested();
+        } else {
+          onBackToWelcome();
+        }
+        return;
+      }
       if (parsed && isAppUrl(parsed)) {
         webViewRef.current?.injectJavaScript(
           `window.location.href = ${JSON.stringify(targetUrl)}; true;`,
@@ -255,7 +287,7 @@ export const WebAppScreen = ({
       }
       openExternal(targetUrl);
     },
-    [onGoogleRequested, openExternal],
+    [onAppleRequested, onBackToWelcome, onGoogleRequested, openExternal],
   );
 
   const handleNavigationStateChange = useCallback(

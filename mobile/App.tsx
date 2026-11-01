@@ -9,6 +9,7 @@ import {
   AuthCancelledError,
   getWebSignedIn,
   setWebSignedIn,
+  signInWithApple,
   signInWithGoogle,
   signOutEverywhere,
 } from './src/lib/auth';
@@ -88,6 +89,21 @@ const Main = () => {
       });
   }, [handleAccessToken]);
 
+  // The web sign-in page tried to start Apple OAuth through Supabase; use native Apple sign-in.
+  const handleAppleRequested = useCallback(() => {
+    signInWithApple()
+      .then(handleAccessToken)
+      .catch((error: unknown) => {
+        if (error instanceof AuthCancelledError) {
+          return;
+        }
+        setScreen({
+          name: 'welcome',
+          error: error instanceof Error ? error.message : t.appleFailed,
+        });
+      });
+  }, [handleAccessToken]);
+
   const showWelcome = useCallback(() => setScreen({ name: 'welcome' }), []);
 
   if ('loading' === screen.name) {
@@ -110,6 +126,7 @@ const Main = () => {
         onSignedIn={handleSignedIn}
         onSignedOut={handleSignedOut}
         onGoogleRequested={handleGoogleRequested}
+        onAppleRequested={handleAppleRequested}
         onBackToWelcome={showWelcome}
       />
     );
