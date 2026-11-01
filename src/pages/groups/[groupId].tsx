@@ -7,7 +7,6 @@ import {
   DoorOpen,
   Info,
   Merge,
-  PlusIcon,
   Share,
   Trash2,
   UserPlus,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { type GetServerSideProps } from 'next';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,6 +22,7 @@ import { ExpenseList } from '~/components/Expense/ExpenseList';
 import AddMembers from '~/components/group/AddMembers';
 import GroupMyBalance from '~/components/group/GroupMyBalance';
 import NoMembers from '~/components/group/NoMembers';
+import { AddExpenseShortcuts } from '~/components/AddExpense/journey/AddExpenseShortcuts';
 import MainLayout from '~/components/Layout/MainLayout';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
@@ -529,13 +528,8 @@ const BalancePage: NextPageWithUser<{
                 groupId={groupId}
               />
             </div>
+            <AddExpenseShortcuts groupId={groupId} disabled={isArchived} className="mx-auto mb-3" />
             <div className="mb-4 flex justify-center gap-2 overflow-y-auto border-b pb-4">
-              <Link href={`/add?groupId=${groupId}`}>
-                <Button size="sm" className="w-40 gap-1 text-sm lg:w-[180px]" disabled={isArchived}>
-                  <PlusIcon className="size-4" /> {t('actions.add_expense')}
-                </Button>
-              </Link>
-
               <AddMembers group={groupDetailQuery.data} enableSendingInvites={enableSendingInvites}>
                 <Button size="sm" responsiveIcon variant="secondary" disabled={isArchived}>
                   <UserPlus className="size-4 text-gray-400" /> {t('group_details.add_members')}

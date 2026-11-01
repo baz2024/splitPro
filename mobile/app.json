@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "SplitPro",
+    "slug": "splitpro",
+    "scheme": "splitpro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0b1626",
+    "ios": {
+      "bundleIdentifier": "com.kafoai.split",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "SplitPro uses the camera to scan receipts.",
+        "NSPhotoLibraryUsageDescription": "SplitPro uses your photo library to attach receipt images."
+      }
+    },
+    "android": {
+      "package": "com.kafoai.split",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1626",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["android.permission.CAMERA"],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0b1626",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0b1626"
+          }
+        }
+      ]
+    ]
+  }
+}

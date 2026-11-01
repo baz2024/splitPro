@@ -554,5 +554,75 @@
     "activity": {
       "description": "Expenses, payments and changes from your friends and groups will show up here."
     }
+  },
+  "add_journey": {
+    "mode_label": "How do you want to add it?",
+    "modes": {
+      "scan": "Scan",
+      "manual": "Manual",
+      "import": "Import"
+    },
+    "titles": {
+      "scan": "Scan receipt",
+      "reading": "Reading receipt",
+      "review": "Check the details",
+      "amount": "Add expense",
+      "details": "Expense details",
+      "split": "Split"
+    },
+    "scan": {
+      "frame_title": "Fit the whole receipt in the frame",
+      "frame_hint": "Kafo AI reads the total, date and shop for you.",
+      "shutter": "Take photo",
+      "gallery": "Choose from photos",
+      "powered_by": "Read by Kafo AI. You can change anything before saving.",
+      "reading_title": "Reading receipt",
+      "reading_hint": "This takes a few seconds.",
+      "unsupported": "This photo type can't be scanned. Enter the details by hand.",
+      "too_large": "This photo is too large to scan. Enter the details by hand.",
+      "failed": "Couldn't read the receipt. Enter the details by hand."
+    },
+    "manual": {
+      "amount_label": "Amount",
+      "amount_hint": "Type the total",
+      "keypad": "Number pad",
+      "decimal": "Decimal point",
+      "backspace": "Delete last digit"
+    },
+    "review": {
+      "edit_amount": "Change amount",
+      "check": "Check",
+      "warning_title": "Some details need a look",
+      "warning_fields": "Kafo AI wasn't sure about these:",
+      "fields": {
+        "merchant": "Description",
+        "amount": "Amount",
+        "currency": "Currency",
+        "date": "Date",
+        "category": "Category"
+      },
+      "receipt": "Receipt",
+      "repeat": "Repeat",
+      "repeat_on": "Repeats",
+      "repeat_off": "Doesn't repeat"
+    },
+    "split": {
+      "who": "Who's in",
+      "method": "Split method",
+      "equal": "Equal",
+      "shares": "Shares",
+      "percent": "%",
+      "exact": "Exact",
+      "budget_title": "Kafo AI budget",
+      "budget_left": "{amount} left after this expense",
+      "budget_over": "{amount} over budget after this expense"
+    },
+    "choose_people": "Choose who's splitting",
+    "save": "Save expense",
+    "saved": "Expense saved",
+    "shortcuts": {
+      "scan": "Scan receipt",
+      "manual": "Add manually"
+    }
   }
 }

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import { AddOrEditExpensePage } from '~/components/AddExpense/AddExpensePage';
+import { AddExpenseJourney } from '~/components/AddExpense/journey/AddExpenseJourney';
 import MainLayout from '~/components/Layout/MainLayout';
 import { env } from '~/env';
 import { cronFromBackend } from '~/lib/cron';
@@ -250,7 +251,13 @@ const AddPage: NextPageWithUser<{
         <title>{parsedExpenseId ? t('actions.edit_expense') : t('actions.add_expense')}</title>
       </Head>
       <MainLayout hideAppBar>
-        {currentUser && (!parsedExpenseId || expenseQuery.data) && (
+        {currentUser && !parsedExpenseId && (
+          <AddExpenseJourney
+            enableSendingInvites={enableSendingInvites}
+            bankConnectionEnabled={bankConnectionEnabled}
+          />
+        )}
+        {currentUser && parsedExpenseId && expenseQuery.data && (
           <AddOrEditExpensePage
             enableSendingInvites={enableSendingInvites}
             expenseId={parsedExpenseId}

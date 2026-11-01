@@ -74,7 +74,7 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
         <meta name="msapplication-TileColor" content="#2B5797" />
         <meta name="msapplication-tap-highlight" content="no" />
 
-        <meta name="theme-color" content="#030711" />
+        <meta name="theme-color" content="#0b1626" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         <link rel="apple-touch-icon" href="/icons/ios/144.png" />

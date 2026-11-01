@@ -194,7 +194,7 @@ type SplitSectionProps =
   | NumericSplitSectionProps
   | CurrencySplitSectionProps;
 
-const getSplitProps = (t: TFunction): SplitSectionProps[] => [
+export const getSplitProps = (t: TFunction): SplitSectionProps[] => [
   {
     splitType: SplitType.EQUAL,
     iconComponent: Equal,
@@ -247,7 +247,7 @@ const getSplitProps = (t: TFunction): SplitSectionProps[] => [
   },
 ];
 
-const SplitSection: React.FC<SplitSectionProps> = (props) => {
+export const SplitSection: React.FC<SplitSectionProps> = (props) => {
   const participants = useAddExpenseStore((s) => s.participants);
   const totalShares = useAddExpenseStore((s) =>
     s.participants.reduce(
