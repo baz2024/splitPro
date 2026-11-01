@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SplitPro",
+    "name": "Safi",
     "slug": "splitpro",
     "scheme": "splitpro",
     "version": "1.0.0",
@@ -15,8 +15,8 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "SplitPro uses the camera to scan receipts.",
-        "NSPhotoLibraryUsageDescription": "SplitPro uses your photo library to attach receipt images."
+        "NSCameraUsageDescription": "Safi uses the camera to scan receipts.",
+        "NSPhotoLibraryUsageDescription": "Safi uses your photo library to attach receipt images."
       },
       "usesAppleSignIn": true
     },

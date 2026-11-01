@@ -306,7 +306,7 @@ export const WebAppScreen = ({
       // Android niceties
       overScrollMode="never"
       setBuiltInZoomControls={false}
-      applicationNameForUserAgent="SplitProApp/1.0"
+      applicationNameForUserAgent="SafiApp/1.0"
     />
   );
 
@@ -344,7 +344,7 @@ export const WebAppScreen = ({
       ) : null}
       {hasError ? (
         <View style={styles.errorOverlay}>
-          <Text style={styles.errorTitle}>Can't reach SplitPro</Text>
+          <Text style={styles.errorTitle}>Can't reach Safi</Text>
           <Text style={styles.errorBody}>Check your connection and try again.</Text>
           <Pressable accessibilityRole="button" onPress={handleRefresh} style={styles.retryButton}>
             <Text style={styles.retryLabel}>Try again</Text>

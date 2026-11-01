@@ -1,6 +1,6 @@
 # SplitPro mobile (TestFlight wrapper)
 
-An Expo app with native sign-in that then shows https://split.kafoai.com inside a
+An Expo app with native sign-in that then shows https://safi.kafoai.com inside a
 full-screen WebView.
 It is meant for internal TestFlight testing, not an App Store release.
 
@@ -11,14 +11,14 @@ This folder uses **npm**, separate from the root pnpm workspace.
 - When you are signed out, it shows a native **Welcome** screen (Kafo AI / SplitPro) with
   Sign in with Apple (iOS), Continue with Google, Continue with phone, and a small
   "Use email instead" link.
-- After you sign in, it shows `https://split.kafoai.com/balances` full screen in a WebView.
+- After you sign in, it shows `https://safi.kafoai.com/balances` full screen in a WebView.
 - The app always uses the Midnight Navy theme: navy `#0b1626` strips behind the status bar and
   home indicator, with light status bar text, even when the phone is in light mode.
 - Pull to refresh: built into the WebView on iOS. On Android it uses a refresh control that only
   works when the page is scrolled to the top.
 - Android back button moves back through the WebView history before it leaves the app.
 - Links to other sites, plus `mailto:` and `tel:` links, open in the system browser or app.
-  Pages on `split.kafoai.com` stay in the WebView.
+  Pages on `safi.kafoai.com` stay in the WebView.
 - Receipt scanning works through `<input type="file" capture>`. iOS asks for camera and photo
   library permission using the text in `app.json`.
 - If the site cannot load, a "Try again" screen appears.
@@ -28,7 +28,7 @@ This folder uses **npm**, separate from the root pnpm workspace.
 1. Apple, Google and phone sign-in happen natively through **Supabase Auth**
    (project `lfmhkxsjyvqlswmnppad`).
 2. The app then opens the WebView with a one-time form POST to
-   `https://split.kafoai.com/api/auth/supabase-exchange`, sending the Supabase access token.
+   `https://safi.kafoai.com/api/auth/supabase-exchange`, sending the Supabase access token.
 3. The SplitPro server checks the token with Supabase, finds or creates the user, sets the normal
    SplitPro session cookie and redirects to `/balances`.
 4. The app remembers that you are signed in, so the next launch opens `/balances` directly.
@@ -42,7 +42,7 @@ If the web sign-in page tries to start Google OAuth inside the WebView, the app 
 Google flow instead, because Google blocks OAuth in embedded WebViews (`403 disallowed_useragent`).
 
 > **Requires the web route.** `/api/auth/supabase-exchange` must be deployed on
-> `split.kafoai.com` before native sign-in works end to end.
+> `safi.kafoai.com` before native sign-in works end to end.
 
 ## Supabase settings needed
 

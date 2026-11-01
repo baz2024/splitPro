@@ -10,7 +10,7 @@ export const COLORS = {
   onAccent: '#0b1626',
 } as const;
 
-export const APP_HOST = 'split.kafoai.com';
+export const APP_HOST = 'safi.kafoai.com';
 export const APP_ORIGIN = `https://${APP_HOST}`;
 export const HOME_PATH = '/balances';
 export const EXCHANGE_URL = `${APP_ORIGIN}/api/auth/supabase-exchange`;

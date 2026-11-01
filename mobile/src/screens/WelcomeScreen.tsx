@@ -64,7 +64,7 @@ export const WelcomeScreen = ({
           </View>
           <View>
             <Text style={styles.brand}>Kafo AI</Text>
-            <Text style={styles.product}>SplitPro</Text>
+            <Text style={styles.product}>Safi</Text>
           </View>
         </View>
 

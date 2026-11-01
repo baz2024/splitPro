@@ -11,13 +11,13 @@
     },
     "download_app": "تنزيل التطبيق",
     "download_app_details": {
-      "download_as_pwa": "يمكنك تثبيت SplitPro كتطبيق ويب (PWA) على شاشتك الرئيسية.",
+      "download_as_pwa": "يمكنك تثبيت Safi كتطبيق ويب (PWA) على شاشتك الرئيسية.",
       "title": "تنزيل التطبيق",
       "using_android": "إذا كنت تستخدم Android، شاهد هذا",
       "using_ios": "إذا كنت تستخدم iOS، شاهد هذا",
       "video": "الفيديو"
     },
-    "download_splitpro_data": "تنزيل بيانات SplitPro",
+    "download_splitpro_data": "تنزيل بيانات Safi",
     "default_balance_currency": "عملة الرصيد الافتراضية",
     "edit_name": {
       "apply_avatar": "تطبيق الصورة",
@@ -198,11 +198,11 @@
       "description_placeholder": "أدخل الوصف",
       "pick_a_date": "اختر تاريخًا",
       "select_user_or_group": {
-        "add_to_split_pro": "إضافة إلى SplitPro",
+        "add_to_split_pro": "إضافة إلى Safi",
         "note": "ملاحظة: إرسال الدعوات معطّل حاليًا بسبب الرسائل المزعجة",
         "only_one_group_time": "يمكنك اختيار مجموعة واحدة فقط في كل مرة",
         "send_invite": "إرسال دعوة للمستخدم",
-        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة",
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى Safi» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة",
         "empty_image_alt": "لم يتم العثور على مستخدمين"
       },
       "split_type_section": {
@@ -349,12 +349,12 @@
     "no_members": {
       "add_members": "إضافة أعضاء",
       "add_members_details": {
-        "add_to_split_pro": "إضافة إلى SplitPro",
+        "add_to_split_pro": "إضافة إلى Safi",
         "note": "ملاحظة: إرسال الدعوات عبر البريد الإلكتروني معطّل",
         "placeholder": "أدخل الاسم أو البريد الإلكتروني",
         "send_invite": "إرسال دعوة للمستخدم",
         "title": "إضافة أعضاء",
-        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة"
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى Safi» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة"
       },
       "invite_link": "رابط الدعوة",
       "no_members": "لا يوجد أعضاء في المجموعة بعد."
@@ -366,14 +366,14 @@
     "title": "الأرصدة المستحقة في المجموعة"
   },
   "invite_message": {
-    "in_splitpro": "على SplitPro",
+    "in_splitpro": "على Safi",
     "join_to": "انضم إلى",
     "text": "انضم إلى المجموعة لتتمكن من إضافة المصاريف وإدارتها ومتابعة أرصدتك"
   },
   "meta": {
-    "application_name": "SplitPro",
+    "application_name": "Safi",
     "description": "قسّم المصاريف مع أصدقائك مجانًا",
-    "title": "SplitPro: قسّم المصاريف مع أصدقائك مجانًا"
+    "title": "Safi: قسّم المصاريف مع أصدقائك مجانًا"
   },
   "balances": {
     "user_preferences": {
@@ -488,7 +488,7 @@
     "settle_up_name": "تسوية",
     "settled_up": "تمت التسوية",
     "settlement": "تسوية",
-    "share_text": "جرّب SplitPro، بديل مجاني ومفتوح المصدر لتطبيق Splitwise",
+    "share_text": "جرّب Safi، بديل مجاني ومفتوح المصدر لتطبيق Splitwise",
     "show_all_currencies": "عرض جميع العملات",
     "today": "اليوم",
     "in_group": "في المجموعة",

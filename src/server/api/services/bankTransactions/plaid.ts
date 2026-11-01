@@ -135,7 +135,7 @@ export class PlaidService extends AbstractBankProvider {
       user: {
         client_user_id: id,
       },
-      client_name: 'Split Pro',
+      client_name: 'Safi',
       products: [Products.Transactions],
       country_codes: parsePlaidCountryCodes(env.PLAID_COUNTRY_CODES),
       language: preferredLanguage?.toLowerCase() ?? PLAID_CONSTANTS.DEFAULT_LANGUAGE,

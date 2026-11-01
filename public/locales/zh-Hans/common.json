@@ -25,13 +25,13 @@
     "default_balance_currency": "默认余额货币",
     "download_app": "下载 App",
     "download_app_details": {
-      "download_as_pwa": "你可以将 SplitPro 作为 PWA 添加到主屏幕。",
+      "download_as_pwa": "你可以将 Safi 作为 PWA 添加到主屏幕。",
       "title": "下载 App",
       "using_android": "如果你使用的是 Android，请查看这个",
       "using_ios": "如果你使用的是 iOS，请查看这个",
       "video": "视频"
     },
-    "download_splitpro_data": "下载 SplitPro 数据",
+    "download_splitpro_data": "下载 Safi 数据",
     "edit_name": {
       "apply_avatar": "设置头像",
       "avatar_label": "头像",
@@ -194,11 +194,11 @@
       "description_placeholder": "输入描述",
       "pick_a_date": "选择日期",
       "select_user_or_group": {
-        "add_to_split_pro": "添加到 SplitPro",
+        "add_to_split_pro": "添加到 Safi",
         "note": "注意：由于垃圾信息问题，目前暂时无法发送邀请",
         "only_one_group_time": "一次只能选择一个群组",
         "send_invite": "向用户发送邀请",
-        "warning": "警告：如果邮箱地址无效，请勿使用“发送邀请”，请改用“添加到 SplitPro”。滥用此功能可能导致你的账户被封禁"
+        "warning": "警告：如果邮箱地址无效，请勿使用“发送邀请”，请改用“添加到 Safi”。滥用此功能可能导致你的账户被封禁"
       },
       "split_type_section": {
         "direction": {
@@ -334,12 +334,12 @@
     "no_members": {
       "add_members": "添加成员",
       "add_members_details": {
-        "add_to_split_pro": "添加到 SplitPro",
+        "add_to_split_pro": "添加到 Safi",
         "note": "注意：目前无法发送邮件邀请",
         "placeholder": "输入姓名或邮箱",
         "send_invite": "向用户发送邀请",
         "title": "添加成员",
-        "warning": "警告：如果邮箱地址无效，请勿使用“发送邀请”，请改用“添加到 SplitPro”。滥用此功能可能导致你的账户被封禁"
+        "warning": "警告：如果邮箱地址无效，请勿使用“发送邀请”，请改用“添加到 Safi”。滥用此功能可能导致你的账户被封禁"
       },
       "invite_link": "邀请链接",
       "no_members": "群组中还没有成员。"
@@ -351,14 +351,14 @@
     "title": "群组未结清余额"
   },
   "invite_message": {
-    "in_splitpro": "在 SplitPro 中",
+    "in_splitpro": "在 Safi 中",
     "join_to": "加入",
     "text": "加入群组后，你可以添加和管理支出，并随时查看余额"
   },
   "meta": {
-    "application_name": "SplitPro",
+    "application_name": "Safi",
     "description": "和朋友一起分摊支出，完全免费",
-    "title": "SplitPro：和朋友一起分摊支出，完全免费"
+    "title": "Safi：和朋友一起分摊支出，完全免费"
   },
   "navigation": {
     "account": "账户",
@@ -447,7 +447,7 @@
     "settle_up_name": "结清",
     "settled_up": "已结清",
     "settlement": "结算",
-    "share_text": "试试 SplitPro——开源、免费的 Splitwise 替代方案",
+    "share_text": "试试 Safi——开源、免费的 Splitwise 替代方案",
     "show_all_currencies": "显示所有货币",
     "today": "今天",
     "total_balance": "总余额"
