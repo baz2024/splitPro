@@ -13,6 +13,7 @@ import { useTranslation } from 'next-i18next';
 import React from 'react';
 
 import { LoadingSpinner } from '../ui/spinner';
+import { ToolbarSwitchers } from './ToolbarSwitchers';
 
 interface MainLayoutProps {
   title?: React.ReactNode;
@@ -97,11 +98,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </nav>
         <div className="lg:border-border w-full overflow-auto lg:border-x lg:px-6" id="mainlayout">
           {title ? (
-            <div className="mb-2 flex items-center justify-between px-4 py-4">
-              <div className="text-foreground text-3xl font-bold">{title}</div>
-              {actions}
+            <div className="mb-2 flex items-center justify-between gap-3 px-4 py-4">
+              <div className="text-foreground min-w-0 truncate text-3xl font-bold">{title}</div>
+              <div className="flex shrink-0 items-center gap-2">
+                {actions}
+                {hideAppBar ? null : <ToolbarSwitchers />}
+              </div>
             </div>
-          ) : null}
+          ) : hideAppBar ? null : (
+            <div className="flex justify-end px-4 pt-4">
+              <ToolbarSwitchers />
+            </div>
+          )}
           <div className="px-4">
             {loading ? (
               <div className="mt-10 flex justify-center">

@@ -7,6 +7,9 @@ import { renderWithProviders } from '~/tests/helpers/render';
 import { createMockRouter } from '~/tests/helpers/router';
 import MainLayout from './MainLayout';
 
+// The toolbar switchers need tRPC; the navigation tests don't.
+jest.mock('./ToolbarSwitchers', () => ({ ToolbarSwitchers: () => null }));
+
 it('marks the active navigation section for nested routes', () => {
   renderWithProviders(
     <MainLayout title="Overview">
