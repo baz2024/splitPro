@@ -22,9 +22,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ ok: true, skipped: 'disabled' });
   }
 
-  const summary = await syncAllBillingConnections(db, {
-    key,
-    onBlocked: notifyBillingSyncBlocked,
-  });
-  return res.status(200).json({ ok: true, ...summary });
+  try {
+    const summary = await syncAllBillingConnections(db, {
+      key,
+      onBlocked: notifyBillingSyncBlocked,
+    });
+    return res.status(200).json({ ok: true, ...summary });
+  } catch (error) {
+    // Details stay in server logs; the response carries only a stable code.
+    console.error('billing-sync cron failed:', error instanceof Error ? error.message : error);
+    return res.status(500).json({ ok: false, error: 'billing_sync_failed' });
+  }
 }

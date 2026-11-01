@@ -1,4 +1,5 @@
 import {
+  baseServiceName,
   cadenceFromCron,
   daysUntil,
   monthlyAmount,
@@ -7,6 +8,8 @@ import {
   splitKindFromParticipants,
   summariseRunRates,
   summariseUsage,
+  usageServiceKey,
+  usageServiceName,
 } from '~/server/subscriptions/helpers';
 
 const NOW = new Date('2026-11-14T10:00:00Z');
@@ -145,14 +148,65 @@ describe('summariseUsage', () => {
       { key: 'anthropic|USD', thisMonth: 51200n, lastMonth: 37100n, changePercent: 38 },
       { key: 'openai|USD', thisMonth: 27900n, lastMonth: 31700n, changePercent: -12 },
     ]);
-    expect(result[0]?.name).toBe('anthropic usage');
+    expect(result[0]?.name).toBe('Anthropic');
     expect(result[0]?.lastExpenseId).toBe('anthropic usage-2026-11-10T00:00:00Z');
+  });
+
+  it('names rows by service so agent model suffixes do not leak', () => {
+    const result = summariseUsage(
+      [
+        expense('Anthropic API · claude-opus', 1200n, '2026-11-02T00:00:00Z'),
+        expense('Anthropic API · claude-haiku', 300n, '2026-11-12T00:00:00Z'),
+        expense('Acme Search · nightly crawl', 500n, '2026-11-05T00:00:00Z'),
+        expense('Acme Search · weekly', 250n, '2026-11-06T00:00:00Z'),
+      ],
+      NOW,
+    );
+
+    expect(result.map(({ key, name, thisMonth }) => ({ key, name, thisMonth }))).toEqual([
+      { key: 'anthropic|USD', name: 'Anthropic', thisMonth: 1500n },
+      { key: 'acme search|USD', name: 'Acme Search', thisMonth: 750n },
+    ]);
+  });
+
+  it('reports the billing provider of the newest expense', () => {
+    const [row] = summariseUsage(
+      [
+        { ...expense('Vercel', 900n, '2026-11-01T00:00:00Z', 'cloudHosting'), syncedFrom: null },
+        {
+          ...expense('Vercel · function invocations', 400n, '2026-11-13T00:00:00Z', 'cloudHosting'),
+          syncedFrom: 'VERCEL',
+        },
+      ],
+      NOW,
+    );
+
+    expect(row?.name).toBe('Vercel');
+    expect(row?.syncedFrom).toBe('VERCEL');
   });
 
   it('drops services with no spend this month', () => {
     expect(
       summariseUsage([expense('Twilio', 500n, '2026-10-20T00:00:00Z', 'messagingApis')], NOW),
     ).toEqual([]);
+  });
+});
+
+describe('usage service names', () => {
+  it('strips the " · " detail suffix', () => {
+    expect(baseServiceName('Anthropic API · claude-opus-4')).toBe('Anthropic API');
+    expect(baseServiceName('  Twilio  ')).toBe('Twilio');
+    expect(baseServiceName('· only detail')).toBe('· only detail');
+  });
+
+  it('uses the catalog name and id when the service is known', () => {
+    expect(usageServiceName('Anthropic API · claude-opus-4')).toBe('Anthropic');
+    expect(usageServiceKey('Anthropic API · claude-opus-4')).toBe('anthropic');
+  });
+
+  it('falls back to the base name for unknown services', () => {
+    expect(usageServiceName('Acme Search · crawl')).toBe('Acme Search');
+    expect(usageServiceKey('Acme  Search · crawl')).toBe('acme search');
   });
 });
 

@@ -152,9 +152,23 @@ export const percentChange = (current: bigint, previous: bigint): number | null 
   return Number(BigMath.roundDiv((current - previous) * 100n, previous));
 };
 
-/** Group key for usage rows: catalog id when the service is known, else the trimmed name. */
+/**
+ * Expense name without the detail suffix agents and billing sync append after " · ", e.g.
+ * "Anthropic API · claude-opus" → "Anthropic API". Falls back to the trimmed name.
+ */
+export const baseServiceName = (name: string): string => {
+  const base = name.replace(/\s*·.*$/s, '').trim();
+  return '' === base ? name.trim() : base;
+};
+
+/** Group key for usage rows: catalog id when the service is known, else the base name. */
 export const usageServiceKey = (name: string): string =>
-  findService(name)?.id ?? name.trim().toLowerCase().replace(/\s+/g, ' ');
+  findService(baseServiceName(name))?.id ??
+  baseServiceName(name).toLowerCase().replace(/\s+/g, ' ');
+
+/** Row label for a usage service: the catalog name when known, else the base name. */
+export const usageServiceName = (name: string): string =>
+  findService(baseServiceName(name))?.name ?? baseServiceName(name);
 
 export interface UsageExpenseInput {
   id: string;
@@ -164,6 +178,8 @@ export interface UsageExpenseInput {
   currency: string;
   category: string;
   expenseDate: Date;
+  /** Billing provider that imported this expense (e.g. "VERCEL"), if any. */
+  syncedFrom?: string | null;
 }
 
 export interface UsageSummary {
@@ -178,6 +194,8 @@ export interface UsageSummary {
   /** Newest expense in the group, so the row can open it. */
   lastExpenseId: string;
   lastExpenseGroupId: number | null;
+  /** Billing provider that imported the newest expense, or null when it was logged by hand. */
+  syncedFrom: string | null;
 }
 
 /** UTC start of the month that contains `date`, shifted by `offset` months. */
@@ -204,7 +222,7 @@ export const summariseUsage = (expenses: UsageExpenseInput[], now: Date): UsageS
       const isThisMonth = time >= thisMonthStart;
       const current = acc.get(key) ?? {
         key,
-        name: expense.name.trim(),
+        name: usageServiceName(expense.name),
         category: expense.category,
         currency: expense.currency,
         thisMonth: 0n,
@@ -213,15 +231,17 @@ export const summariseUsage = (expenses: UsageExpenseInput[], now: Date): UsageS
         lastExpenseDate: expense.expenseDate,
         lastExpenseId: expense.id,
         lastExpenseGroupId: expense.groupId,
+        syncedFrom: expense.syncedFrom ?? null,
       };
       const isNewest = time >= current.lastExpenseDate.getTime();
       acc.set(key, {
         ...current,
-        name: isNewest ? expense.name.trim() : current.name,
+        name: isNewest ? usageServiceName(expense.name) : current.name,
         category: isNewest ? expense.category : current.category,
         lastExpenseDate: isNewest ? expense.expenseDate : current.lastExpenseDate,
         lastExpenseId: isNewest ? expense.id : current.lastExpenseId,
         lastExpenseGroupId: isNewest ? expense.groupId : current.lastExpenseGroupId,
+        syncedFrom: isNewest ? (expense.syncedFrom ?? null) : current.syncedFrom,
         thisMonth: current.thisMonth + (isThisMonth ? expense.amount : 0n),
         lastMonth: current.lastMonth + (isThisMonth ? 0n : expense.amount),
       });

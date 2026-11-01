@@ -441,7 +441,17 @@ export const expenseRouter = createTRPCRouter({
         expense.recurrence.job.schedule = expense.recurrence.job.schedule.replaceAll('$', 'L');
       }
 
-      return expense;
+      if (!expense) {
+        return expense;
+      }
+
+      // Billing sync owns the amount and description of imported expenses; flag them for the UI.
+      const billingImport = await db.billingImport.findFirst({
+        where: { expenseId: expense.id },
+        select: { connection: { select: { provider: true } } },
+      });
+
+      return { ...expense, syncedFrom: billingImport?.connection.provider ?? null };
     }),
 
   getAllExpenses: protectedProcedure.query(async ({ ctx }) => {

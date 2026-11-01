@@ -20,6 +20,7 @@ import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
 import { BigMath } from '~/utils/numbers';
 
+import { SyncedBadge } from '../Billing/SyncedBadge';
 import { CurrencyConversion } from '../Friend/CurrencyConversion';
 import { ReviewReasonsCard } from '../Review/ReviewReasonsCard';
 import { EntityAvatar } from '../ui/avatar';
@@ -84,6 +85,9 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               <p>{expense.name}</p>
               {expense.transactionId && <Landmark className="text-positive h-4 w-4" />}
             </div>
+            {expense.syncedFrom ? (
+              <SyncedBadge provider={expense.syncedFrom} className="self-start" />
+            ) : null}
             <p className="text-2xl font-semibold">
               <span dir="ltr">{toUIString(expense.amount)}</span>
             </p>

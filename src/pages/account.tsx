@@ -5,6 +5,7 @@ import {
   Download,
   DownloadCloud,
   FileDown,
+  FileSpreadsheet,
   Languages,
 } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
@@ -158,6 +159,11 @@ const AccountPage: NextPageWithUser<{
             {t('account.download_splitpro_data')}
           </AccountButton>
 
+          <AccountButton href="/data">
+            <FileSpreadsheet className="size-5 text-emerald-500" />
+            {t('account_entry', { ns: 'dataio' })}
+          </AccountButton>
+
           <AccountButton href="/import-splitwise">
             <DownloadCloud className="size-5 text-violet-500" />
             {t('account.import_from_splitwise')}
@@ -192,7 +198,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => ({
     feedbackPossible: Boolean(env.FEEDBACK_EMAIL),
     bankConnectionEnabled: isBankConnectionConfigured(),
     bankConnection: whichBankConnectionConfigured(),
-    ...(await customServerSideTranslations(context.locale, ['common', 'currencies'])),
+    ...(await customServerSideTranslations(context.locale, ['common', 'currencies', 'dataio'])),
     maxUploadFileSizeMB: env.UPLOAD_MAX_FILE_SIZE_MB,
   },
 });

@@ -1,3 +1,4 @@
+import { Chip } from '@heroui/react';
 import { clsx } from 'clsx';
 import { BellIcon, BellOffIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +19,8 @@ interface SubscriptionRowProps {
   now: Date;
   /** Show the amount per billing cycle (By cycle view). */
   showCycle?: boolean;
+  /** Show the "Unused" chip (no sign of use in 30+ days). */
+  unused?: boolean;
 }
 
 const CYCLE_KEYS = {
@@ -93,6 +96,7 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
   currentUserId,
   now,
   showCycle = false,
+  unused = false,
 }) => {
   const { t, getCurrencyHelpersCached } = useTranslationWithUtils(SUBSCRIPTIONS_NAMESPACES);
   const { toUIString } = getCurrencyHelpersCached(item.currency);
@@ -121,7 +125,14 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
       >
         <ServiceBadge service={item.description} />
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-foreground truncate text-sm font-medium">{item.description}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-foreground truncate text-sm font-medium">{item.description}</span>
+            {unused ? (
+              <Chip size="sm" variant="soft" color="warning" className="shrink-0">
+                {t('row.unused')}
+              </Chip>
+            ) : null}
+          </span>
           <span className={clsx('line-clamp-2 text-xs', isSoon ? 'text-warning' : 'text-muted')}>
             {due} · {secondary}
           </span>

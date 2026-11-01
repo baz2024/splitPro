@@ -270,8 +270,26 @@ export const listSubscriptions = async (
       (a, b) => (a.nextDueDate?.getTime() ?? Infinity) - (b.nextDueDate?.getTime() ?? Infinity),
     );
 
+  const syncedImports =
+    0 < usageExpenses.length
+      ? await db.billingImport.findMany({
+          where: { expenseId: { in: usageExpenses.map(({ id }) => id) } },
+          select: { expenseId: true, connection: { select: { provider: true } } },
+        })
+      : [];
+  const providerByExpenseId = new Map(
+    syncedImports.flatMap(({ expenseId, connection }) =>
+      expenseId ? [[expenseId, connection.provider] as const] : [],
+    ),
+  );
+
   const runRates = summariseRunRates(items, user?.currency);
-  const usage = summariseUsage(usageExpenses, now);
+  const usage = summariseUsage(
+    usageExpenses.map((expense) =>
+      Object.assign(expense, { syncedFrom: providerByExpenseId.get(expense.id) ?? null }),
+    ),
+    now,
+  );
 
   const budgetRunRate = runRates.find(({ currency }) => currency === group?.budgetCurrency);
   const budget =

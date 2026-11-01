@@ -3,6 +3,7 @@ import { createTRPCRouter } from '~/server/api/trpc';
 
 import { agentRouter } from './routers/agent';
 import { billingRouter } from './routers/billing';
+import { dataioRouter } from './routers/dataio';
 import { userRouter } from './routers/user';
 import { projectRouter } from './routers/project';
 import { bankTransactionsRouter } from './routers/bankTransactions';
@@ -27,6 +28,7 @@ export const appRouter = createTRPCRouter({
   subscriptions: subscriptionsRouter,
   reminders: remindersRouter,
   billing: billingRouter,
+  dataio: dataioRouter,
 });
 
 // Export type definition of API

@@ -40,24 +40,20 @@
     "per_month": "{amount}/mo",
     "per_year": "{amount}/yr",
     "per_week": "{amount}/wk",
-    "open": "Open {name}"
+    "open": "Open {name}",
+    "unused": "Unused"
   },
   "usage": {
     "vs_last_month": "{change} vs {month}",
     "new_this_month": "New this month",
-    "source": "From your logged expenses"
+    "source": "From your logged expenses",
+    "synced_from": "Synced from {provider}"
   },
   "empty": {
     "upcoming": "Nothing renews in the next 7 days.",
     "subscriptions": "No subscriptions yet. Add a recurring cost to see renewals here.",
     "usage": "No usage-based costs logged this month. Add API, hosting or database bills to compare months.",
     "add_cta": "Add a subscription"
-  },
-  "connect": {
-    "text": "Connect Vercel or Supabase billing to track usage automatically",
-    "soon": "Billing sync coming soon",
-    "cta": "Connect",
-    "soon_chip": "Soon"
   },
   "error": "Couldn't load subscriptions.",
   "retry": "Try again"

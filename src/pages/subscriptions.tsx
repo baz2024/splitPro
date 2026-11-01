@@ -68,6 +68,7 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
       currentUserId={user.id}
       now={now}
       showCycle={showCycle}
+      unused={item.unused}
     />
   );
 
@@ -214,7 +215,7 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
               >
                 {renderPanel()}
               </div>
-              <ConnectBillingCard />
+              <ConnectBillingCard groupId={groupId ?? null} />
             </>
           ) : null}
         </div>
