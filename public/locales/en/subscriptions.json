@@ -56,7 +56,8 @@
   "connect": {
     "text": "Connect Vercel or Supabase billing to track usage automatically",
     "soon": "Billing sync coming soon",
-    "cta": "Connect"
+    "cta": "Connect",
+    "soon_chip": "Soon"
   },
   "error": "Couldn't load subscriptions.",
   "retry": "Try again"

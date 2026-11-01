@@ -63,7 +63,8 @@ export const PaidBySplitRow: React.FC<{ enableSendingInvites: boolean }> = ({
           className="hover:bg-surface-secondary focus-visible:ring-focus flex min-h-14 w-full items-center justify-between gap-3 px-4 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-inset"
         >
           <span className="shrink-0 text-sm">{t('fields.paid_by_split')}</span>
-          <span className="text-muted flex min-w-0 items-center gap-1 text-sm">
+          {/* The drawer trigger injects `justify-center`; ms-auto keeps the value at the end. */}
+          <span className="text-muted ms-auto flex min-w-0 items-center gap-1 text-sm">
             <span className="truncate">{group ? `${group.name} · ${summary}` : summary}</span>
             <ChevronRight className="size-4 shrink-0 rtl:rotate-180" aria-hidden />
           </span>

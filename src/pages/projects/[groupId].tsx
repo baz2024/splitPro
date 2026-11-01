@@ -20,7 +20,7 @@ import {
 } from '~/components/Project/ProjectSections';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
-import { percentOf } from '~/server/project/budget';
+import { daysInMonthOf, getPaceAmount, percentOf } from '~/server/project/budget';
 import { type NextPageWithUser } from '~/types';
 import { api } from '~/utils/api';
 import { customServerSideTranslations } from '~/utils/i18n/server';
@@ -37,6 +37,20 @@ const STATUS_TEXT = {
 
 const ROUND_ICON_BUTTON =
   'bg-surface border-border text-foreground focus-visible:ring-focus inline-flex size-11 shrink-0 items-center justify-center rounded-full border focus-visible:ring-2 focus-visible:outline-none';
+
+/** Even-pace spend by today and its share of the budget, or null without a budget. */
+const paceOf = (summary: ProjectSummary) => {
+  if (null === summary.budget || 0n >= summary.budget) {
+    return null;
+  }
+  const daysInMonth = daysInMonthOf(summary.year, summary.month);
+  const amount = getPaceAmount({
+    budget: summary.budget,
+    dayOfMonth: daysInMonth - summary.daysLeft,
+    daysInMonth,
+  });
+  return { amount, percent: percentOf(amount, summary.budget) };
+};
 
 const BudgetOverview: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
   const { t, getCurrencyHelpersCached } = useTranslationWithUtils(NS);
@@ -71,16 +85,35 @@ const BudgetOverview: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
   const isOver = 0n > summary.left;
   const percentSpent = percentOf(summary.spent, summary.budget);
   const days = t('list.days_left', { count: summary.daysLeft });
+  const pace = paceOf(summary);
 
   return (
     <BudgetGauge
       percentSpent={percentSpent}
+      pacePercent={pace?.percent}
+      paceLabel={t('gauge.pace_marker')}
       isOver={isOver}
       label={isOver ? t('gauge.over_by') : t('gauge.left_to_spend')}
       value={toUIString(isOver ? -summary.left : summary.left)}
       caption={t('gauge.of_budget', { budget: isolateLtr(toUIString(summary.budget)), days })}
       ariaLabel={t('gauge.aria', { percent: Math.round(percentSpent) })}
     />
+  );
+};
+
+/** "At risk" says why: how far spending is ahead of an even pace for the month. */
+const StatusReason: React.FC<{ summary: ProjectSummary }> = ({ summary }) => {
+  const { t, getCurrencyHelpersCached } = useTranslationWithUtils(NS);
+  const pace = paceOf(summary);
+  if ('at_risk' !== summary.status || !pace || summary.spent <= pace.amount) {
+    return null;
+  }
+  const { toUIString } = getCurrencyHelpersCached(summary.currency);
+  return (
+    <span className="text-warning">
+      {' · '}
+      {t('status.over_pace', { amount: isolateLtr(toUIString(summary.spent - pace.amount)) })}
+    </span>
   );
 };
 
@@ -142,7 +175,7 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
         ) : null}
 
         {summary ? (
-          <div className="flex flex-col pb-6">
+          <div className="flex flex-col pb-10">
             <div className="pt-1">
               <h1 className="text-[28px] leading-tight font-bold tracking-tight">{summary.name}</h1>
               <p className="text-muted mt-0.5 text-[13px]">
@@ -155,6 +188,7 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
                     <span className={STATUS_TEXT[summary.status]}>
                       {t(`status.${summary.status}`)}
                     </span>
+                    <StatusReason summary={summary} />
                   </>
                 ) : null}
               </p>

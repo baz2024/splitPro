@@ -20,7 +20,8 @@ const isCostType = (value: unknown): value is CostType => COST_TYPES.some((type)
 
 /**
  * /add: "Add cost" with Subscription | API usage | One-off. One-off is the existing add-expense
- * journey, untouched; the other two tabs share CostForm.
+ * journey under this page's single header (its own header only on deep steps); the other two
+ * tabs share CostForm.
  */
 export const AddCostPage: React.FC<{
   enableSendingInvites: boolean;
@@ -30,6 +31,7 @@ export const AddCostPage: React.FC<{
   const router = useRouter();
   const [costType, setCostType] = useState<CostType>(() => parseCostType(router.query));
   const [initialService] = useState(() => parseServiceQuery(router.query));
+  const [journeyOnEntryScreen, setJourneyOnEntryScreen] = useState(true);
 
   const onTypeChange = (key: React.Key) => {
     if (!isCostType(key) || key === costType) {
@@ -67,10 +69,12 @@ export const AddCostPage: React.FC<{
   };
 
   const isOneOff = 'oneoff' === costType;
+  // Deep one-off steps (reading, review, split) show the journey's own back header instead.
+  const showChrome = !isOneOff || journeyOnEntryScreen;
 
   return (
     <div className="bg-background text-foreground mx-auto flex min-h-full w-full max-w-md flex-col gap-4">
-      {isOneOff ? null : (
+      {showChrome ? (
         <header className="grid grid-cols-[minmax(4rem,1fr)_auto_minmax(4rem,1fr)] items-center pt-2">
           <button
             type="button"
@@ -82,10 +86,10 @@ export const AddCostPage: React.FC<{
           <h1 className="text-base font-semibold">{t('title')}</h1>
           <span aria-hidden />
         </header>
-      )}
+      ) : null}
 
       <Tabs selectedKey={costType} onSelectionChange={onTypeChange}>
-        <Tabs.ListContainer>
+        <Tabs.ListContainer className={showChrome ? undefined : 'hidden'}>
           <Tabs.List aria-label={t('type_label')} className="w-full">
             {COST_TYPES.map((type) => (
               <Tabs.Tab key={type} id={type} className="min-h-11 flex-1">
@@ -95,7 +99,7 @@ export const AddCostPage: React.FC<{
             ))}
           </Tabs.List>
         </Tabs.ListContainer>
-        <Tabs.Panel id="subscription" className="pt-4">
+        <Tabs.Panel id="subscription" className="px-0 pt-4">
           {'subscription' === costType ? (
             <CostForm
               kind="subscription"
@@ -104,7 +108,7 @@ export const AddCostPage: React.FC<{
             />
           ) : null}
         </Tabs.Panel>
-        <Tabs.Panel id="usage" className="pt-4">
+        <Tabs.Panel id="usage" className="px-0 pt-4">
           {'usage' === costType ? (
             <CostForm
               kind="usage"
@@ -113,11 +117,13 @@ export const AddCostPage: React.FC<{
             />
           ) : null}
         </Tabs.Panel>
-        <Tabs.Panel id="oneoff" className="pt-2">
+        <Tabs.Panel id="oneoff" className={showChrome ? 'px-0 pt-4' : 'px-0 pt-2'}>
           {isOneOff ? (
             <AddExpenseJourney
               enableSendingInvites={enableSendingInvites}
               bankConnectionEnabled={bankConnectionEnabled}
+              hideHeader
+              onEntryScreenChange={setJourneyOnEntryScreen}
             />
           ) : null}
         </Tabs.Panel>

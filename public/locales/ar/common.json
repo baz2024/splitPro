@@ -635,6 +635,8 @@
       "what_for_placeholder": "أضف وصفًا",
       "attach": "إرفاق صورة الإيصال (اختياري)",
       "attached": "تم إرفاق صورة الإيصال",
+      "attach_short": "إرفاق إيصال",
+      "attached_short": "تم إرفاق الإيصال",
       "uploading": "جارٍ رفع الصورة…",
       "change_currency": "تغيير العملة"
     },

@@ -1,8 +1,10 @@
 import {
   bucketFor,
+  daysInMonthOf,
   getBudgetStatus,
   getMonthWindow,
   getNextRun,
+  getPaceAmount,
   getSafeToSpendPerDay,
   isDueWithin,
   parseDecimalToMinor,
@@ -188,5 +190,32 @@ describe('parseDecimalToMinor', () => {
     expect(parseDecimalToMinor('-5', 2)).toBeNull();
     expect(parseDecimalToMinor('1,000', 2)).toBeNull();
     expect(parseDecimalToMinor('1.999', 2)).toBeNull();
+  });
+});
+
+describe('daysInMonthOf', () => {
+  it('should count days in a 0-based month', () => {
+    expect(daysInMonthOf(2026, 10)).toBe(30);
+    expect(daysInMonthOf(2028, 1)).toBe(29);
+    expect(daysInMonthOf(2026, 11)).toBe(31);
+  });
+});
+
+describe('getPaceAmount', () => {
+  it('should spread the budget evenly over the month', () => {
+    expect(getPaceAmount({ budget: 300000n, dayOfMonth: 15, daysInMonth: 30 })).toBe(150000n);
+    expect(getPaceAmount({ budget: 200000n, dayOfMonth: 1, daysInMonth: 30 })).toBe(6667n);
+  });
+
+  it('should match the at-risk threshold of getBudgetStatus', () => {
+    const base = { budget: 200000n, dayOfMonth: 15, daysInMonth: 30 };
+    const pace = getPaceAmount(base);
+    expect(getBudgetStatus({ ...base, spent: pace })).toBe('on_track');
+    expect(getBudgetStatus({ ...base, spent: pace + 100n })).toBe('at_risk');
+  });
+
+  it('should clamp the day into the month', () => {
+    expect(getPaceAmount({ budget: 300000n, dayOfMonth: 0, daysInMonth: 30 })).toBe(10000n);
+    expect(getPaceAmount({ budget: 300000n, dayOfMonth: 40, daysInMonth: 30 })).toBe(300000n);
   });
 });

@@ -133,7 +133,11 @@ const AgentsPage: NextPageWithUser = () => {
           <ApiKeysSection />
           <InstallSkillSection />
 
-          <div className="sticky bottom-[7.5rem] z-10 lg:bottom-4">
+          {/*
+            Pinned just above the tab bar on a solid strip, so cards scroll under it instead of
+            showing through. The bottom padding clears the raised Add button.
+          */}
+          <div className="bg-background/95 sticky bottom-[calc(3.25rem+max(env(safe-area-inset-bottom),0.75rem))] z-10 -mx-4 px-4 pt-3 pb-7 backdrop-blur lg:bottom-0 lg:pb-4">
             <Button
               fullWidth
               size="lg"

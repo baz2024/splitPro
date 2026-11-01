@@ -157,21 +157,17 @@ export interface ProjectCap {
   currency: string | null;
 }
 
+interface GroupRow {
+  id: number;
+  name: string;
+  defaultCurrency: string | null;
+}
+
 /**
- * Read a project's budget. `Group.budgetAmount` / `budgetCurrency` are being added in a separate
- * change, so the fields are read from the full row at runtime and treated as absent until then.
+ * Turn a group row into its cap. The budget fields are read from the full row at runtime and
+ * treated as absent when missing.
  */
-export const readProjectCap = async (
-  db: PrismaClient,
-  userId: number,
-  groupId: number,
-): Promise<ProjectCap | null> => {
-  const group = await db.group.findFirst({
-    where: { id: groupId, groupUsers: { some: { userId } } },
-  });
-  if (!group) {
-    return null;
-  }
+const toProjectCap = (group: GroupRow): ProjectCap => {
   const row: Record<string, unknown> = { ...group };
   const rawAmount = row.budgetAmount;
   const amount =
@@ -189,12 +185,48 @@ export const readProjectCap = async (
   };
 };
 
+/** Read one project's budget (only a project the user belongs to). */
+export const readProjectCap = async (
+  db: PrismaClient,
+  userId: number,
+  groupId: number,
+): Promise<ProjectCap | null> => {
+  const group = await db.group.findFirst({
+    where: { id: groupId, groupUsers: { some: { userId } } },
+  });
+  return group ? toProjectCap(group) : null;
+};
+
+/**
+ * The cap shown when no project is picked: the user's most recently updated, non-archived
+ * project that has a budget set.
+ */
+export const readDefaultProjectCap = async (
+  db: PrismaClient,
+  userId: number,
+): Promise<ProjectCap | null> => {
+  const group = await db.group.findFirst({
+    where: {
+      groupUsers: { some: { userId } },
+      archivedAt: null,
+      budgetAmount: { gt: 0n },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+  return group ? toProjectCap(group) : null;
+};
+
+/**
+ * AI spend this month against a cap. With `groupId`, spend is limited to that project. Without
+ * it, spend covers every expense and the cap comes from the default budgeted project.
+ */
 export const loadUsage = async (
   db: PrismaClient,
   userId: number,
   { groupId, now = new Date() }: { groupId?: number; now?: Date },
 ) => {
-  const project = groupId ? await readProjectCap(db, userId, groupId) : null;
+  const scopedProject = groupId ? await readProjectCap(db, userId, groupId) : null;
+  const project = groupId ? scopedProject : await readDefaultProjectCap(db, userId);
 
   const expenses = await db.expense.findMany({
     where: {
@@ -202,7 +234,7 @@ export const loadUsage = async (
       category: { in: [...AI_SPEND_CATEGORIES] },
       splitType: { notIn: ['SETTLEMENT', 'CURRENCY_CONVERSION'] },
       expenseDate: { gte: startOfMonthUtc(now), lt: nextMonthUtc(now) },
-      ...(project ? { groupId: project.groupId } : {}),
+      ...(scopedProject ? { groupId: scopedProject.groupId } : {}),
       OR: [{ paidBy: userId }, { expenseParticipants: { some: { userId } } }],
     },
     select: {

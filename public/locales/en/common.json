@@ -635,6 +635,8 @@
       "what_for_placeholder": "Add a description",
       "attach": "Attach receipt photo (optional)",
       "attached": "Receipt photo attached",
+      "attach_short": "Attach receipt",
+      "attached_short": "Receipt attached",
       "uploading": "Uploading photo…",
       "change_currency": "Change currency"
     },

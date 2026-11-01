@@ -189,11 +189,16 @@ describe('loadUsage', () => {
     expenseParticipants: [],
   };
 
-  it('should report no cap and no Kafo AI source without a project', async () => {
+  it('should report no cap and no Kafo AI source without a budgeted project', async () => {
     const { db, client } = makeDb({ expenses: [dbExpense] });
     const result = await loadUsage(client, USER, { now: new Date('2026-11-15T00:00:00Z') });
 
-    expect(db.group.findFirst).not.toHaveBeenCalled();
+    expect(db.group.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ archivedAt: null, budgetAmount: { gt: 0n } }),
+        orderBy: { updatedAt: 'desc' },
+      }),
+    );
     expect(result.total).toBe(50000n);
     expect(result.cap).toBeNull();
     expect(result.project).toBeNull();
@@ -202,6 +207,22 @@ describe('loadUsage', () => {
       vercel: 'not_connected',
       supabase: 'not_connected',
     });
+  });
+
+  it('should default the cap to the latest budgeted project without a groupId', async () => {
+    const { db, client } = makeDb({
+      group: { id: 3, name: 'Kafo AI', defaultCurrency: 'USD', budgetAmount: 200000n },
+      expenses: [dbExpense],
+    });
+    const result = await loadUsage(client, USER, { now: new Date('2026-11-15T00:00:00Z') });
+
+    // Spend still covers every expense; only the cap comes from the project.
+    expect(db.expense.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.not.objectContaining({ groupId: 3 }) }),
+    );
+    expect(result.cap).toBe(200000n);
+    expect(result.project).toEqual({ id: 3, name: 'Kafo AI' });
+    expect(result.sources.kafoAi).toBe('budget_source');
   });
 
   it('should use the project budget as the cap when the field exists', async () => {

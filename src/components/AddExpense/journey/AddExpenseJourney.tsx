@@ -71,7 +71,14 @@ const TITLE_KEYS = {
 export const AddExpenseJourney: React.FC<{
   enableSendingInvites: boolean;
   bankConnectionEnabled: boolean;
-}> = ({ enableSendingInvites, bankConnectionEnabled }) => {
+  /**
+   * The host page already shows the header (Add cost): skip the journey's own close + title
+   * row on entry screens. Deep steps (reading, review, split) keep their back-button header.
+   */
+  hideHeader?: boolean;
+  /** Told whether the journey is on an entry screen (Scan / Manual / Import) or a deep step. */
+  onEntryScreenChange?: (isEntryScreen: boolean) => void;
+}> = ({ enableSendingInvites, bankConnectionEnabled, hideHeader = false, onEntryScreenChange }) => {
   const { t, displayName, getCurrencyHelpersCached } = useTranslationWithUtils([
     'common',
     'categories',
@@ -377,6 +384,11 @@ export const AddExpenseJourney: React.FC<{
 
   const isEntryScreen =
     'import' === mode || 'capture' === step || ('manual' === step && 'manual' === mode);
+
+  useEffect(() => {
+    onEntryScreenChange?.(isEntryScreen);
+  }, [isEntryScreen, onEntryScreenChange]);
+
   const title = t('import' === mode ? 'actions.add_expense' : TITLE_KEYS[step]);
   const canGoToSplit = 0n !== amount && '' !== description.trim();
 
@@ -476,13 +488,15 @@ export const AddExpenseJourney: React.FC<{
   ];
 
   return (
-    <div className="bg-background text-foreground mx-auto flex min-h-full w-full max-w-md flex-col gap-4 pb-28">
-      <JourneyHeader
-        title={title}
-        leading={isEntryScreen ? 'close' : 'back'}
-        leadingLabel={isEntryScreen ? t('add_journey.close') : t('actions.back')}
-        onLeading={onLeading}
-      />
+    <div className="bg-background text-foreground mx-auto flex min-h-full w-full max-w-md flex-col gap-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+      {hideHeader && isEntryScreen ? null : (
+        <JourneyHeader
+          title={title}
+          leading={isEntryScreen ? 'close' : 'back'}
+          leadingLabel={isEntryScreen ? t('add_journey.close') : t('actions.back')}
+          onLeading={onLeading}
+        />
+      )}
 
       {isEntryScreen ? (
         <Segmented

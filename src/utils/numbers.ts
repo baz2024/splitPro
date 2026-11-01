@@ -23,6 +23,8 @@ export const getCurrencyHelpers = ({
     formatter.formatToParts(11111111).find(({ type }) => type === 'group')?.value ?? '';
   const decimalSeparator =
     formatter.formatToParts(1.1).find(({ type }) => type === 'decimal')?.value ?? '.';
+  /** The locale's own zero ("0", or "٠" with Arabic-Indic digits) for padding fractions. */
+  const zeroDigit = formatter.formatToParts(0).find(({ type }) => type === 'integer')?.value ?? '0';
   const alternativeDecimalSeparator = decimalSeparator === '.' ? ',' : '.';
   const literalSeparator =
     formatter.formatToParts(1.1).find(({ type }) => type === 'literal')?.value ?? '';
@@ -179,10 +181,19 @@ export const getCurrencyHelpers = ({
     return '';
   };
 
-  /* Format a string number to localized, beautified currency string */
+  /**
+   * Format a string number to localized, beautified currency string.
+   * `padFraction` shows a fractional amount with the currency's full fraction digits
+   * ("$1,020.50", not "$1,020.5"); whole amounts keep no decimals ("$2,000"). It stays off for
+   * live input so a typed "12.5" is not shown as "12.50" before the next digit.
+   */
   const format = (
     value: string,
-    { signed = false, hideSymbol = false }: { signed?: boolean; hideSymbol?: boolean },
+    {
+      signed = false,
+      hideSymbol = false,
+      padFraction = false,
+    }: { signed?: boolean; hideSymbol?: boolean; padFraction?: boolean },
   ) => {
     if (value === '') {
       return formatter.format(0);
@@ -200,6 +211,10 @@ export const getCurrencyHelpers = ({
     const decimalPart = auxParts.find(({ type }) => type === 'decimal');
 
     const hasFraction = parts.some(({ type }) => type === 'fraction');
+
+    if (fractionPart && padFraction) {
+      fractionPart.value = fractionPart.value.padEnd(decimalDigits, zeroDigit);
+    }
 
     if (fractionPart && decimalPart) {
       if (!hasFraction) {
@@ -227,7 +242,7 @@ export const getCurrencyHelpers = ({
 
   const toUIString = (value: unknown, signed = false, hideSymbol = false) => {
     const cleanString = parseToCleanString(value, signed);
-    return format(cleanString, { signed, hideSymbol });
+    return format(cleanString, { signed, hideSymbol, padFraction: true });
   };
 
   return {

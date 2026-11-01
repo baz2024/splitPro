@@ -136,6 +136,30 @@ export const getBudgetStatus = ({
   return projected > budget ? 'at_risk' : 'on_track';
 };
 
+/** Number of days in a 0-based `month` of `year`. */
+export const daysInMonthOf = (year: number, month: number): number =>
+  new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+
+/**
+ * What an even pace would have spent by the end of today (budget × day / days in month).
+ * Spending above this is exactly when getBudgetStatus reports "at risk".
+ */
+export const getPaceAmount = ({
+  budget,
+  dayOfMonth,
+  daysInMonth,
+}: {
+  budget: bigint;
+  dayOfMonth: number;
+  daysInMonth: number;
+}): bigint => {
+  if (0 >= daysInMonth) {
+    return budget;
+  }
+  const day = Math.min(Math.max(dayOfMonth, 1), daysInMonth);
+  return BigMath.roundDiv(budget * BigInt(day), BigInt(daysInMonth));
+};
+
 /** What is left can be spent evenly across today plus the remaining days. */
 export const getSafeToSpendPerDay = (left: bigint, daysLeft: number): bigint => {
   if (0n >= left) {

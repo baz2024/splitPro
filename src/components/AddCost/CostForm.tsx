@@ -199,7 +199,7 @@ export const CostForm: React.FC<{
   const [thisMonth] = useState(() => toMonthInputValue(new Date()));
 
   return (
-    <div className="flex flex-col gap-5 pb-28">
+    <div className="flex flex-col gap-5 pb-[calc(7rem+env(safe-area-inset-bottom))]">
       <ServiceGrid services={services} selected={serviceId} onSelect={setServiceId} />
 
       {isOther ? (
@@ -298,6 +298,9 @@ export const CostForm: React.FC<{
                 required
                 selected={nextRenewal}
                 onSelect={setNextRenewal}
+                formatDate={(date) =>
+                  new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(date)
+                }
               />
             </Row>
           </>

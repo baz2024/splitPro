@@ -4,11 +4,12 @@ import React, { useRef } from 'react';
 
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { type CurrencyCode } from '~/lib/currency';
+import { cn } from '~/lib/utils';
 import { useAddExpenseStore } from '~/store/addStore';
 
 import { CategoryRow, DescriptionRow, RepeatLink } from './ExpenseDetailsStep';
 import { CurrencySheet, DatePopover } from './journeyPickers';
-import { GroupedRows, RowButton } from './journeyUi';
+import { GroupedRows, JOURNEY_PILL_CLASS, RowButton } from './journeyUi';
 
 const MAX_INTEGER_DIGITS = 10;
 const DIGIT_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
@@ -24,11 +25,12 @@ const AttachReceiptLink: React.FC<{ onAttach: (file: File) => void }> = ({ onAtt
   const isFileUploading = useAddExpenseStore((s) => s.isFileUploading);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const label = isFileUploading
-    ? t('add_journey.manual.uploading')
+  // A short label keeps the pill on one line; the full wording stays as the accessible name.
+  const [label, fullLabel] = isFileUploading
+    ? [t('add_journey.manual.uploading'), t('add_journey.manual.uploading')]
     : fileKey
-      ? t('add_journey.manual.attached')
-      : t('add_journey.manual.attach');
+      ? [t('add_journey.manual.attached_short'), t('add_journey.manual.attached')]
+      : [t('add_journey.manual.attach_short'), t('add_journey.manual.attach')];
 
   return (
     <>
@@ -36,16 +38,18 @@ const AttachReceiptLink: React.FC<{ onAttach: (file: File) => void }> = ({ onAtt
         type="button"
         disabled={isFileUploading}
         onClick={() => inputRef.current?.click()}
-        className="text-accent focus-visible:ring-focus flex min-h-11 items-center gap-2 rounded-lg px-1 text-sm font-medium outline-none focus-visible:ring-2"
+        aria-label={fullLabel}
+        title={fullLabel}
+        className={cn(JOURNEY_PILL_CLASS, 'text-accent min-w-0 font-medium')}
       >
         {isFileUploading ? (
           <Spinner size="sm" color="accent" />
         ) : fileKey ? (
-          <Check className="size-4" aria-hidden />
+          <Check className="size-4 shrink-0" aria-hidden />
         ) : (
-          <Camera className="size-4" aria-hidden />
+          <Camera className="size-4 shrink-0" aria-hidden />
         )}
-        {label}
+        <span className="truncate">{label}</span>
       </button>
       <input
         ref={inputRef}
@@ -164,9 +168,9 @@ export const AmountKeypad: React.FC<{
         />
       </GroupedRows>
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2">
         <AttachReceiptLink onAttach={onAttach} />
-        <RepeatLink />
+        <RepeatLink pill />
       </div>
 
       <div

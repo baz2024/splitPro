@@ -19,18 +19,20 @@
     "at_risk": "At risk",
     "over": "Over budget",
     "month_budget": "{month} budget",
-    "month_spending": "{month} spending"
+    "month_spending": "{month} spending",
+    "over_pace": "{amount} over pace"
   },
   "gauge": {
     "left_to_spend": "Left to spend",
     "over_by": "Over by",
     "of_budget": "of {budget} · {days}",
-    "aria": "{percent} percent of the monthly budget spent"
+    "aria": "{percent} percent of the monthly budget spent",
+    "pace_marker": "Even pace for today"
   },
   "stats": {
     "spent": "Spent this month",
     "renewals": "Renewals due",
-    "renewals_value": "{amount} · {count}",
+    "renewals_value": "{amount} · {count, plural, one {# renewal} other {# renewals}}",
     "renewals_none": "None this week",
     "renewals_hint": "Recurring costs due in the next 7 days",
     "safe_to_spend": "Safe to spend",
@@ -44,7 +46,8 @@
     "api_usage": "API usage",
     "agent_runs": "Agent runs",
     "other": "Other",
-    "empty": "Nothing spent yet this month."
+    "empty": "Nothing spent yet this month.",
+    "none_yet": "None yet"
   },
   "people": {
     "summary": "{people, plural, one {# person} other {# people}} · {agents, plural, =0 {no agents} one {# agent} other {# agents}}",

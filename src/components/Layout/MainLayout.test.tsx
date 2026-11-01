@@ -42,3 +42,15 @@ it('shows the five tabs in design order', () => {
   );
   expect(hrefs).toEqual(['/balances', '/projects', '/add', '/activity', '/account']);
 });
+
+it('hides the mobile tab bar when hideAppBar is set', () => {
+  renderWithProviders(
+    <MainLayout hideAppBar>
+      <p>Content</p>
+    </MainLayout>,
+    { router: createMockRouter({ pathname: '/add', asPath: '/add' }) },
+  );
+  // Only the desktop sidebar navigation remains.
+  expect(screen.getAllByRole('navigation')).toHaveLength(1);
+  expect(screen.getAllByRole('link', { name: 'Add' })).toHaveLength(1);
+});

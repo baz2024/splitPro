@@ -4,7 +4,7 @@
   "loading": "Loading usage…",
   "error": "Couldn't load usage. Try again later.",
   "summary": {
-    "spend_label": "AI spend this month",
+    "spend_label": "AI & dev spend this month",
     "cap_label": "AI cap · {project}",
     "cap_label_no_project": "AI cap",
     "no_cap": "No AI cap",

@@ -34,7 +34,7 @@ export const UsageRow: React.FC<UsageRowProps> = ({ item, lastMonthLabel }) => {
         <ServiceBadge service={item.name} />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-foreground truncate text-sm font-medium">{item.name}</span>
-          <span className="text-muted truncate text-xs">{t('usage.source')}</span>
+          <span className="text-muted line-clamp-2 text-xs">{t('usage.source')}</span>
         </span>
         <span className="flex shrink-0 flex-col items-end">
           <span dir="ltr" className="text-foreground text-sm font-semibold">

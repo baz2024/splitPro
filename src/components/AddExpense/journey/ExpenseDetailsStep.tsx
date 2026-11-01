@@ -10,7 +10,7 @@ import { toImageSrc } from '~/utils/imageUpload';
 import { RecurrenceInput } from '../RecurrenceInput';
 import { PaidBySentence } from './PaidBySentence';
 import { CategorySheet, CurrencySheet, DatePopover, categoryLabel } from './journeyPickers';
-import { GroupedRows, RowButton, ValueRow } from './journeyUi';
+import { GroupedRows, JOURNEY_PILL_CLASS, RowButton, ValueRow } from './journeyUi';
 import { type ScanField } from './receiptScan';
 
 /** Description row with an inline, end-aligned text field. */
@@ -67,7 +67,10 @@ export const CategoryRow: React.FC<{ label: string; flagged?: boolean }> = ({
 };
 
 /** Small accent link that opens the existing recurrence sheet. */
-export const RepeatLink: React.FC = () => {
+export const RepeatLink: React.FC<{
+  /** Compact pill (manual entry row) instead of a plain text link. */
+  pill?: boolean;
+}> = ({ pill = false }) => {
   const { t } = useTranslationWithUtils();
   const cronExpression = useAddExpenseStore((s) => s.cronExpression);
 
@@ -76,11 +79,13 @@ export const RepeatLink: React.FC = () => {
       <button
         type="button"
         className={cn(
-          'focus-visible:ring-focus flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm outline-none focus-visible:ring-2',
+          pill
+            ? cn(JOURNEY_PILL_CLASS, 'shrink-0')
+            : 'focus-visible:ring-focus flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm outline-none focus-visible:ring-2',
           cronExpression ? 'text-accent font-medium' : 'text-muted',
         )}
       >
-        <RefreshCcwDot className="size-4" aria-hidden />
+        <RefreshCcwDot className="size-4 shrink-0" aria-hidden />
         {cronExpression ? t('add_journey.review.repeat_on') : t('add_journey.review.repeat_off')}
       </button>
     </RecurrenceInput>

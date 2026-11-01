@@ -108,6 +108,15 @@ export const WhereItGoes: React.FC<{ summary: ProjectSummary; detailsHref: strin
         buckets.map((bucket) => {
           const amount = summary.whereItGoes[bucket];
           const width = percentOf(amount, summary.spent);
+          // Nothing in this bucket yet: say so instead of drawing an empty bar.
+          if (0n === amount) {
+            return (
+              <div key={bucket} className="flex justify-between text-[13px]">
+                <span>{t(BUCKET_LABEL_KEYS[bucket])}</span>
+                <span className="text-muted">{t('where.none_yet')}</span>
+              </div>
+            );
+          }
           return (
             <div key={bucket} className="flex flex-col gap-1.5">
               <div className="flex justify-between text-[13px]">
@@ -210,7 +219,11 @@ export const TodayList: React.FC<{ summary: ProjectSummary; currentUserId: numbe
                   <span className="truncate text-sm font-medium">{expense.description}</span>
                   <span className="text-muted truncate text-xs">
                     {t('today.paid_by', {
-                      name: displayName(expense.paidBy, currentUserId),
+                      // `actors.you` lives in common, which this projects-first `t` doesn't search.
+                      name:
+                        currentUserId === expense.paidBy.id
+                          ? t('actors.you', { ns: 'common' })
+                          : displayName(expense.paidBy),
                       source: expense.isRecurring
                         ? t('today.recurring')
                         : expense.hasReceipt

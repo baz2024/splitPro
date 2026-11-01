@@ -40,11 +40,9 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
     currentUserId === item.paidBy.id
       ? t('row.paid_by_you')
       : t('row.paid_by', { name: item.paidBy.name ?? item.paidBy.email ?? '' });
-  // Personal costs say who pays; shared ones say how they split, plus the payer when it is due.
+  // Two facts at most: when it renews, then the payer (personal or due soon) or the split.
   const secondary =
-    'personal' === item.split.kind
-      ? paidBy
-      : [t('row.split', { ways: item.split.ways }), ...(isSoon ? [paidBy] : [])].join(' · ');
+    'personal' === item.split.kind || isSoon ? paidBy : t('row.split', { ways: item.split.ways });
 
   const amount = toUIString(item.amount);
   const cycleKey = CYCLE_KEYS[item.cadence];
@@ -59,7 +57,7 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
         <ServiceBadge service={item.description} />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-foreground truncate text-sm font-medium">{item.description}</span>
-          <span className={clsx('truncate text-xs', isSoon ? 'text-warning' : 'text-muted')}>
+          <span className={clsx('line-clamp-2 text-xs', isSoon ? 'text-warning' : 'text-muted')}>
             {due} · {secondary}
           </span>
         </span>

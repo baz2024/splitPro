@@ -148,4 +148,8 @@ export const PinnedFooter: React.FC<{ children: React.ReactNode }> = ({ children
   </div>
 );
 
+/** Compact single-line pill for secondary actions (attach receipt, repeat). */
+export const JOURNEY_PILL_CLASS =
+  'bg-surface border-border focus-visible:ring-focus flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-2 disabled:opacity-60';
+
 export const PRIMARY_CTA_CLASS = 'h-13 rounded-full text-base font-semibold';

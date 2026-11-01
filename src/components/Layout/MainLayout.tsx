@@ -20,6 +20,7 @@ interface MainLayoutProps {
   actions?: React.ReactNode;
   header?: React.ReactNode;
   loading?: boolean;
+  /** Hides the mobile bottom tab bar (full-screen flows with their own pinned actions). */
   hideAppBar?: boolean;
 }
 
@@ -48,7 +49,13 @@ const NAV_ENTRIES = [
 const isActivePath = (entry: NavEntry, currentPath: string) =>
   entry.matches.some((path) => currentPath === path || currentPath.startsWith(`${path}/`));
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, actions, title, loading }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({
+  children,
+  actions,
+  title,
+  loading,
+  hideAppBar = false,
+}) => {
   const { t } = useTranslation();
   const router = useRouter();
   const currentPath = router.pathname;
@@ -104,23 +111,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, actions, title, loadi
               children
             )}
           </div>
-          <div className="h-28 lg:h-0" />
+          {/* Keeps the last content clear of the tab bar and its raised Add button. */}
+          {hideAppBar ? null : (
+            <div className="h-[calc(7rem+env(safe-area-inset-bottom))] lg:h-0" aria-hidden />
+          )}
         </div>
       </div>
 
-      <nav
-        aria-label={t('meta.application_name')}
-        className="bg-background/90 border-border fixed inset-x-0 bottom-0 z-30 flex items-end justify-around border-t px-2 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur-lg lg:hidden"
-      >
-        {NAV_ENTRIES.map((entry) => (
-          <NavItem
-            key={entry.key}
-            entry={entry}
-            title={labels[entry.key]}
-            isActive={isActivePath(entry, currentPath)}
-          />
-        ))}
-      </nav>
+      {hideAppBar ? null : (
+        <nav
+          aria-label={t('meta.application_name')}
+          className="bg-background/90 border-border fixed inset-x-0 bottom-0 z-30 flex items-end justify-around border-t px-2 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur-lg lg:hidden"
+        >
+          {NAV_ENTRIES.map((entry) => (
+            <NavItem
+              key={entry.key}
+              entry={entry}
+              title={labels[entry.key]}
+              isActive={isActivePath(entry, currentPath)}
+            />
+          ))}
+        </nav>
+      )}
     </div>
   );
 };

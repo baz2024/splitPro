@@ -19,18 +19,20 @@
     "at_risk": "معرّضة للتجاوز",
     "over": "تجاوزت الميزانية",
     "month_budget": "ميزانية {month}",
-    "month_spending": "إنفاق {month}"
+    "month_spending": "إنفاق {month}",
+    "over_pace": "أعلى من الوتيرة بـ {amount}"
   },
   "gauge": {
     "left_to_spend": "المتبقّي للإنفاق",
     "over_by": "التجاوز",
     "of_budget": "من {budget} · {days}",
-    "aria": "أُنفق {percent} بالمئة من الميزانية الشهرية"
+    "aria": "أُنفق {percent} بالمئة من الميزانية الشهرية",
+    "pace_marker": "الوتيرة المتوازنة لليوم"
   },
   "stats": {
     "spent": "المُنفَق هذا الشهر",
     "renewals": "التجديدات المستحقة",
-    "renewals_value": "{amount} · {count}",
+    "renewals_value": "{amount} · {count, plural, zero {لا تجديدات} one {تجديد واحد} two {تجديدان} few {# تجديدات} many {# تجديدًا} other {# تجديد}}",
     "renewals_none": "لا شيء هذا الأسبوع",
     "renewals_hint": "التكاليف المتكرّرة المستحقة خلال الأيام السبعة القادمة",
     "safe_to_spend": "الإنفاق الآمن",
@@ -44,7 +46,8 @@
     "api_usage": "استخدام واجهات API",
     "agent_runs": "تشغيلات الوكلاء",
     "other": "أخرى",
-    "empty": "لم يُنفَق شيء بعد هذا الشهر."
+    "empty": "لم يُنفَق شيء بعد هذا الشهر.",
+    "none_yet": "لا شيء بعد"
   },
   "people": {
     "summary": "{people, plural, zero {لا أشخاص} one {شخص واحد} two {شخصان} few {# أشخاص} many {# شخصًا} other {# شخص}} · {agents, plural, =0 {لا وكلاء} one {وكيل واحد} two {وكيلان} few {# وكلاء} many {# وكيلًا} other {# وكيل}}",
