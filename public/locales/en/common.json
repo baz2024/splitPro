@@ -121,7 +121,37 @@
     "send_magic_link": "Send magic link",
     "sending": "Sending...",
     "setup_instructions": "Docker setup instructions",
-    "trouble_logging_in": "Trouble logging in? Contact"
+    "trouble_logging_in": "Trouble logging in? Contact",
+    "supabase_error": "We couldn't sign you in. Please try again.",
+    "welcome": {
+      "brand": "Kafo AI",
+      "page_title": "Sign in to Kafo AI",
+      "headline": "Every receipt, subscription and API cost — against your project budget",
+      "subtitle": "Snap receipts, track subscriptions and see what your agents spend, all in one place.",
+      "continue_apple": "Continue with Apple",
+      "continue_google": "Continue with Google",
+      "continue_phone": "Continue with phone",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    },
+    "phone": {
+      "label": "Phone number",
+      "placeholder": "+1 555 555 0100",
+      "send_code": "Send code",
+      "code_sent": "Code sent to {phone}",
+      "enter_code": "Enter the 6-digit code we sent to {phone}",
+      "code_label": "6-digit code",
+      "verify": "Verify and continue",
+      "verifying": "Verifying...",
+      "change_number": "Use a different number",
+      "invalid": "Enter your phone number with country code",
+      "send_failed": "We couldn't send a code to that number",
+      "verify_failed": "That code didn't work. Please try again."
+    },
+    "callback": {
+      "signing_in": "Signing you in...",
+      "back_to_signin": "Back to sign in"
+    }
   },
   "currency_conversion": {
     "amount_to_receive": "Amount to receive",

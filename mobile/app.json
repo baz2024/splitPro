@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "backgroundColor": "#0b1626",
     "ios": {
       "bundleIdentifier": "com.kafoai.split",
@@ -17,7 +17,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "SplitPro uses the camera to scan receipts.",
         "NSPhotoLibraryUsageDescription": "SplitPro uses your photo library to attach receipt images."
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.kafoai.split",
@@ -34,6 +35,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-apple-authentication",
       "expo-web-browser",
       [
         "expo-splash-screen",
@@ -47,7 +49,8 @@
             "backgroundColor": "#0b1626"
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

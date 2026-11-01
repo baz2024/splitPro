@@ -1,290 +1,135 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import * as WebBrowser from 'expo-web-browser';
-import { type ComponentType, type RefAttributes, useCallback, useEffect, useRef, useState } from 'react';
+import * as SystemUI from 'expo-system-ui';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 import {
-  BackHandler,
-  Linking,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { WebView as RNWebView, type WebViewProps } from 'react-native-webview';
-import type {
-  ShouldStartLoadRequest,
-  WebViewHttpErrorEvent,
-  WebViewNavigation,
-  WebViewOpenWindowEvent,
-  WebViewScrollEvent,
-} from 'react-native-webview/lib/WebViewTypes';
-
-// react-native-webview's class type defaults its generic to `undefined`, and `Props & undefined`
-// collapses to `never` under current TypeScript. Re-type it with an object generic.
-type WebViewHandle = RNWebView<object>;
-const WebView = RNWebView as unknown as ComponentType<WebViewProps & RefAttributes<WebViewHandle>>;
-
-const APP_HOST = 'split.kafoai.com';
-const APP_ORIGIN = `https://${APP_HOST}`;
-const START_URL = `${APP_ORIGIN}/home`;
-// Google sign-in is started fresh in the system browser (see README for the cookie caveat).
-const GOOGLE_SIGNIN_URL = `${APP_ORIGIN}/auth/signin?callbackUrl=${encodeURIComponent('/home')}`;
-const AUTH_RETURN_URL = 'splitpro://';
-
-const THEME = {
-  dark: { background: '#0b1626', foreground: '#f1f5f9', muted: '#8da2c0', accent: '#5aa9ff' },
-  light: { background: '#f6f8fb', foreground: '#0b1626', muted: '#5b6b82', accent: '#1f6fd1' },
-} as const;
+  AuthCancelledError,
+  getWebSignedIn,
+  setWebSignedIn,
+  signInWithGoogle,
+  signOutEverywhere,
+} from './src/lib/auth';
+import { PhoneScreen } from './src/screens/PhoneScreen';
+import { WebAppScreen, type WebEntry } from './src/screens/WebAppScreen';
+import { WelcomeScreen } from './src/screens/WelcomeScreen';
+import { COLORS } from './src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+// Root view colour behind everything (shows during transitions and under the system bars).
+SystemUI.setBackgroundColorAsync(COLORS.background).catch(() => undefined);
 
-const parseUrl = (url: string): URL | null => {
-  try {
-    return new URL(url);
-  } catch {
-    return null;
-  }
-};
-
-const isAppUrl = (url: URL) => APP_HOST === url.hostname;
-
-const isGoogleAuthUrl = (url: URL) =>
-  'accounts.google.com' === url.hostname ||
-  (isAppUrl(url) && url.pathname.startsWith('/api/auth/signin/google'));
-
-// Schemes the WebView must load itself rather than hand to the OS.
-const isInternalScheme = (url: string) =>
-  url.startsWith('about:') || url.startsWith('data:') || url.startsWith('blob:');
+type Screen =
+  | { name: 'loading' }
+  | { name: 'welcome'; error?: string | null }
+  | { name: 'phone' }
+  // `key` forces a fresh WebView for each new entry so a POST is sent exactly once.
+  | { name: 'web'; entry: WebEntry; key: number };
 
 const Main = () => {
-  const scheme = useColorScheme();
-  const colors = 'light' === scheme ? THEME.light : THEME.dark;
+  const [screen, setScreen] = useState<Screen>({ name: 'loading' });
+  const webKeyRef = useRef(0);
+  const flagSetRef = useRef(false);
 
-  const webViewRef = useRef<WebViewHandle>(null);
-  const canGoBackRef = useRef(false);
-  const splashHiddenRef = useRef(false);
-  const [atTop, setAtTop] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const hideSplash = useCallback(() => {
-    if (splashHiddenRef.current) {
-      return;
-    }
-    splashHiddenRef.current = true;
-    SplashScreen.hideAsync().catch(() => undefined);
+  const openWeb = useCallback((entry: WebEntry) => {
+    webKeyRef.current += 1;
+    setScreen({ name: 'web', entry, key: webKeyRef.current });
   }, []);
 
-  // Never leave the splash up forever if the network is slow.
+  // Relaunch: if the WebView already has a SplitPro session, go straight to it.
   useEffect(() => {
-    const timer = setTimeout(hideSplash, 8000);
-    return () => clearTimeout(timer);
-  }, [hideSplash]);
-
-  // Android hardware back: walk WebView history before leaving the app.
-  useEffect(() => {
-    if ('android' !== Platform.OS) {
-      return;
-    }
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!canGoBackRef.current) {
-        return false;
-      }
-      webViewRef.current?.goBack();
-      return true;
-    });
-    return () => sub.remove();
-  }, []);
-
-  const openGoogleSignIn = useCallback(async () => {
-    try {
-      await WebBrowser.openAuthSessionAsync(GOOGLE_SIGNIN_URL, AUTH_RETURN_URL);
-    } catch (error) {
-      console.warn('Google sign-in session failed', error);
-    }
-    // The system browser does not share cookies with the WebView; reload to reflect any change.
-    webViewRef.current?.reload();
-  }, []);
-
-  const openExternal = useCallback((url: string) => {
-    Linking.openURL(url).catch((error) => console.warn('Could not open URL', url, error));
-  }, []);
-
-  const handleShouldStartLoad = useCallback(
-    (request: ShouldStartLoadRequest) => {
-      const { url } = request;
-
-      if (isInternalScheme(url)) {
-        return true;
-      }
-
-      const parsed = parseUrl(url);
-      if (!parsed) {
-        return false;
-      }
-
-      // Google blocks OAuth inside embedded WebViews (403 disallowed_useragent).
-      if (isGoogleAuthUrl(parsed)) {
-        openGoogleSignIn().catch(() => undefined);
-        return false;
-      }
-
-      // Let iframes (payments, embeds, analytics) load normally.
-      if (false === request.isTopFrame) {
-        return true;
-      }
-
-      if (('https:' === parsed.protocol || 'http:' === parsed.protocol) && isAppUrl(parsed)) {
-        return true;
-      }
-
-      // Everything else (other sites, mailto:, tel:, sms:, maps) goes to the OS.
-      openExternal(url);
-      return false;
-    },
-    [openExternal, openGoogleSignIn],
-  );
-
-  const handleOpenWindow = useCallback(
-    (event: WebViewOpenWindowEvent) => {
-      const { targetUrl } = event.nativeEvent;
-      const parsed = parseUrl(targetUrl);
-      if (parsed && isGoogleAuthUrl(parsed)) {
-        openGoogleSignIn().catch(() => undefined);
-        return;
-      }
-      if (parsed && isAppUrl(parsed)) {
-        webViewRef.current?.injectJavaScript(
-          `window.location.href = ${JSON.stringify(targetUrl)}; true;`,
-        );
-        return;
-      }
-      openExternal(targetUrl);
-    },
-    [openExternal, openGoogleSignIn],
-  );
-
-  const handleNavigationStateChange = useCallback((nav: WebViewNavigation) => {
-    canGoBackRef.current = nav.canGoBack;
-  }, []);
-
-  const handleScroll = useCallback((event: WebViewScrollEvent) => {
-    setAtTop(0 >= event.nativeEvent.contentOffset.y);
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    setHasError(false);
-    webViewRef.current?.reload();
-  }, []);
-
-  const handleLoadEnd = useCallback(() => {
-    setRefreshing(false);
-    hideSplash();
-  }, [hideSplash]);
-
-  const handleError = useCallback(() => {
-    setRefreshing(false);
-    setHasError(true);
-    hideSplash();
-  }, [hideSplash]);
-
-  const webView = (
-    <WebView
-      ref={webViewRef}
-      source={{ uri: START_URL }}
-      style={[styles.webView, { backgroundColor: colors.background }]}
-      containerStyle={{ backgroundColor: colors.background }}
-      originWhitelist={['*']}
-      onShouldStartLoadWithRequest={handleShouldStartLoad}
-      onOpenWindow={handleOpenWindow}
-      onNavigationStateChange={handleNavigationStateChange}
-      onLoadEnd={handleLoadEnd}
-      onError={handleError}
-      onHttpError={(event: WebViewHttpErrorEvent) => {
-        if (500 <= event.nativeEvent.statusCode) {
-          handleError();
+    getWebSignedIn()
+      .then((signedIn) => {
+        if (signedIn) {
+          flagSetRef.current = true;
+          openWeb({ kind: 'resume' });
+          return;
         }
-      }}
-      onContentProcessDidTerminate={() => webViewRef.current?.reload()}
-      onRenderProcessGone={() => webViewRef.current?.reload()}
-      onScroll={'android' === Platform.OS ? handleScroll : undefined}
-      // Session + storage
-      sharedCookiesEnabled
-      thirdPartyCookiesEnabled
-      domStorageEnabled
-      javaScriptEnabled
-      // Camera / photo upload via <input type="file" capture>
-      allowsInlineMediaPlayback
-      mediaPlaybackRequiresUserAction={false}
-      mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-      allowFileAccess
-      // Window handling
-      setSupportMultipleWindows
-      javaScriptCanOpenWindowsAutomatically
-      // iOS niceties
-      allowsBackForwardNavigationGestures
-      pullToRefreshEnabled
-      refreshControlLightMode={'light' !== scheme}
-      decelerationRate="normal"
-      // Android niceties
-      overScrollMode="never"
-      setBuiltInZoomControls={false}
-      applicationNameForUserAgent="SplitProApp/1.0"
-    />
+        setScreen({ name: 'welcome' });
+        SplashScreen.hideAsync().catch(() => undefined);
+      })
+      .catch(() => setScreen({ name: 'welcome' }));
+  }, [openWeb]);
+
+  const handleAccessToken = useCallback(
+    (accessToken: string) => openWeb({ kind: 'exchange', accessToken }),
+    [openWeb],
   );
+
+  const handleSignedIn = useCallback(() => {
+    if (flagSetRef.current) {
+      return;
+    }
+    flagSetRef.current = true;
+    setWebSignedIn(true).catch(() => undefined);
+  }, []);
+
+  const handleSignedOut = useCallback((error?: string) => {
+    flagSetRef.current = false;
+    setScreen({ name: 'welcome', error: error ?? null });
+    signOutEverywhere().catch(() => undefined);
+  }, []);
+
+  // The web sign-in page tried to start Google OAuth; run the native flow instead.
+  const handleGoogleRequested = useCallback(() => {
+    signInWithGoogle()
+      .then(handleAccessToken)
+      .catch((error: unknown) => {
+        if (error instanceof AuthCancelledError) {
+          return;
+        }
+        setScreen({
+          name: 'welcome',
+          error: error instanceof Error ? error.message : 'Google sign-in failed.',
+        });
+      });
+  }, [handleAccessToken]);
+
+  const showWelcome = useCallback(() => setScreen({ name: 'welcome' }), []);
+
+  if ('loading' === screen.name) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={COLORS.accent} />
+      </View>
+    );
+  }
+
+  if ('phone' === screen.name) {
+    return <PhoneScreen onBack={showWelcome} onAccessToken={handleAccessToken} />;
+  }
+
+  if ('web' === screen.name) {
+    return (
+      <WebAppScreen
+        key={screen.key}
+        entry={screen.entry}
+        onSignedIn={handleSignedIn}
+        onSignedOut={handleSignedOut}
+        onGoogleRequested={handleGoogleRequested}
+        onBackToWelcome={showWelcome}
+      />
+    );
+  }
 
   return (
-    <SafeAreaView
-      style={[styles.root, { backgroundColor: colors.background }]}
-      edges={['top', 'left', 'right', 'bottom']}
-    >
-      <StatusBar style={'light' === scheme ? 'dark' : 'light'} />
-      {'android' === Platform.OS ? (
-        // Android WebView has no native pull-to-refresh; enable it only when scrolled to the top.
-        <ScrollView
-          contentContainerStyle={styles.root}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              enabled={atTop}
-              colors={[colors.accent]}
-              progressBackgroundColor={colors.background}
-            />
-          }
-        >
-          {webView}
-        </ScrollView>
-      ) : (
-        webView
-      )}
-      {hasError ? (
-        <View style={[styles.errorOverlay, { backgroundColor: colors.background }]}>
-          <Text style={[styles.errorTitle, { color: colors.foreground }]}>Can't reach SplitPro</Text>
-          <Text style={[styles.errorBody, { color: colors.muted }]}>
-            Check your connection and try again.
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleRefresh}
-            style={[styles.retryButton, { backgroundColor: colors.accent }]}
-          >
-            <Text style={styles.retryLabel}>Try again</Text>
-          </Pressable>
-        </View>
-      ) : null}
-    </SafeAreaView>
+    <WelcomeScreen
+      // Remount when a new error arrives so it replaces any earlier message.
+      key={screen.error ?? 'welcome'}
+      initialError={screen.error}
+      onAccessToken={handleAccessToken}
+      onPhone={() => setScreen({ name: 'phone' })}
+      onEmail={() => openWeb({ kind: 'email' })}
+    />
   );
 };
 
 const App = () => (
-  <SafeAreaProvider>
+  <SafeAreaProvider style={styles.provider}>
+    {/* Always light content on the navy bars, whatever the system appearance. */}
+    <StatusBar style="light" />
     <Main />
   </SafeAreaProvider>
 );
@@ -292,39 +137,14 @@ const App = () => (
 export default App;
 
 const styles = StyleSheet.create({
-  root: {
+  provider: {
     flex: 1,
+    backgroundColor: COLORS.background,
   },
-  webView: {
+  loading: {
     flex: 1,
-  },
-  errorOverlay: {
-    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  errorBody: {
-    fontSize: 15,
-    textAlign: 'center',
-  },
-  retryButton: {
-    marginTop: 16,
-    minHeight: 44,
-    minWidth: 140,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  retryLabel: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    backgroundColor: COLORS.background,
   },
 });

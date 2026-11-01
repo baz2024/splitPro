@@ -1,14 +1,19 @@
 # SplitPro mobile (TestFlight wrapper)
 
-A thin Expo app that shows https://split.kafoai.com inside a full-screen WebView.
+An Expo app with native sign-in that then shows https://split.kafoai.com inside a
+full-screen WebView.
 It is meant for internal TestFlight testing, not an App Store release.
 
 This folder uses **npm**, separate from the root pnpm workspace.
 
-## What the wrapper does
+## What the app does
 
-- Opens `https://split.kafoai.com/home` full screen, inside the safe area, on a navy `#0b1626`
-  background (light mode uses `#f6f8fb`).
+- When you are signed out, it shows a native **Welcome** screen (Kafo AI / SplitPro) with
+  Sign in with Apple (iOS), Continue with Google, Continue with phone, and a small
+  "Use email instead" link.
+- After you sign in, it shows `https://split.kafoai.com/balances` full screen in a WebView.
+- The app always uses the Midnight Navy theme: navy `#0b1626` strips behind the status bar and
+  home indicator, with light status bar text, even when the phone is in light mode.
 - Pull to refresh: built into the WebView on iOS. On Android it uses a refresh control that only
   works when the page is scrolled to the top.
 - Android back button moves back through the WebView history before it leaves the app.
@@ -18,28 +23,59 @@ This folder uses **npm**, separate from the root pnpm workspace.
   library permission using the text in `app.json`.
 - If the site cannot load, a "Try again" screen appears.
 
-## Important: signing in
+## How sign-in works
 
-> **Use email sign-in for the TestFlight build.**
+1. Apple, Google and phone sign-in happen natively through **Supabase Auth**
+   (project `lfmhkxsjyvqlswmnppad`).
+2. The app then opens the WebView with a one-time form POST to
+   `https://split.kafoai.com/api/auth/supabase-exchange`, sending the Supabase access token.
+3. The SplitPro server checks the token with Supabase, finds or creates the user, sets the normal
+   SplitPro session cookie and redirects to `/balances`.
+4. The app remembers that you are signed in, so the next launch opens `/balances` directly.
+5. If the WebView ever lands on `/auth/signin` (you signed out, or the session expired), the app
+   signs out of Supabase, forgets the flag and shows the Welcome screen again.
 
-Google blocks OAuth inside embedded WebViews and shows a `403 disallowed_useragent` error.
-To avoid that error, the app catches any move to `accounts.google.com` or
-`/api/auth/signin/google` and opens the SplitPro sign-in page in the system browser instead,
-using `expo-web-browser` `openAuthSessionAsync`.
+"Use email instead" opens the existing email sign-in page inside the WebView. Type the
+5-character code from the email into the app; do not tap the magic link (it opens Safari).
 
-**Limitation:** the session cookie from the system browser is **not shared** with the WebView.
-Signing in with Google there does not sign you in inside the app. When the browser sheet
-closes, the WebView reloads, but you will still be signed out.
+If the web sign-in page tries to start Google OAuth inside the WebView, the app runs the native
+Google flow instead, because Google blocks OAuth in embedded WebViews (`403 disallowed_useragent`).
 
-Email sign-in works fully inside the WebView:
+> **Requires the web route.** `/api/auth/supabase-exchange` must be deployed on
+> `split.kafoai.com` before native sign-in works end to end.
 
-1. Enter your email on the sign-in screen.
-2. Open the email on any device and **type the 5-character code** into the app.
-3. Do not tap the magic link in the email. It opens Safari, not the app.
+## Supabase settings needed
 
-Making Google sign-in work in the app properly needs a native flow, for example a custom
-callback that gives the session token back to the app through the `splitpro://` scheme.
-That is out of scope for tonight's build.
+### 1. App key
+
+The public **anon** key for project `lfmhkxsjyvqlswmnppad` is built into
+`src/lib/supabase.ts` (the same key the web app ships), so no setup is needed.
+
+To use a different project, copy `.env.example` to `.env.local` and set
+`EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`. For EAS builds, set them in the
+EAS environment instead, because `.env.local` is not uploaded.
+
+> **Warning:** use only the `anon` (or publishable) key. Never put `service_role` in the app.
+
+### 2. Redirect URL
+
+In Supabase Dashboard, Authentication, URL Configuration, add this to **Redirect URLs**:
+
+```
+splitpro://auth-callback
+```
+
+### 3. Providers (Authentication, Sign In / Providers)
+
+- **Apple:** enable it and add the bundle ID `com.kafoai.split` to the **Client IDs** list.
+  Native sign-in uses an ID token, so no Services ID or secret key is needed for the app.
+  The App ID needs the Sign In with Apple capability (EAS sets it up from `ios.usesAppleSignIn`).
+- **Google:** enable it with a **Web** OAuth client ID and secret from Google Cloud. In Google
+  Cloud, add `https://lfmhkxsjyvqlswmnppad.supabase.co/auth/v1/callback` as an authorised
+  redirect URI.
+- **Phone:** enable it and connect an SMS provider (Twilio, MessageBird, Vonage or Textlocal).
+  Leave the OTP length at 6 digits. For testing without SMS cost, add test phone numbers with
+  fixed codes in the Phone provider settings.
 
 ## Run locally
 
@@ -49,8 +85,12 @@ npm install
 npx expo start
 ```
 
-The WebView is a native module, so it needs a development build or the iOS Simulator through
-`npx expo run:ios`. Expo Go may also work, because it ships `react-native-webview`.
+The app uses native modules (WebView, Apple sign-in, secure storage), so test it in a
+development build: `npx expo run:ios` or `npx eas-cli@latest build --profile development`.
+
+> **Sign in with Apple:** it does not work reliably in Expo Go or on the iOS Simulator.
+> In Expo Go the token is issued for Expo Go's bundle ID, so Supabase rejects it. Test Apple
+> sign-in on a real device with a development or TestFlight build.
 
 ## Checks
 

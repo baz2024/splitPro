@@ -3,6 +3,11 @@ import { z } from 'zod';
 
 import { parseEnvBoolean } from './utils/env';
 
+// Public Supabase project values (anon role, safe to ship to the browser by design).
+const DEFAULT_SUPABASE_URL = 'https://lfmhkxsjyvqlswmnppad.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbWhreHNqeXZxbHN3bW5wcGFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0Njk0ODIsImV4cCI6MjEwOTA0NTQ4Mn0.bUeKYZiQHftSXilZwpgrzv9ls5ClBTc34GisVXVowrA';
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -92,6 +97,9 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_APP_VERSION: z.string().optional(),
     NEXT_PUBLIC_GIT_SHA: z.string().optional(),
+    // Public Supabase values (safe to ship to the browser by design).
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().default(DEFAULT_SUPABASE_URL),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().default(DEFAULT_SUPABASE_ANON_KEY),
   },
 
   /**
@@ -158,6 +166,11 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     NEXT_PUBLIC_GIT_SHA: process.env.NEXT_PUBLIC_GIT_SHA,
+    // `||` keeps the public defaults when SKIP_ENV_VALIDATION bypasses the Zod defaults
+    // (Docker and CI builds), which would otherwise inline `undefined` into the browser bundle.
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

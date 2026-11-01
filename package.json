@@ -45,6 +45,7 @@
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@serwist/turbopack": "^9.5.13",
+    "@supabase/supabase-js": "^2.118.0",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tanstack/react-query": "^5.79.2",
     "@trpc/client": "^11.2.0",
