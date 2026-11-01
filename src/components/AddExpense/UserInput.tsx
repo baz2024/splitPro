@@ -1,7 +1,7 @@
 import { useTranslation } from 'next-i18next';
 import Router from 'next/router';
-import { z } from 'zod';
 
+import { getInviteTarget, toInviteFriendInput } from '~/lib/inviteTarget';
 import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
 
@@ -26,7 +26,7 @@ export const UserInput: React.FC<{
 
   const addFriendMutation = api.user.inviteFriend.useMutation();
 
-  const isEmail = z.string().email().safeParse(nameOrEmail);
+  const inviteTarget = getInviteTarget(nameOrEmail);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ('Backspace' === e.key && '' === nameOrEmail) {
@@ -44,21 +44,22 @@ export const UserInput: React.FC<{
       } else {
         removeLastParticipant(); // Assuming deleteUser is the function you want to call
       }
-    } else if ('Enter' === e.key && isEmail.success) {
-      addFriendMutation.mutate(
-        { email: nameOrEmail.toLowerCase() },
-        {
-          onSuccess: (user) => {
-            removeParticipant(-1);
-            addOrUpdateParticipant(user);
-            setNameOrEmail('');
-          },
+    } else if (
+      'Enter' === e.key &&
+      ('email' === inviteTarget.kind || 'phone' === inviteTarget.kind)
+    ) {
+      addFriendMutation.mutate(toInviteFriendInput(inviteTarget, false), {
+        onSuccess: (user) => {
+          removeParticipant(-1);
+          addOrUpdateParticipant(user);
+          setNameOrEmail('');
         },
-      );
+      });
       addOrUpdateParticipant({
         id: -1,
         name: nameOrEmail,
-        email: nameOrEmail,
+        email: 'email' === inviteTarget.kind ? inviteTarget.email : null,
+        phone: 'phone' === inviteTarget.kind ? inviteTarget.phone : null,
         emailVerified: new Date(),
         image: null,
         currency: 'USD',
@@ -93,7 +94,8 @@ export const UserInput: React.FC<{
       )}
 
       <input
-        type="email"
+        type="text"
+        autoComplete="off"
         placeholder={
           isEditing && Boolean(group)
             ? t('expense_details.add_expense_details.user_input.cannot_change_group')

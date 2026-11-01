@@ -142,7 +142,8 @@ describe('/api/auth/supabase-exchange', () => {
 
       expect(mockUserFindUnique).not.toHaveBeenCalled();
       expect(mockUserCreate).toHaveBeenCalledWith({
-        data: { name: '+15555550100', email: null, emailVerified: null, image: null },
+        // Without phone_confirmed_at the number is not trusted, so it is not stored.
+        data: { name: '+15555550100', email: null, emailVerified: null, phone: null, image: null },
         select: { id: true },
       });
       expect(mockAccountUpsert).toHaveBeenCalledWith(
@@ -167,6 +168,79 @@ describe('/api/auth/supabase-exchange', () => {
       expect(cookie).toContain('Secure');
       expect(status).toHaveBeenCalledWith(200);
       expect(json).toHaveBeenCalledWith({ ok: true });
+    });
+
+    it('should store the normalised verified phone on a new user', async () => {
+      supabaseResponds(200, {
+        id: 'sb-phone-2',
+        email: null,
+        phone: '962791234567',
+        phone_confirmed_at: '2026-11-01T00:00:00Z',
+        user_metadata: {},
+      });
+      mockAccountFindUnique.mockResolvedValue(null);
+      mockUserFindUnique.mockResolvedValue(null);
+      mockUserCreate.mockResolvedValue({ id: 43 });
+      const { res } = createMockRes();
+
+      await handler(jsonRequest({ accessToken: 'good-token' }), res);
+
+      expect(mockUserFindUnique).toHaveBeenCalledWith({
+        where: { phone: '+962791234567' },
+        select: { id: true },
+      });
+      expect(mockUserCreate).toHaveBeenCalledWith({
+        data: {
+          name: '+962791234567',
+          email: null,
+          emailVerified: null,
+          phone: '+962791234567',
+          image: null,
+        },
+        select: { id: true },
+      });
+      expect(sessionData().userId).toBe(43);
+    });
+  });
+
+  describe('invited phone user', () => {
+    it('should claim the placeholder created by a phone invite', async () => {
+      supabaseResponds(200, {
+        id: 'sb-phone-3',
+        email: null,
+        phone: '962791234567',
+        phone_confirmed_at: '2026-11-01T00:00:00Z',
+        user_metadata: {},
+      });
+      mockAccountFindUnique.mockResolvedValue(null);
+      mockUserFindUnique.mockResolvedValue({ id: 11 });
+      const { res } = createMockRes();
+
+      await handler(jsonRequest({ accessToken: 'good-token' }), res);
+
+      expect(mockUserFindUnique).toHaveBeenCalledWith({
+        where: { phone: '+962791234567' },
+        select: { id: true },
+      });
+      expect(mockUserCreate).not.toHaveBeenCalled();
+      expect(mockAccountUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({ userId: 11, providerAccountId: 'sb-phone-3' }),
+        }),
+      );
+      expect(sessionData().userId).toBe(11);
+    });
+
+    it('should not claim a placeholder when the phone is not verified', async () => {
+      supabaseResponds(200, { id: 'sb-phone-4', email: null, phone: '962791234567' });
+      mockAccountFindUnique.mockResolvedValue(null);
+      mockUserCreate.mockResolvedValue({ id: 44 });
+      const { res } = createMockRes();
+
+      await handler(jsonRequest({ accessToken: 'good-token' }), res);
+
+      expect(mockUserFindUnique).not.toHaveBeenCalled();
+      expect(mockUserCreate).toHaveBeenCalled();
     });
   });
 

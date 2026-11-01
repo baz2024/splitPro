@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 
 import { env } from '~/env';
+import { normalizeSupabasePhone } from '~/lib/phone';
 import { authOptions } from '~/server/auth';
 import { db } from '~/server/db';
 
@@ -16,6 +17,7 @@ const supabaseUserSchema = z.object({
   email: z.string().nullish(),
   email_confirmed_at: z.string().nullish(),
   phone: z.string().nullish(),
+  phone_confirmed_at: z.string().nullish(),
   user_metadata: z.record(z.unknown()).nullish(),
   app_metadata: z.record(z.unknown()).nullish(),
 });
@@ -84,10 +86,18 @@ export const findOrCreateUserForSupabase = async (supabaseUser: SupabaseUser) =>
   const email = supabaseUser.email ? supabaseUser.email.toLowerCase() : null;
   const emailVerified = Boolean(email && supabaseUser.email_confirmed_at);
 
-  const existingUser =
+  // Supabase sets phone_confirmed_at once the phone OTP is verified.
+  // Only a verified number may claim a placeholder created by a phone invite.
+  const phone = supabaseUser.phone_confirmed_at ? normalizeSupabasePhone(supabaseUser.phone) : null;
+
+  const existingEmailUser =
     emailVerified && email
       ? await db.user.findUnique({ where: { email }, select: { id: true } })
       : null;
+
+  const existingUser =
+    existingEmailUser ??
+    (phone ? await db.user.findUnique({ where: { phone }, select: { id: true } }) : null);
 
   let userId = existingUser?.id;
 
@@ -100,6 +110,7 @@ export const findOrCreateUserForSupabase = async (supabaseUser: SupabaseUser) =>
     const name =
       metadataString(metadata, 'full_name') ??
       metadataString(metadata, 'name') ??
+      phone ??
       (supabaseUser.phone ? supabaseUser.phone : undefined) ??
       email?.split('@')[0] ??
       null;
@@ -110,6 +121,8 @@ export const findOrCreateUserForSupabase = async (supabaseUser: SupabaseUser) =>
         // An unverified email could belong to someone else, so only store verified ones.
         email: emailVerified ? email : null,
         emailVerified: emailVerified ? new Date() : null,
+        // Same rule for phones: only a verified number is stored.
+        phone,
         image: metadataString(metadata, 'avatar_url') ?? null,
       },
       select: { id: true },

@@ -89,6 +89,10 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: z.string().optional(),
     // 32-byte key (base64) for encrypting billing-sync tokens. Billing sync is off when unset.
     INTEGRATION_ENCRYPTION_KEY: z.string().optional(),
+    // Twilio credentials for SMS invites. SMS invites are off when any of these is unset.
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
   },
 
   /**
@@ -167,6 +171,9 @@ export const env = createEnv({
       : 10,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     INTEGRATION_ENCRYPTION_KEY: process.env.INTEGRATION_ENCRYPTION_KEY,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+    TWILIO_MESSAGING_SERVICE_SID: process.env.TWILIO_MESSAGING_SERVICE_SID,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     NEXT_PUBLIC_GIT_SHA: process.env.NEXT_PUBLIC_GIT_SHA,
     // `||` keeps the public defaults when SKIP_ENV_VALIDATION bypasses the Zod defaults

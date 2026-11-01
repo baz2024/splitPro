@@ -5,11 +5,11 @@ import { CheckIcon, SendIcon } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import { Button } from '~/components/ui/button';
 import { AppDrawer } from '~/components/ui/drawer';
-import { getInviteErrorToastKey, isInviteEmailSendFailed } from '~/lib/error/invite';
+import { getInviteErrorToastKey, isInviteSendFailed } from '~/lib/error/invite';
+import { getInviteTarget, toInviteFriendInput } from '~/lib/inviteTarget';
 import { api } from '~/utils/api';
 
 import { EntityAvatar } from '../ui/avatar';
@@ -84,34 +84,32 @@ const AddMembers: React.FC<{
     [addMembersMutation, group.id, t, utils],
   );
 
-  const isEmail = z.string().email().safeParse(inputValue);
+  const inviteTarget = getInviteTarget(inputValue);
+  const isValidTarget = 'email' === inviteTarget.kind || 'phone' === inviteTarget.kind;
+  const isPhone = 'phone' === inviteTarget.kind;
+  const invalidTargetLabel =
+    'invalid-phone' === inviteTarget.kind ? t('errors.valid_phone') : t('errors.valid_email');
 
   function onAddEmailClick(invite = false) {
-    if (isEmail.success) {
-      const email = inputValue.toLowerCase();
+    if ('email' === inviteTarget.kind || 'phone' === inviteTarget.kind) {
+      const target = inviteTarget;
       const addUserToGroup = (user: { id: number }) => onSave({ ...userIds, [user.id]: true });
 
-      addFriendMutation.mutate(
-        { email, sendInviteEmail: invite },
-        {
-          onSuccess: addUserToGroup,
-          onError: (err) => {
-            const appErrorCode = err.data?.appErrorCode;
-            toast.error(t(getInviteErrorToastKey(appErrorCode)));
+      addFriendMutation.mutate(toInviteFriendInput(target, invite), {
+        onSuccess: addUserToGroup,
+        onError: (err) => {
+          const appErrorCode = err.data?.appErrorCode;
+          toast.error(t(getInviteErrorToastKey(appErrorCode)));
 
-            // The friend row already exists whenever this router throws, so retry the group-add.
-            if (isInviteEmailSendFailed(appErrorCode)) {
-              addFriendMutation.mutate(
-                { email, sendInviteEmail: false },
-                {
-                  onSuccess: addUserToGroup,
-                  onError: () => toast.error(t('errors.add_member_failed')),
-                },
-              );
-            }
-          },
+          // The friend row already exists whenever this router throws, so retry the group-add.
+          if (isInviteSendFailed(appErrorCode)) {
+            addFriendMutation.mutate(toInviteFriendInput(target, false), {
+              onSuccess: addUserToGroup,
+              onError: () => toast.error(t('errors.add_member_failed')),
+            });
+          }
         },
-      );
+      });
     }
   }
 
@@ -154,25 +152,27 @@ const AddMembers: React.FC<{
             <Button
               className="mt-4 w-full text-cyan-500"
               variant="outline"
-              disabled={!isEmail.success}
+              disabled={!isValidTarget}
               onClick={() => onAddEmailClick(true)}
             >
               <SendIcon className="me-2 h-4 w-4" />
-              {isEmail.success
-                ? t('group_details.no_members.add_members_details.send_invite')
-                : t('errors.valid_email')}
+              {isValidTarget
+                ? isPhone
+                  ? t('group_details.no_members.add_members_details.send_invite_sms')
+                  : t('group_details.no_members.add_members_details.send_invite')
+                : invalidTargetLabel}
             </Button>
           )}
           <Button
             className="mt-4 w-full text-cyan-500"
             variant="outline"
-            disabled={!isEmail.success}
+            disabled={!isValidTarget}
             onClick={() => onAddEmailClick(false)}
           >
             <UserPlusIcon className="me-2 h-4 w-4" />
-            {isEmail.success
+            {isValidTarget
               ? t('group_details.no_members.add_members_details.add_to_split_pro')
-              : t('errors.valid_email')}
+              : invalidTargetLabel}
           </Button>
         </div>
       </div>
