@@ -6,6 +6,7 @@ import {
   listDetectedSubscriptions,
   serializeDetectedSubscription,
 } from '~/server/agent/detectedSubscriptions';
+import { loadUsage } from '~/server/agent/usage';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 
 const DETECTED_STATUSES = ['PENDING', 'ADDED', 'DISMISSED'] as const;
@@ -101,4 +102,10 @@ export const agentRouter = createTRPCRouter({
       const row = await ctx.db.detectedSubscription.findUniqueOrThrow({ where: { id: input.id } });
       return serializeDetectedSubscription(row);
     }),
+
+  usage: protectedProcedure
+    .input(z.object({ groupId: z.number().int().positive().optional() }).optional())
+    .query(async ({ ctx, input }) =>
+      loadUsage(ctx.db, ctx.session.user.id, { groupId: input?.groupId }),
+    ),
 });

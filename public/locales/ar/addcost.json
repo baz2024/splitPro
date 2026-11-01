@@ -1,0 +1,52 @@
+{
+  "title": "إضافة تكلفة",
+  "cancel": "إلغاء",
+  "type_label": "نوع التكلفة",
+  "types": {
+    "subscription": "اشتراك",
+    "usage": "استخدام API",
+    "oneoff": "مرة واحدة"
+  },
+  "service": {
+    "heading": "الخدمة",
+    "other": "أخرى",
+    "other_name": "اسم الخدمة",
+    "other_placeholder": "مثل Linear",
+    "category": "الفئة"
+  },
+  "fields": {
+    "plan": "الخطة",
+    "plan_placeholder": "مثل Pro",
+    "price": "السعر",
+    "amount": "المبلغ",
+    "billing": "الفوترة",
+    "monthly": "شهريًا",
+    "yearly": "سنويًا",
+    "next_renewal": "التجديد القادم",
+    "month": "الشهر",
+    "paid_by_split": "الدافع · التقسيم"
+  },
+  "split": {
+    "title": "الدافع · التقسيم",
+    "done": "تم",
+    "personal": "أنت فقط",
+    "personal_hint": "اتركها لك وحدك، أو أضف صديقًا أو مجموعة أو مشروعًا لتقسيمها.",
+    "summary": "{payer} · {split}"
+  },
+  "footnote": {
+    "subscription": "تُحفظ هذه الدفعة وتتكرر {cadence, select, yearly {كل سنة} other {كل شهر}} في يوم التجديد.",
+    "usage": "تُحفظ كتكلفة لمرة واحدة لذلك الشهر.",
+    "budget": "تُحتسب ضمن ميزانية {project} لشهر {month}"
+  },
+  "actions": {
+    "save_subscription": "حفظ الاشتراك",
+    "save_usage": "حفظ استخدام API"
+  },
+  "saved": {
+    "subscription": "تم حفظ الاشتراك",
+    "usage": "تم حفظ استخدام API"
+  },
+  "errors": {
+    "save_failed": "تعذّر حفظ هذه التكلفة. يُرجى المحاولة مرة أخرى."
+  }
+}

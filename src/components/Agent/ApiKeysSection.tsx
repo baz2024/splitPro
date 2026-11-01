@@ -11,6 +11,10 @@ import { CopyField } from './CopyField';
 
 const MAX_KEY_NAME_LENGTH = 100;
 
+/** DOM ids the Agents page uses to scroll to and focus the create-key form. */
+export const API_KEYS_SECTION_ID = 'agent-api-keys';
+export const API_KEY_NAME_INPUT_ID = 'agent-api-key-name';
+
 interface CreatedKey {
   id: string;
   name: string;
@@ -66,7 +70,7 @@ export const ApiKeysSection: React.FC = () => {
   };
 
   return (
-    <Card variant="secondary">
+    <Card variant="secondary" id={API_KEYS_SECTION_ID} className="scroll-mt-4">
       <Card.Header>
         <Card.Title className="flex items-center gap-2">
           <KeyRound className="text-accent size-4" aria-hidden />
@@ -77,6 +81,7 @@ export const ApiKeysSection: React.FC = () => {
       <Card.Content className="flex flex-col gap-4">
         <form onSubmit={onCreate} className="flex items-center gap-2">
           <Input
+            id={API_KEY_NAME_INPUT_ID}
             aria-label={t('agents.keys.name_label')}
             placeholder={t('agents.keys.name_placeholder')}
             value={name}

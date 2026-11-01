@@ -1,0 +1,36 @@
+{
+  "title": "Agents & API usage",
+  "back": "Back to account",
+  "loading": "Loading usage…",
+  "error": "Couldn't load usage. Try again later.",
+  "summary": {
+    "spend_label": "AI spend this month",
+    "cap_label": "AI cap · {project}",
+    "cap_label_no_project": "AI cap",
+    "no_cap": "No AI cap",
+    "set_cap": "Set a cap",
+    "ring_label": "AI spend is {percent} percent of the {cap} AI cap",
+    "excluded_currencies": "Spend in {currencies} isn't included. Amounts aren't converted."
+  },
+  "spent_by": {
+    "title": "Spent by",
+    "amount_header": "This month",
+    "agent_sub": "agent · {services}",
+    "empty": "No AI or developer spend this month yet. Expenses in Tech & AI categories show up here."
+  },
+  "warning": {
+    "over_cap": "AI spend is {over} over the {cap} cap.",
+    "near_cap": "AI spend has used {percent}% of the {cap} cap."
+  },
+  "connected": {
+    "title": "Connected",
+    "kafo_ai": "Kafo AI",
+    "budget_source": "Budget source",
+    "set_budget": "Set a budget",
+    "vercel": "Vercel",
+    "connect": "Connect",
+    "connect_label": "Connect {service} billing (coming soon)",
+    "soon": "Soon"
+  },
+  "add_agent": "Add agent & get token"
+}

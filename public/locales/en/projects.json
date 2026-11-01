@@ -1,0 +1,90 @@
+{
+  "title": "Projects",
+  "back": "Back",
+  "settings": "Project settings",
+  "list": {
+    "intro": "Every group is a project. Set a monthly budget to see what is left to spend.",
+    "empty": "No projects yet. Create a group to start tracking a project budget.",
+    "create_group": "Create a group",
+    "left_of": "{left} left of {budget}",
+    "over_by": "{amount} over {budget}",
+    "spent_no_budget": "{spent} spent this month",
+    "set_budget": "Set a budget",
+    "days_left": "{count, plural, =0 {Last day of the month} one {# day left} other {# days left}}",
+    "members": "{count, plural, one {# person} other {# people}}"
+  },
+  "status": {
+    "manual": "Budget set manually",
+    "on_track": "On track",
+    "at_risk": "At risk",
+    "over": "Over budget",
+    "month_budget": "{month} budget",
+    "month_spending": "{month} spending"
+  },
+  "gauge": {
+    "left_to_spend": "Left to spend",
+    "over_by": "Over by",
+    "of_budget": "of {budget} · {days}",
+    "aria": "{percent} percent of the monthly budget spent"
+  },
+  "stats": {
+    "spent": "Spent this month",
+    "renewals": "Renewals due",
+    "renewals_value": "{amount} · {count}",
+    "renewals_none": "None this week",
+    "renewals_hint": "Recurring costs due in the next 7 days",
+    "safe_to_spend": "Safe to spend",
+    "per_day": "{amount} / day",
+    "other_currencies": "Costs in other currencies are not included in these totals."
+  },
+  "where": {
+    "title": "Where it goes",
+    "details": "Details",
+    "subscriptions": "Subscriptions",
+    "api_usage": "API usage",
+    "agent_runs": "Agent runs",
+    "other": "Other",
+    "empty": "Nothing spent yet this month."
+  },
+  "people": {
+    "summary": "{people, plural, one {# person} other {# people}} · {agents, plural, =0 {no agents} one {# agent} other {# agents}}",
+    "manage": "Manage",
+    "agent": "Agent"
+  },
+  "actions": {
+    "subscriptions": "Subscriptions",
+    "add_cost": "Add cost"
+  },
+  "today": {
+    "title": "Today",
+    "empty": "Nothing added today.",
+    "paid_by": "{name} paid · {source}",
+    "receipt": "receipt",
+    "manual": "manual",
+    "recurring": "Recurring",
+    "saved": "Expense saved"
+  },
+  "empty_budget": {
+    "title": "No monthly budget yet",
+    "description": "Set a budget to see what is left, your daily safe-to-spend and whether you are on track.",
+    "cta": "Set monthly budget"
+  },
+  "budget_sheet": {
+    "title": "Monthly budget",
+    "row_label": "Monthly budget",
+    "not_set": "Not set",
+    "amount": "Amount per month",
+    "amount_placeholder": "2000",
+    "currency": "Currency",
+    "hint": "Only costs in this currency count towards the budget.",
+    "save": "Save",
+    "remove": "Remove budget",
+    "saved": "Budget saved",
+    "removed": "Budget removed",
+    "invalid": "Enter a positive amount, for example 2000 or 2000.50",
+    "failed": "Could not save the budget"
+  },
+  "errors": {
+    "load_failed": "Could not load this project."
+  }
+}

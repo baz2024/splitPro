@@ -1,163 +1,242 @@
-import { Alert, Card, Input } from '@heroui/react';
-import { AlertTriangle, ImageIcon, Pencil, RefreshCcwDot } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ImageIcon, RefreshCcwDot, Sparkles } from 'lucide-react';
 import React from 'react';
 
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
+import { type CurrencyCode } from '~/lib/currency';
 import { cn } from '~/lib/utils';
 import { useAddExpenseStore } from '~/store/addStore';
 import { toImageSrc } from '~/utils/imageUpload';
 
-import { CategoryPicker } from '../CategoryPicker';
-import { DateSelector } from '../DateSelector';
 import { RecurrenceInput } from '../RecurrenceInput';
-import { UploadFile } from '../UploadFile';
 import { PaidBySentence } from './PaidBySentence';
+import { CategorySheet, CurrencySheet, DatePopover, categoryLabel } from './journeyPickers';
+import { GroupedRows, RowButton, ValueRow } from './journeyUi';
 import { type ScanField } from './receiptScan';
 
-const FlagHint: React.FC<{ show: boolean }> = ({ show }) => {
-  const { t } = useTranslationWithUtils();
-  if (!show) {
-    return null;
-  }
+/** Description row with an inline, end-aligned text field. */
+export const DescriptionRow: React.FC<{
+  label: string;
+  placeholder: string;
+  flagged?: boolean;
+}> = ({ label, placeholder, flagged = false }) => {
+  const description = useAddExpenseStore((s) => s.description);
+  const { setDescription } = useAddExpenseStore((s) => s.actions);
+  const id = React.useId();
+
   return (
-    <span className="text-warning flex shrink-0 items-center gap-1 text-xs font-medium">
-      <AlertTriangle className="size-3.5" aria-hidden />
-      {t('add_journey.review.check')}
-    </span>
+    <div
+      className={cn(
+        'focus-within:ring-focus flex min-h-13 items-center justify-between gap-3 px-4 py-1 text-sm focus-within:ring-2 focus-within:ring-inset',
+        flagged && 'bg-warning/10',
+      )}
+    >
+      <label htmlFor={id} className="text-muted shrink-0">
+        {label}
+      </label>
+      <input
+        id={id}
+        value={description}
+        placeholder={placeholder}
+        onChange={(e) => setDescription(e.target.value)}
+        className="text-foreground placeholder:text-muted min-h-11 min-w-0 flex-1 bg-transparent text-end font-medium outline-none"
+      />
+    </div>
   );
 };
 
-const Row: React.FC<{ label: string; flagged?: boolean; children: React.ReactNode }> = ({
+/** Category row opening the category sheet. */
+export const CategoryRow: React.FC<{ label: string; flagged?: boolean }> = ({
   label,
   flagged = false,
-  children,
-}) => (
-  <div
-    className={cn(
-      'flex min-h-14 items-center justify-between gap-3 px-4 py-2',
-      flagged && 'bg-warning/10',
-    )}
-  >
-    <span className="text-muted w-24 shrink-0 text-sm">{label}</span>
-    <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{children}</div>
-    <FlagHint show={flagged} />
-  </div>
-);
+}) => {
+  const { t } = useTranslationWithUtils(['common', 'categories']);
+  const category = useAddExpenseStore((s) => s.category);
+  const { setCategory } = useAddExpenseStore((s) => s.actions);
+
+  return (
+    <CategorySheet
+      category={category}
+      onPick={setCategory}
+      trigger={
+        <RowButton label={label} flagged={flagged}>
+          {categoryLabel(t, category)}
+        </RowButton>
+      }
+    />
+  );
+};
+
+/** Small accent link that opens the existing recurrence sheet. */
+export const RepeatLink: React.FC = () => {
+  const { t } = useTranslationWithUtils();
+  const cronExpression = useAddExpenseStore((s) => s.cronExpression);
+
+  return (
+    <RecurrenceInput>
+      <button
+        type="button"
+        className={cn(
+          'focus-visible:ring-focus flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm outline-none focus-visible:ring-2',
+          cronExpression ? 'text-accent font-medium' : 'text-muted',
+        )}
+      >
+        <RefreshCcwDot className="size-4" aria-hidden />
+        {cronExpression ? t('add_journey.review.repeat_on') : t('add_journey.review.repeat_off')}
+      </button>
+    </RecurrenceInput>
+  );
+};
 
 /**
- * Screen 3 (scan review) and screen 4b (manual details). Edits the shared add store directly.
+ * Screen 3: "Review expense" after a scan. Edits the shared add store directly.
  */
 export const ExpenseDetailsStep: React.FC<{
   lowConfidenceFields?: ScanField[];
   note?: string | null;
   receiptPreviewUrl?: string | null;
+  fromPhoto?: boolean;
   onEditAmount: () => void;
   onSplitPress: () => void;
-}> = ({ lowConfidenceFields = [], note, receiptPreviewUrl, onEditAmount, onSplitPress }) => {
-  const { t, getCurrencyHelpersCached } = useTranslationWithUtils();
+  onCurrencyPick: (currency: CurrencyCode | null) => void;
+}> = ({
+  lowConfidenceFields = [],
+  note,
+  receiptPreviewUrl,
+  fromPhoto = false,
+  onEditAmount,
+  onSplitPress,
+  onCurrencyPick,
+}) => {
+  const { t, toUIDate, getCurrencyHelpersCached } = useTranslationWithUtils();
   const amount = useAddExpenseStore((s) => s.amount);
   const isNegative = useAddExpenseStore((s) => s.isNegative);
   const currency = useAddExpenseStore((s) => s.currency);
   const description = useAddExpenseStore((s) => s.description);
-  const category = useAddExpenseStore((s) => s.category);
   const expenseDate = useAddExpenseStore((s) => s.expenseDate);
   const fileKey = useAddExpenseStore((s) => s.fileKey);
+  const group = useAddExpenseStore((s) => s.group);
   const isFileUploading = useAddExpenseStore((s) => s.isFileUploading);
-  const cronExpression = useAddExpenseStore((s) => s.cronExpression);
-  const { setDescription, setCategory, setExpenseDate } = useAddExpenseStore((s) => s.actions);
+  const { setExpenseDate } = useAddExpenseStore((s) => s.actions);
 
   const flagged = new Set(lowConfidenceFields);
-  const hasWarning = 0 < flagged.size || Boolean(note);
-  const amountFlagged = flagged.has('amount') || flagged.has('currency');
+  const amountFlagged = flagged.has('amount');
   const receiptSrc = receiptPreviewUrl ?? toImageSrc(fileKey);
+  const warning =
+    note ??
+    (0 < flagged.size
+      ? t('add_journey.review.warning_pill', {
+          fields: [...flagged].map((field) => t(`add_journey.review.fields.${field}`)).join(', '),
+        })
+      : null);
 
   return (
     <div className="flex flex-col gap-4">
-      <button
-        type="button"
-        onClick={onEditAmount}
-        className={cn(
-          'bg-surface border-border flex flex-col items-center gap-1 rounded-2xl border px-4 py-5',
-          amountFlagged && 'border-warning',
-        )}
-        aria-label={t('add_journey.review.edit_amount')}
-      >
-        <span className="text-muted flex items-center gap-1 text-xs">
-          {currency}
-          <Pencil className="size-3" aria-hidden />
-        </span>
-        <span dir="ltr" className="text-foreground text-4xl font-semibold tabular-nums">
-          {getCurrencyHelpersCached(currency).toUIString(amount * (isNegative ? -1n : 1n), true)}
-        </span>
-        <FlagHint show={amountFlagged} />
-      </button>
-
-      {hasWarning ? (
-        <Alert status="warning">
-          <Alert.Indicator />
-          <Alert.Content>
-            <Alert.Title>{t('add_journey.review.warning_title')}</Alert.Title>
-            <Alert.Description>
-              {note ?? t('add_journey.review.warning_fields')}
-              {0 < flagged.size ? (
-                <span className="mt-1 block text-xs">
-                  {[...flagged].map((field) => t(`add_journey.review.fields.${field}`)).join(', ')}
-                </span>
-              ) : null}
-            </Alert.Description>
-          </Alert.Content>
-        </Alert>
-      ) : null}
-
-      <Card className="divide-border divide-y p-0">
-        <Row label={t('add_journey.review.fields.merchant')} flagged={flagged.has('merchant')}>
-          <Input
-            aria-label={t('add_journey.review.fields.merchant')}
-            placeholder={t('expense_details.add_expense_details.description_placeholder')}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="min-h-11 w-full text-end"
-            variant="secondary"
-          />
-        </Row>
-        <Row label={t('add_journey.review.fields.category')} flagged={flagged.has('category')}>
-          <CategoryPicker category={category} onCategoryPick={setCategory} />
-        </Row>
-        <Row label={t('add_journey.review.fields.date')} flagged={flagged.has('date')}>
-          <DateSelector mode="single" required selected={expenseDate} onSelect={setExpenseDate} />
-        </Row>
-        <Row label={t('add_journey.review.receipt')}>
+      <div className="flex items-start gap-4">
+        <div className="bg-surface-secondary border-border flex h-28 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border">
           {receiptSrc ? (
             // oxlint-disable-next-line next/no-img-element -- local blob/preview URLs
             <img
               src={receiptSrc}
               alt={t('expense_details.receipt.thumbnail_alt')}
-              className={cn('size-10 rounded-md object-cover', isFileUploading && 'opacity-50')}
+              className={cn('size-full object-cover', isFileUploading && 'opacity-50')}
             />
           ) : (
-            <ImageIcon className="text-muted size-5" aria-hidden />
+            <ImageIcon className="text-muted size-6" aria-hidden />
           )}
-          <UploadFile />
-        </Row>
-        <Row label={t('add_journey.review.repeat')}>
-          <RecurrenceInput>
-            <button
-              type="button"
-              className="flex min-h-11 items-center gap-2 text-sm"
-              aria-label={t('recurrence.toggle_options')}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
+          <button
+            type="button"
+            onClick={onEditAmount}
+            aria-label={t('add_journey.review.edit_amount')}
+            className={cn(
+              'focus-visible:ring-focus min-h-11 rounded-lg text-start outline-none focus-visible:ring-2',
+              amountFlagged && 'text-warning',
+            )}
+          >
+            <span dir="ltr" className="text-4xl font-bold tracking-tight tabular-nums">
+              {getCurrencyHelpersCached(currency).toUIString(
+                amount * (isNegative ? -1n : 1n),
+                true,
+              )}
+            </span>
+          </button>
+          <p className="text-muted flex min-w-0 flex-wrap items-center gap-x-1 text-sm">
+            <span className="truncate">
+              {description.trim() || t('add_journey.review.untitled')}
+            </span>
+            <span aria-hidden>·</span>
+            <DatePopover
+              date={expenseDate}
+              onPick={setExpenseDate}
+              trigger={
+                <button
+                  type="button"
+                  aria-label={`${t('add_journey.review.edit_date')}: ${toUIDate(expenseDate, { year: true })}`}
+                  className={cn(
+                    'focus-visible:ring-focus min-h-11 rounded-md underline-offset-4 outline-none hover:underline focus-visible:ring-2',
+                    flagged.has('date') && 'text-warning',
+                  )}
+                >
+                  {toUIDate(expenseDate, { year: true })}
+                </button>
+              }
+            />
+          </p>
+          {fromPhoto ? (
+            <span className="text-accent flex items-center gap-1 text-xs font-medium">
+              <Sparkles className="size-3" aria-hidden />
+              {t('add_journey.review.filled_from_photo')}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <GroupedRows>
+        <DescriptionRow
+          label={t('add_journey.review.fields.merchant')}
+          placeholder={t('expense_details.add_expense_details.description_placeholder')}
+          flagged={flagged.has('merchant')}
+        />
+        <CategoryRow
+          label={t('add_journey.review.fields.category')}
+          flagged={flagged.has('category')}
+        />
+        <ValueRow label={t('add_journey.review.project')}>
+          {group ? (
+            <span className="truncate">{group.name}</span>
+          ) : (
+            <span className="text-muted font-normal">{t('add_journey.review.no_project')}</span>
+          )}
+        </ValueRow>
+        <CurrencySheet
+          currency={currency}
+          onPick={onCurrencyPick}
+          trigger={
+            <RowButton
+              label={t('add_journey.review.fields.currency')}
+              flagged={flagged.has('currency')}
             >
-              <RefreshCcwDot
-                className={cn('size-5', cronExpression ? 'text-accent' : 'text-muted')}
-              />
-              <span className={cronExpression ? 'text-foreground' : 'text-muted'}>
-                {cronExpression
-                  ? t('add_journey.review.repeat_on')
-                  : t('add_journey.review.repeat_off')}
-              </span>
-            </button>
-          </RecurrenceInput>
-        </Row>
-      </Card>
+              {currency}
+              <ChevronDown className="text-muted size-4" aria-hidden />
+            </RowButton>
+          }
+        />
+      </GroupedRows>
+
+      {warning ? (
+        <div
+          role="status"
+          className="border-warning/40 bg-warning/10 text-warning flex items-center gap-3 rounded-xl border px-4 py-3 text-sm"
+        >
+          <AlertTriangle className="size-4 shrink-0" aria-hidden />
+          <span>{warning}</span>
+        </div>
+      ) : null}
+
+      <div className="flex justify-end">
+        <RepeatLink />
+      </div>
 
       <PaidBySentence onSplitPress={onSplitPress} />
     </div>

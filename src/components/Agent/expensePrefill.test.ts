@@ -47,6 +47,7 @@ describe('expensePrefill', () => {
         description: 'OpenAI API',
         category: 'aiApis',
         cost: { amount: 2000n, currency: 'USD' },
+        detectedSubscriptionId: 'det_1',
       });
     });
 
@@ -74,6 +75,17 @@ describe('expensePrefill', () => {
       expect(state.currency).toBe('USD');
       expect(state.amount).toBe(2000n);
       expect(state.amountStr).toBe('2000');
+      expect(state.detectedSubscriptionId).toBe('det_1');
+    });
+
+    it('should keep the detected subscription id through a store reset until released', () => {
+      const release = holdExpensePrefill(toExpensePrefill(ITEM), formatAmount);
+      useAddExpenseStore.getState().actions.resetState();
+      expect(useAddExpenseStore.getState().detectedSubscriptionId).toBe('det_1');
+
+      release();
+      useAddExpenseStore.getState().actions.resetState();
+      expect(useAddExpenseStore.getState().detectedSubscriptionId).toBeUndefined();
     });
 
     it('should survive the add page resetting the store and picking a currency', () => {

@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "projects": "Projects"
+  },
+  "title": "Subscriptions",
+  "back": "Back",
+  "add": "Add subscription",
+  "run_rate": {
+    "label": "Monthly run-rate",
+    "budget_share": "{percent}% of project budget",
+    "other_currencies": "Also {amounts}",
+    "empty": "No recurring costs yet"
+  },
+  "active": {
+    "label": "Active"
+  },
+  "tabs": {
+    "label": "Filter subscriptions",
+    "upcoming": "Upcoming",
+    "by_cycle": "By cycle",
+    "usage": "Usage-based"
+  },
+  "sections": {
+    "next_7_days": "Next 7 days",
+    "usage_this_month": "Usage-based · this month"
+  },
+  "cycle": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "weekly": "Weekly",
+    "other": "Other schedules"
+  },
+  "row": {
+    "due": "{days, plural, =0 {Renews today} =1 {Renews tomorrow} other {In # days}}",
+    "due_unknown": "Next date unavailable",
+    "paid_by": "paid by {name}",
+    "paid_by_you": "paid by you",
+    "split": "{ways, plural, other {split # ways}}",
+    "personal": "personal",
+    "per_month": "{amount}/mo",
+    "per_year": "{amount}/yr",
+    "per_week": "{amount}/wk",
+    "open": "Open {name}"
+  },
+  "usage": {
+    "vs_last_month": "{change} vs {month}",
+    "new_this_month": "New this month",
+    "source": "From your logged expenses"
+  },
+  "empty": {
+    "upcoming": "Nothing renews in the next 7 days.",
+    "subscriptions": "No subscriptions yet. Add a recurring cost to see renewals here.",
+    "usage": "No usage-based costs logged this month. Add API, hosting or database bills to compare months.",
+    "add_cta": "Add a subscription"
+  },
+  "connect": {
+    "text": "Connect Vercel or Supabase billing to track usage automatically",
+    "soon": "Billing sync coming soon",
+    "cta": "Connect"
+  },
+  "error": "Couldn't load subscriptions.",
+  "retry": "Try again"
+}

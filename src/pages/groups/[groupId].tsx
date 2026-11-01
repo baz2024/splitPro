@@ -30,6 +30,7 @@ import { AppDrawer } from '~/components/ui/drawer';
 import { Label } from '~/components/ui/label';
 import { SimpleConfirmationDialog } from '~/components/SimpleConfirmationDialog';
 import { DefaultSplitSettings } from '~/components/DefaultSplit/DefaultSplitSettings';
+import { GroupBudgetRow } from '~/components/Project/GroupBudgetRow';
 import { Switch } from '~/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { UpdateName } from '~/components/Account/UpdateDetails';
@@ -334,6 +335,14 @@ const BalancePage: NextPageWithUser<{
                   />
                 </div>
 
+                <GroupBudgetRow
+                  groupId={groupId}
+                  budget={groupDetailQuery.data?.budgetAmount ?? null}
+                  budgetCurrency={groupDetailQuery.data?.budgetCurrency ?? null}
+                  defaultCurrency={groupDetailQuery.data?.defaultCurrency ?? null}
+                  disabled={isArchived || !groupDetailQuery.data}
+                />
+
                 <div className="mt-6">
                   <p className="font-semibold">{t('group_details.group_info.default_split')}</p>
                   <div className="mt-2 flex items-center gap-2">
@@ -606,7 +615,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      ...(await customServerSideTranslations(context.locale, ['common', 'currencies'])),
+      ...(await customServerSideTranslations(context.locale, ['common', 'currencies', 'projects'])),
       enableSendingInvites: env.ENABLE_SENDING_INVITES,
     },
   };

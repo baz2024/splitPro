@@ -1,0 +1,52 @@
+{
+  "title": "Add cost",
+  "cancel": "Cancel",
+  "type_label": "Cost type",
+  "types": {
+    "subscription": "Subscription",
+    "usage": "API usage",
+    "oneoff": "One-off"
+  },
+  "service": {
+    "heading": "Service",
+    "other": "Other",
+    "other_name": "Service name",
+    "other_placeholder": "e.g. Linear",
+    "category": "Category"
+  },
+  "fields": {
+    "plan": "Plan",
+    "plan_placeholder": "e.g. Pro",
+    "price": "Price",
+    "amount": "Amount",
+    "billing": "Billing",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "next_renewal": "Next renewal",
+    "month": "Month",
+    "paid_by_split": "Paid by · split"
+  },
+  "split": {
+    "title": "Paid by · split",
+    "done": "Done",
+    "personal": "Just you",
+    "personal_hint": "Leave it as just you, or add a friend, group or project to split it.",
+    "summary": "{payer} · {split}"
+  },
+  "footnote": {
+    "subscription": "Saves this charge and repeats it {cadence, select, yearly {every year} other {every month}} on the renewal day.",
+    "usage": "Saved as a one-off cost for that month.",
+    "budget": "Counts toward the {project} {month} budget"
+  },
+  "actions": {
+    "save_subscription": "Save subscription",
+    "save_usage": "Save API usage"
+  },
+  "saved": {
+    "subscription": "Subscription saved",
+    "usage": "API usage saved"
+  },
+  "errors": {
+    "save_failed": "Couldn't save this cost. Please try again."
+  }
+}

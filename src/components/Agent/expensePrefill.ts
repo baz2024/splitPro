@@ -14,6 +14,8 @@ export interface ExpensePrefill {
   description: string;
   category: TechCategoryKey;
   cost: { amount: bigint; currency: CurrencyCode } | null;
+  /** The detected subscription this prefill came from; marked ADDED after the expense saves. */
+  detectedSubscriptionId?: string;
 }
 
 /** How long the add page's own initialisation is kept from overwriting the prefill. */
@@ -26,13 +28,16 @@ export const toTechCategory = (value: string): TechCategoryKey =>
   isTechCategoryKey(value) ? value : DEFAULT_TECH_CATEGORY;
 
 export const toExpensePrefill = (
-  item: Pick<DetectedSubscriptionItem, 'service' | 'category' | 'estimatedMonthlyCost'>,
+  item: Pick<DetectedSubscriptionItem, 'service' | 'category' | 'estimatedMonthlyCost'> & {
+    id?: string;
+  },
 ): ExpensePrefill => {
   const description = item.service.trim();
   const category = toTechCategory(item.category);
+  const detectedSubscriptionId = item.id;
   const estimate = item.estimatedMonthlyCost;
   if (!estimate || !isCurrencyCode(estimate.currency)) {
-    return { description, category, cost: null };
+    return { description, category, cost: null, detectedSubscriptionId };
   }
 
   const amount = parseAmountToMinorUnits(estimate.amount, estimate.currency);
@@ -40,12 +45,17 @@ export const toExpensePrefill = (
     description,
     category,
     cost: null === amount ? null : { amount, currency: estimate.currency },
+    detectedSubscriptionId,
   };
 };
 
 const matchesPrefill = (prefill: ExpensePrefill) => {
   const state = useAddExpenseStore.getState();
-  if (prefill.description !== state.description || prefill.category !== state.category) {
+  if (
+    prefill.description !== state.description ||
+    prefill.category !== state.category ||
+    prefill.detectedSubscriptionId !== state.detectedSubscriptionId
+  ) {
     return false;
   }
   if (!prefill.cost) {
@@ -75,6 +85,7 @@ export const holdExpensePrefill = (
     const { actions } = useAddExpenseStore.getState();
     actions.setDescription(prefill.description);
     actions.setCategory(prefill.category);
+    actions.setDetectedSubscriptionId(prefill.detectedSubscriptionId);
     if (!prefill.cost) {
       return;
     }

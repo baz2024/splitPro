@@ -1,5 +1,5 @@
-import { Button, Tabs } from '@heroui/react';
-import { ChevronLeft } from 'lucide-react';
+import { Button } from '@heroui/react';
+import { Camera, PencilLine, Upload } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
@@ -16,10 +16,11 @@ import { isStringQueryParam } from '~/utils/queryParams';
 
 import { AddOrEditExpensePage } from '../AddExpensePage';
 import { AmountKeypad } from './AmountKeypad';
-import { type BudgetSnapshot } from './BudgetBarCard';
 import { ExpenseDetailsStep } from './ExpenseDetailsStep';
-import { ReadingReceipt, ScanCamera } from './ScanCamera';
-import { SplitStep, useNeedsParticipants } from './SplitStep';
+import { type ReadingFields, ReadingReceipt, ScanCamera } from './ScanCamera';
+import { SplitStep, SplitSummaryCard, useNeedsParticipants } from './SplitStep';
+import { categoryLabel } from './journeyPickers';
+import { JourneyHeader, PRIMARY_CTA_CLASS, PinnedFooter, Segmented } from './journeyUi';
 import {
   type ReceiptScanResult,
   type ScanField,
@@ -33,10 +34,12 @@ import {
 } from './receiptScan';
 
 export type AddMode = 'scan' | 'manual' | 'import';
-type Step = 'capture' | 'reading' | 'amount' | 'details' | 'split';
+type Step = 'capture' | 'reading' | 'review' | 'manual' | 'split';
 
 const SCAN_MAX_FILE_SIZE_MB = 1.5;
 const MAX_SCAN_BASE64_LENGTH = 3_900_000;
+/** How long the filled checklist stays on screen before moving on to review. */
+const READ_RESULT_PAUSE_MS = 900;
 
 export const parseAddMode = (value: unknown, allowImport: boolean): AddMode => {
   if ('scan' === value || 'manual' === value) {
@@ -45,22 +48,44 @@ export const parseAddMode = (value: unknown, allowImport: boolean): AddMode => {
   return 'import' === value && allowImport ? 'import' : 'manual';
 };
 
-const firstStep = (mode: AddMode): Step => ('scan' === mode ? 'capture' : 'amount');
+const firstStep = (mode: AddMode): Step => ('scan' === mode ? 'capture' : 'manual');
 
+const MODE_ICONS = {
+  scan: <Camera className="size-4" aria-hidden />,
+  manual: <PencilLine className="size-4" aria-hidden />,
+  import: <Upload className="size-4" aria-hidden />,
+} as const satisfies Record<AddMode, React.ReactNode>;
+
+const TITLE_KEYS = {
+  capture: 'add_journey.titles.scan',
+  reading: 'add_journey.titles.reading',
+  review: 'add_journey.titles.review',
+  manual: 'add_journey.titles.amount',
+  split: 'add_journey.titles.split',
+} as const satisfies Record<Step, string>;
+
+/**
+ * Add-expense journey (Figma screens 1–5): Scan → Reading receipt → Review expense → Split
+ * expense, or Manual → Split expense. Import reuses the classic add page.
+ */
 export const AddExpenseJourney: React.FC<{
   enableSendingInvites: boolean;
   bankConnectionEnabled: boolean;
-  budget?: BudgetSnapshot;
-}> = ({ enableSendingInvites, bankConnectionEnabled, budget }) => {
-  const { t, getCurrencyHelpersCached } = useTranslationWithUtils();
+}> = ({ enableSendingInvites, bankConnectionEnabled }) => {
+  const { t, displayName, getCurrencyHelpersCached } = useTranslationWithUtils([
+    'common',
+    'categories',
+  ]);
   const router = useRouter();
   const { update } = useSession();
+  const utils = api.useUtils();
 
   const [mode, setMode] = useState<AddMode>(() =>
     parseAddMode(router.query.mode, bankConnectionEnabled),
   );
   const [step, setStep] = useState<Step>(() => firstStep(mode));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [readingFields, setReadingFields] = useState<ReadingFields | null>(null);
   const [scanFlags, setScanFlags] = useState<{ fields: ScanField[]; note: string | null }>({
     fields: [],
     note: null,
@@ -85,6 +110,7 @@ export const AddExpenseJourney: React.FC<{
 
   const scanMutation = useReceiptScanMutation();
   const addExpenseMutation = api.expense.addOrEditExpense.useMutation();
+  const markDetectedAdded = api.agent.markDetectedSubscriptionAdded.useMutation();
   const updateProfile = api.user.updateUserDetail.useMutation();
 
   useEffect(
@@ -106,13 +132,11 @@ export const AddExpenseJourney: React.FC<{
       .catch(console.error);
   };
 
-  const onModeTab = (key: React.Key) => {
-    const next = parseAddMode(key, bankConnectionEnabled);
+  const onModeTab = (next: AddMode) => {
     if (next === mode) {
       return;
     }
-    // Keep what was typed: go straight to details if an amount already exists.
-    changeMode(next, 'manual' === next && 0n !== amount ? 'details' : firstStep(next));
+    changeMode(next);
   };
 
   const onCurrencyPick = (currency: CurrencyCode | null) => {
@@ -142,7 +166,17 @@ export const AddExpenseJourney: React.FC<{
     }
   };
 
-  const applyScanResult = (result: ReceiptScanResult) => {
+  const attachReceipt = async (file: File) => {
+    let prepared = file;
+    try {
+      prepared = await prepareImageForUpload(file, maxUploadFileSizeMB);
+    } catch (error) {
+      console.error('Compression failed:', error);
+    }
+    await uploadReceipt(prepared);
+  };
+
+  const applyScanResult = (result: ReceiptScanResult): ReadingFields => {
     if (result.merchant) {
       setDescription(result.merchant.trim());
     }
@@ -152,8 +186,8 @@ export const AddExpenseJourney: React.FC<{
     }
     const helpers = getCurrencyHelpersCached(currency ?? useAddExpenseStore.getState().currency);
     const scannedAmount = parseScanAmount(result.amount);
-    if (null !== scannedAmount) {
-      const value = helpers.toSafeBigInt(scannedAmount);
+    const value = null === scannedAmount ? null : helpers.toSafeBigInt(scannedAmount);
+    if (null !== value) {
       setAmount(value);
       setAmountStr(helpers.toUIString(value, false, true));
     }
@@ -177,15 +211,25 @@ export const AddExpenseJourney: React.FC<{
       fields: [...new Set([...result.lowConfidenceFields, ...missing])],
       note: result.note,
     });
+
+    return {
+      merchant: result.merchant?.trim() || null,
+      total: null === value ? null : helpers.toUIString(value),
+      date: date
+        ? new Intl.DateTimeFormat(router.locale, { dateStyle: 'medium' }).format(date)
+        : null,
+      category: category ? categoryLabel(t, category) : null,
+    };
   };
 
   const fallBackToManual = (message: string) => {
     toast.error(message);
-    changeMode('manual', 'amount');
+    changeMode('manual', 'manual');
   };
 
   const onReceiptPicked = async (file: File) => {
     setPreviewUrl(URL.createObjectURL(file));
+    setReadingFields(null);
     setStep('reading');
 
     let prepared = file;
@@ -214,8 +258,12 @@ export const AddExpenseJourney: React.FC<{
         fallBackToManual(t('add_journey.scan.too_large'));
         return;
       }
-      applyScanResult(await scanMutation.mutateAsync({ imageBase64, mimeType }));
-      setStep('details');
+      setReadingFields(applyScanResult(await scanMutation.mutateAsync({ imageBase64, mimeType })));
+      // Let the filled checklist register before moving on.
+      setTimeout(
+        () => setStep((current) => ('reading' === current ? 'review' : current)),
+        READ_RESULT_PAUSE_MS,
+      );
     } catch (error) {
       console.error('Receipt scan failed:', error);
       fallBackToManual(
@@ -224,19 +272,29 @@ export const AddExpenseJourney: React.FC<{
     }
   };
 
-  const returnToOrigin = () => {
-    const { friendId, groupId } = router.query;
-    if (isStringQueryParam(groupId) && groupId) {
-      return router.push(`/groups/${groupId}`);
-    }
-    if (isStringQueryParam(friendId) && friendId) {
-      return router.push(`/balances/${friendId}`);
+  /** Group with a budget → its project page; otherwise back where the user came from. */
+  const leaveAfterSave = async (groupId: number | undefined) => {
+    if (groupId) {
+      const summary = await utils.project.summary
+        .fetch({ groupId, tzOffset: new Date().getTimezoneOffset() })
+        .catch(() => null);
+      if (summary && null !== summary.budget) {
+        await router.push(`/projects/${groupId}`);
+        return;
+      }
     }
     if (1 < window.history.length) {
       router.back();
-      return Promise.resolve(true);
+      return;
     }
-    return router.push('/balances');
+    const { friendId } = router.query;
+    if (groupId) {
+      await router.push(`/groups/${groupId}`);
+      return;
+    }
+    await router.push(
+      isStringQueryParam(friendId) && friendId ? `/balances/${friendId}` : '/balances',
+    );
   };
 
   const saveExpense = async () => {
@@ -247,7 +305,7 @@ export const AddExpenseJourney: React.FC<{
     const sign = state.isNegative ? -1n : 1n;
 
     try {
-      await addExpenseMutation.mutateAsync([
+      const [saved] = await addExpenseMutation.mutateAsync([
         {
           name: state.description,
           currency: state.currency,
@@ -266,26 +324,47 @@ export const AddExpenseJourney: React.FC<{
           cronExpression: state.cronExpression ? cronToBackend(state.cronExpression) : undefined,
         },
       ]);
-      toast.success(t('add_journey.saved'));
+
+      if (state.detectedSubscriptionId && saved) {
+        // The agents inbox item is only marked added once the expense really exists.
+        await markDetectedAdded
+          .mutateAsync({ id: state.detectedSubscriptionId, expenseId: saved.id })
+          .catch(console.error);
+        utils.agent.listDetectedSubscriptions.invalidate().catch(console.error);
+      }
+
+      const others = state.participants.filter((p) => p.id !== state.currentUser?.id);
+      toast.success(
+        t('add_journey.saved_notified', {
+          count: others.length,
+          name: displayName(others[0], state.currentUser?.id),
+        }),
+      );
       update((session: any) => ({
         ...session,
         user: { ...(session?.user ?? {}), currency: state.currency },
       })).catch(console.error);
-      returnToOrigin().catch(console.error);
+      await leaveAfterSave(state.group?.id);
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : t('errors.expense_submission_failed'));
     }
   };
 
-  const onBack = () => {
+  const onLeading = () => {
     if ('split' === step) {
-      setStep('details');
-    } else if ('details' === step) {
-      setStep('scan' === mode ? 'capture' : 'amount');
-    } else {
-      router.back();
+      setStep('scan' === mode ? 'review' : 'manual');
+      return;
     }
+    if ('review' === step || 'reading' === step) {
+      setStep('capture');
+      return;
+    }
+    if ('manual' === step && 'scan' === mode) {
+      setStep('review');
+      return;
+    }
+    router.back();
   };
 
   const canSave =
@@ -296,42 +375,34 @@ export const AddExpenseJourney: React.FC<{
     canSplitScreenClosed &&
     !needsParticipants;
 
-  const titleKey =
-    'import' === mode
-      ? 'actions.add_expense'
-      : {
-          capture: 'add_journey.titles.scan',
-          reading: 'add_journey.titles.reading',
-          amount: 'add_journey.titles.amount',
-          details: 'scan' === mode ? 'add_journey.titles.review' : 'add_journey.titles.details',
-          split: 'add_journey.titles.split',
-        }[step];
+  const isEntryScreen =
+    'import' === mode || 'capture' === step || ('manual' === step && 'manual' === mode);
+  const title = t('import' === mode ? 'actions.add_expense' : TITLE_KEYS[step]);
+  const canGoToSplit = 0n !== amount && '' !== description.trim();
 
   const footer = (() => {
-    if ('amount' === step) {
-      return (
-        <Button fullWidth size="lg" isDisabled={0n === amount} onPress={() => setStep('details')}>
-          {t('actions.next')}
-        </Button>
-      );
+    if ('import' === mode) {
+      return null;
     }
-    if ('details' === step && needsParticipants) {
+    if ('review' === step || 'manual' === step) {
       return (
         <Button
           fullWidth
           size="lg"
-          isDisabled={0n === amount || '' === description.trim()}
+          className={PRIMARY_CTA_CLASS}
+          isDisabled={!canGoToSplit}
           onPress={() => setStep('split')}
         >
-          {t('add_journey.choose_people')}
+          {t('add_journey.next_split')}
         </Button>
       );
     }
-    if ('details' === step || 'split' === step) {
+    if ('split' === step) {
       return (
         <Button
           fullWidth
           size="lg"
+          className={PRIMARY_CTA_CLASS}
           isDisabled={!canSave}
           isPending={addExpenseMutation.isPending || isFileUploading}
           onPress={() => {
@@ -346,6 +417,14 @@ export const AddExpenseJourney: React.FC<{
   })();
 
   const stepContent = (() => {
+    if ('import' === mode) {
+      return (
+        <AddOrEditExpensePage
+          enableSendingInvites={enableSendingInvites}
+          bankConnectionEnabled={bankConnectionEnabled}
+        />
+      );
+    }
     switch (step) {
       case 'capture':
         return (
@@ -356,84 +435,67 @@ export const AddExpenseJourney: React.FC<{
           />
         );
       case 'reading':
-        return <ReadingReceipt previewUrl={previewUrl} />;
-      case 'amount':
-        return <AmountKeypad onCurrencyPick={onCurrencyPick} />;
-      case 'details':
+        return <ReadingReceipt previewUrl={previewUrl} fields={readingFields} />;
+      case 'manual':
+        return (
+          <AmountKeypad
+            onCurrencyPick={onCurrencyPick}
+            onAttach={(file) => {
+              attachReceipt(file).catch(console.error);
+            }}
+          />
+        );
+      case 'review':
         return (
           <ExpenseDetailsStep
-            lowConfidenceFields={'scan' === mode ? scanFlags.fields : []}
-            note={'scan' === mode ? scanFlags.note : null}
+            lowConfidenceFields={scanFlags.fields}
+            note={scanFlags.note}
             receiptPreviewUrl={previewUrl}
-            onEditAmount={() => setStep('amount')}
+            fromPhoto={'scan' === mode}
+            onEditAmount={() => setStep('manual')}
             onSplitPress={() => setStep('split')}
+            onCurrencyPick={onCurrencyPick}
           />
         );
       default:
-        return <SplitStep enableSendingInvites={enableSendingInvites} budget={budget} />;
+        return (
+          <div className="flex flex-col gap-4">
+            <SplitSummaryCard />
+            <SplitStep enableSendingInvites={enableSendingInvites} />
+          </div>
+        );
     }
   })();
 
-  const showModeTabs = 'reading' !== step && 'split' !== step;
+  const modeItems = [
+    { id: 'scan' as const, label: t('add_journey.modes.scan'), icon: MODE_ICONS.scan },
+    { id: 'manual' as const, label: t('add_journey.modes.manual'), icon: MODE_ICONS.manual },
+    ...(bankConnectionEnabled
+      ? [{ id: 'import' as const, label: t('add_journey.modes.import'), icon: MODE_ICONS.import }]
+      : []),
+  ];
 
   return (
     <div className="bg-background text-foreground mx-auto flex min-h-full w-full max-w-md flex-col gap-4 pb-28">
-      <header className="flex items-center justify-between gap-2">
-        <Button
-          isIconOnly
-          variant="ghost"
-          className="size-11"
-          aria-label={t('actions.back')}
-          onPress={onBack}
-        >
-          <ChevronLeft className="size-6 rtl:rotate-180" />
-        </Button>
-        <h1 className="text-base font-semibold">{t(titleKey)}</h1>
-        <span className="size-11" aria-hidden />
-      </header>
+      <JourneyHeader
+        title={title}
+        leading={isEntryScreen ? 'close' : 'back'}
+        leadingLabel={isEntryScreen ? t('add_journey.close') : t('actions.back')}
+        onLeading={onLeading}
+      />
 
-      {showModeTabs ? (
-        <Tabs selectedKey={mode} onSelectionChange={onModeTab}>
-          <Tabs.ListContainer>
-            <Tabs.List aria-label={t('add_journey.mode_label')} className="w-full">
-              <Tabs.Tab id="scan" className="min-h-11 flex-1">
-                {t('add_journey.modes.scan')}
-                <Tabs.Indicator />
-              </Tabs.Tab>
-              <Tabs.Tab id="manual" className="min-h-11 flex-1">
-                {t('add_journey.modes.manual')}
-                <Tabs.Indicator />
-              </Tabs.Tab>
-              {bankConnectionEnabled ? (
-                <Tabs.Tab id="import" className="min-h-11 flex-1">
-                  {t('add_journey.modes.import')}
-                  <Tabs.Indicator />
-                </Tabs.Tab>
-              ) : null}
-            </Tabs.List>
-          </Tabs.ListContainer>
-          <Tabs.Panel id="scan">{'scan' === mode ? stepContent : null}</Tabs.Panel>
-          <Tabs.Panel id="manual">{'manual' === mode ? stepContent : null}</Tabs.Panel>
-          {bankConnectionEnabled ? (
-            <Tabs.Panel id="import">
-              {'import' === mode ? (
-                <AddOrEditExpensePage
-                  enableSendingInvites={enableSendingInvites}
-                  bankConnectionEnabled={bankConnectionEnabled}
-                />
-              ) : null}
-            </Tabs.Panel>
-          ) : null}
-        </Tabs>
-      ) : (
-        stepContent
-      )}
-
-      {'import' !== mode && footer ? (
-        <div className="bg-background/95 border-border fixed inset-x-0 bottom-0 z-20 border-t px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] backdrop-blur">
-          <div className="mx-auto max-w-md">{footer}</div>
-        </div>
+      {isEntryScreen ? (
+        <Segmented
+          ariaLabel={t('add_journey.mode_label')}
+          items={modeItems}
+          selected={mode}
+          onChange={onModeTab}
+        />
       ) : null}
+
+      {stepContent}
+
+      {footer ? <PinnedFooter>{footer}</PinnedFooter> : null}
     </div>
   );
 };

@@ -422,7 +422,8 @@
     "add_expense": "Add Expense",
     "recurring": "Recurring",
     "balances": "Balances",
-    "groups": "Groups"
+    "groups": "Groups",
+    "projects": "Projects"
   },
   "recurrence": {
     "title": "Recurrence",
@@ -593,15 +594,15 @@
       "import": "Import"
     },
     "titles": {
-      "scan": "Scan receipt",
+      "scan": "Add expense",
       "reading": "Reading receipt",
-      "review": "Check the details",
+      "review": "Review expense",
       "amount": "Add expense",
       "details": "Expense details",
-      "split": "Split"
+      "split": "Split expense"
     },
     "scan": {
-      "frame_title": "Fit the whole receipt in the frame",
+      "frame_title": "Fit the receipt inside the frame",
       "frame_hint": "Kafo AI reads the total, date and shop for you.",
       "shutter": "Take photo",
       "gallery": "Choose from photos",
@@ -610,14 +611,32 @@
       "reading_hint": "This takes a few seconds.",
       "unsupported": "This photo type can't be scanned. Enter the details by hand.",
       "too_large": "This photo is too large to scan. Enter the details by hand.",
-      "failed": "Couldn't read the receipt. Enter the details by hand."
+      "failed": "Couldn't read the receipt. Enter the details by hand.",
+      "frame_chip": "AI fills amount, date and merchant",
+      "flash": "Flash is set in your camera app",
+      "reading_row": "Reading…",
+      "not_found": "Not found",
+      "preview_alt": "Receipt photo",
+      "reading_footnote": "Keep this screen open. Anything AI isn't sure about is flagged for you to check.",
+      "fields": {
+        "merchant": "Merchant",
+        "total": "Total",
+        "date": "Date",
+        "category": "Category"
+      }
     },
     "manual": {
       "amount_label": "Amount",
       "amount_hint": "Type the total",
       "keypad": "Number pad",
       "decimal": "Decimal point",
-      "backspace": "Delete last digit"
+      "backspace": "Delete last digit",
+      "what_for": "What for?",
+      "what_for_placeholder": "Add a description",
+      "attach": "Attach receipt photo (optional)",
+      "attached": "Receipt photo attached",
+      "uploading": "Uploading photo…",
+      "change_currency": "Change currency"
     },
     "review": {
       "edit_amount": "Change amount",
@@ -634,7 +653,13 @@
       "receipt": "Receipt",
       "repeat": "Repeat",
       "repeat_on": "Repeats",
-      "repeat_off": "Doesn't repeat"
+      "repeat_off": "Doesn't repeat",
+      "filled_from_photo": "Filled from photo",
+      "project": "Project",
+      "no_project": "None",
+      "edit_date": "Change date",
+      "untitled": "No description",
+      "warning_pill": "{fields} looked unclear — please confirm"
     },
     "split": {
       "who": "Who's in",
@@ -643,9 +668,17 @@
       "shares": "Shares",
       "percent": "%",
       "exact": "Exact",
-      "budget_title": "Kafo AI budget",
+      "budget_title": "{project} · {month} budget",
       "budget_left": "{amount} left after this expense",
-      "budget_over": "{amount} over budget after this expense"
+      "budget_over": "{amount} over budget after this expense",
+      "receipt_attached": "receipt ✓",
+      "paid": "Paid {amount}",
+      "owes": "Owes {name}",
+      "not_included": "Not included",
+      "people": "People in this expense",
+      "budget_adds": "This adds {amount} — {left} left for {days, plural, one {# day} other {# days}}",
+      "budget_adds_over": "This adds {amount} — {over} over budget",
+      "notify": "{count, plural, =1 {{name} gets a notification when you save.} other {# people get a notification when you save.}}"
     },
     "choose_people": "Choose who's splitting",
     "save": "Save expense",
@@ -653,7 +686,18 @@
     "shortcuts": {
       "scan": "Scan receipt",
       "manual": "Add manually"
-    }
+    },
+    "close": "Close",
+    "sentence": {
+      "paid_by": "Paid by",
+      "split": "split",
+      "equally": "equally ({count})",
+      "unequally": "unequally",
+      "change_payer": "Change who paid",
+      "change_split": "Change how it's split"
+    },
+    "next_split": "Next: split",
+    "saved_notified": "{count, plural, =0 {Expense saved} =1 {Expense saved · {name} notified} other {Expense saved · # people notified}}"
   },
   "agents": {
     "account_entry": "Coding agents",

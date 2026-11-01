@@ -141,7 +141,6 @@ export const DetectedSubscriptionsCard: React.FC<{ enabled?: boolean; className?
     { enabled },
   );
   const dismissMutation = api.agent.dismissDetectedSubscription.useMutation();
-  const markAddedMutation = api.agent.markDetectedSubscriptionAdded.useMutation();
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const items = pendingQuery.data ?? [];
@@ -166,15 +165,7 @@ export const DetectedSubscriptionsCard: React.FC<{ enabled?: boolean; className?
 
   const onAdd = async (item: DetectedSubscriptionItem) => {
     setBusyId(item.id);
-    try {
-      // The add flow cannot hand back the new expense id, so mark the item added on tap.
-      await markAddedMutation.mutateAsync({ id: item.id });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('agents.detected.error'));
-      setBusyId(null);
-      return;
-    }
-
+    // Stays PENDING here: AddExpenseJourney marks it ADDED (with the new expense id) on save.
     const release = holdExpensePrefill(toExpensePrefill(item), (amount, currency) =>
       getCurrencyHelpersCached(currency).toUIString(amount, false, true),
     );
@@ -185,7 +176,6 @@ export const DetectedSubscriptionsCard: React.FC<{ enabled?: boolean; className?
     } finally {
       setTimeout(release, PREFILL_GUARD_MS);
       setBusyId(null);
-      void refresh();
     }
   };
 
