@@ -12,10 +12,6 @@
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "ascAppId": "TODO_REPLACE_WITH_APP_STORE_CONNECT_APP_ID"
-      }
-    }
+    "production": {}
   }
 }
