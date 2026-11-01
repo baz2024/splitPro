@@ -161,6 +161,17 @@ export const userRouter = createTRPCRouter({
         },
       });
 
+      // Log the outcome (no address) so a missing invite can be traced in production logs.
+      console.info(
+        'Invite by email',
+        JSON.stringify({
+          userId: user.id,
+          requested: Boolean(input.sendInviteEmail),
+          alreadyVerified: Boolean(user.emailVerified),
+          invitesEnabled: env.ENABLE_SENDING_INVITES,
+        }),
+      );
+
       // Only a just-created or not-yet-verified user should get an invite email.
       if (input.sendInviteEmail && !user.emailVerified) {
         if (!env.ENABLE_SENDING_INVITES) {
