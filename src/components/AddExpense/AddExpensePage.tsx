@@ -322,7 +322,7 @@ export const AddOrEditExpensePage: React.FC<{
           <div className="h-[180px]">
             {amount && '' !== description ? (
               <>
-                <div className="flex flex-col items-center justify-center text-sm text-gray-400 sm:mt-4 sm:flex-row">
+                <div className="text-muted flex flex-col items-center justify-center text-sm sm:mt-4 sm:flex-row">
                   <p>{t(`ui.expense.${isNegative ? 'received_by' : 'paid_by'}`)}</p>
                   <PayerSelectionForm>
                     <Button
@@ -402,7 +402,7 @@ export const AddOrEditExpensePage: React.FC<{
                   className="hover:text-foreground/80 items-center justify-between px-2"
                 >
                   <Landmark
-                    className={cn(transactionId ? 'text-primary' : 'text-white-500', 'h-6 w-6')}
+                    className={cn(transactionId ? 'text-primary' : 'text-muted', 'h-6 w-6')}
                   />
                 </Button>
               </AddBankTransactions>

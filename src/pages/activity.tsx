@@ -28,7 +28,7 @@ function getPaymentString(
   if (isDeleted) {
     return null;
   } else if (0n === expenseUserAmt) {
-    return <div className="text-sm text-gray-400">{t('ui.not_involved')}</div>;
+    return <div className="text-muted text-sm">{t('ui.not_involved')}</div>;
   } else if (isSettlement) {
     return (
       <div className={`${user.id === paidBy ? 'text-emerald-500' : 'text-orange-500'} text-sm`}>
@@ -110,7 +110,7 @@ const ActivityPage: NextPageWithUser = ({ user }) => {
                       })}
                     </p>
                   ) : (
-                    <p className="text-gray-300">
+                    <p className="text-foreground/80">
                       {t(
                         e.expense.paidByUser.id === user.id
                           ? e.expense.amount > 0n
@@ -138,7 +138,7 @@ const ActivityPage: NextPageWithUser = ({ user }) => {
                     toUIString,
                     !!e.expense.deletedBy,
                   )}
-                  <p className="text-xs text-gray-500">{toUIDate(e.expense.expenseDate)}</p>
+                  <p className="text-muted text-xs">{toUIDate(e.expense.expenseDate)}</p>
                 </div>
               </Link>
             );

@@ -121,7 +121,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       {hideAppBar ? null : (
         <nav
           aria-label={t('meta.application_name')}
-          className="bg-background/90 border-border fixed inset-x-0 bottom-0 z-30 flex items-end justify-around border-t px-2 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur-lg lg:hidden"
+          className="bg-surface/90 dark:bg-background/90 border-border fixed inset-x-0 bottom-0 z-30 flex items-end justify-around border-t px-2 pt-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-4px_16px_-8px_rgba(11,22,38,0.12)] backdrop-blur-lg lg:hidden dark:shadow-none"
         >
           {NAV_ENTRIES.map((entry) => (
             <NavItem
@@ -153,7 +153,7 @@ const NavItem: React.FC<NavItemProps> = ({ entry, title, isActive }) => {
         aria-current={isActive ? 'page' : undefined}
         className="group flex min-h-11 min-w-14 flex-col items-center gap-1 rounded-2xl focus-visible:outline-none"
       >
-        <span className="bg-accent text-accent-foreground group-focus-visible:ring-focus group-focus-visible:ring-offset-background -mt-5 flex size-12 items-center justify-center rounded-full shadow-lg transition-transform group-focus-visible:ring-2 group-focus-visible:ring-offset-2 group-active:scale-95">
+        <span className="bg-accent text-accent-foreground group-focus-visible:ring-focus group-focus-visible:ring-offset-background shadow-accent/30 -mt-5 flex size-12 items-center justify-center rounded-full shadow-lg transition-transform group-focus-visible:ring-2 group-focus-visible:ring-offset-2 group-active:scale-95 dark:shadow-black/10">
           <Icon className="size-6" strokeWidth={2.5} aria-hidden />
         </span>
         <span className={clsx('text-[11px]', isActive ? 'text-accent font-medium' : 'text-muted')}>

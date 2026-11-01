@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { AccountButton } from '~/components/Account/AccountButton';
 import { DownloadAppDrawer } from '~/components/Account/DownloadAppDrawer';
 import { LanguagePicker } from '~/components/Account/LanguagePicker';
+import { ThemePicker } from '~/components/Account/ThemePicker';
 import { SubmitFeedback } from '~/components/Account/SubmitFeedback';
 import { SubscribeNotification } from '~/components/Account/SubscribeNotification';
 import { UpdateName } from '~/components/Account/UpdateDetails';
@@ -106,7 +107,7 @@ const AccountPage: NextPageWithUser<{
             <EntityAvatar entity={userQuery.data} size={50} />
             <div>
               <div className="text-xl font-semibold">{userQuery.data?.name}</div>
-              <div className="text-sm text-gray-500">{userQuery.data?.email}</div>
+              <div className="text-muted text-sm">{userQuery.data?.email}</div>
             </div>
           </div>
           {!userQuery.isPending && (
@@ -122,7 +123,7 @@ const AccountPage: NextPageWithUser<{
         <div className="mt-8 flex flex-col gap-4">
           <LanguagePicker>
             <AccountButton>
-              <Languages className="size-5 text-green-500" />
+              <Languages className="size-5 text-green-600 dark:text-green-500" />
               {t('account.change_language')}
             </AccountButton>
           </LanguagePicker>
@@ -132,14 +133,16 @@ const AccountPage: NextPageWithUser<{
             bankConnection={bankConnection}
           >
             <AccountButton>
-              <CreditCard className="size-5 text-teal-500" />
+              <CreditCard className="size-5 text-teal-600 dark:text-teal-500" />
               {userQuery.data?.obapiProviderId ? t('actions.reconnect') : t('actions.connect')}{' '}
               {t('bank_transactions.to_bank')}
             </AccountButton>
           </BankConnection>
 
+          <ThemePicker />
+
           <AccountButton href="/agents">
-            <Bot className="size-5 text-sky-500" />
+            <Bot className="size-5 text-sky-600 dark:text-sky-500" />
             {t('agents.account_entry')}
           </AccountButton>
 
@@ -149,23 +152,23 @@ const AccountPage: NextPageWithUser<{
 
           <DownloadAppDrawer>
             <AccountButton>
-              <Download className="size-5 text-blue-500" />
+              <Download className="size-5 text-blue-600 dark:text-blue-500" />
               {t('account.download_app')}
             </AccountButton>
           </DownloadAppDrawer>
 
           <AccountButton onClick={downloadData} disabled={downloading} loading={downloading}>
-            <FileDown className="size-5 text-teal-500" />
+            <FileDown className="size-5 text-teal-600 dark:text-teal-500" />
             {t('account.download_splitpro_data')}
           </AccountButton>
 
           <AccountButton href="/data">
-            <FileSpreadsheet className="size-5 text-emerald-500" />
+            <FileSpreadsheet className="size-5 text-emerald-600 dark:text-emerald-500" />
             {t('account_entry', { ns: 'dataio' })}
           </AccountButton>
 
           <AccountButton href="/import-splitwise">
-            <DownloadCloud className="size-5 text-violet-500" />
+            <DownloadCloud className="size-5 text-violet-600 dark:text-violet-500" />
             {t('account.import_from_splitwise')}
           </AccountButton>
 
@@ -180,7 +183,7 @@ const AccountPage: NextPageWithUser<{
         <div className="mt-2 flex justify-center">
           <Button
             variant="ghost"
-            className="text-orange-600 hover:text-orange-600/90"
+            className="text-orange-700 hover:text-orange-700/90 dark:text-orange-600 dark:hover:text-orange-600/90"
             onClick={onSignOut}
           >
             {t('account.logout')}

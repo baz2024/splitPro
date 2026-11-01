@@ -27,7 +27,7 @@ export const ServiceBadge: React.FC<ServiceBadgeProps> = ({ service, size = 'md'
       className={cn(
         'inline-flex shrink-0 items-center justify-center font-semibold tracking-wide',
         SIZES[size],
-        isVercel ? 'bg-white text-black' : 'text-white',
+        isVercel ? 'ring-border bg-white text-black ring-1 ring-inset dark:ring-0' : 'text-white',
         className,
       )}
       style={isVercel ? undefined : { backgroundColor: known?.color ?? '#334155' }}

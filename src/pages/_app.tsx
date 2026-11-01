@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 import { LoadingSpinner } from '~/components/ui/spinner';
 import { ThemeProvider } from 'next-themes';
+import { ThemeColorMeta } from '~/components/Layout/ThemeColorMeta';
 import { CurrencyHelpersProvider } from '~/contexts/CurrencyHelpersContext';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
@@ -74,7 +75,6 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
         <meta name="msapplication-TileColor" content="#2B5797" />
         <meta name="msapplication-tap-highlight" content="no" />
 
-        <meta name="theme-color" content="#0b1626" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         <link rel="apple-touch-icon" href="/icons/ios/144.png" />
@@ -105,6 +105,7 @@ const MyApp = ({ Component, pageProps: { session, ...pageProps } }: AppPropsWith
         <SessionProvider session={session}>
           <CurrencyHelpersProvider>
             <ThemeProvider attribute="class" defaultTheme="dark">
+              <ThemeColorMeta />
               <Toaster toastOptions={toastOptions} dir={dir} />
               {Component.auth ? (
                 <Auth pageProps={pageProps} Page={Component} />

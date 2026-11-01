@@ -171,7 +171,7 @@ export const BankingTransactionList: React.FC<{
         ) : (
           <>
             {transactionsArray?.length === 0 && (
-              <div className="mt-[30vh] text-center text-gray-400">
+              <div className="text-muted mt-[30vh] text-center">
                 {t('expense_details.no_transactions_yet')}
               </div>
             )}

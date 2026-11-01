@@ -68,7 +68,7 @@ const GroupMyBalance: React.FC<GroupMyBalanceProps> = ({
           .map(([friendId, balances]) => {
             const friend = userMap[+friendId];
             return (
-              <div key={friendId} className="text-sm text-gray-500">
+              <div key={friendId} className="text-muted text-sm">
                 {Object.entries(balances).map(([currency, amount]) => (
                   <div key={currency}>
                     {t(
@@ -87,7 +87,7 @@ const GroupMyBalance: React.FC<GroupMyBalanceProps> = ({
           })}
 
         {2 < Object.keys(friendBalances).length ? (
-          <div className="text-sm text-gray-500">
+          <div className="text-muted text-sm">
             {t('balance_summary.more', { count: Object.keys(friendBalances).length - 2 })}
           </div>
         ) : null}

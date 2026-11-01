@@ -88,7 +88,7 @@ const BalancePage: NextPageWithUser = () => {
               {archivedGroupQuery.data && archivedGroupQuery.data.length > 0 && (
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="archived-groups">
-                    <AccordionTrigger className="text-start text-sm text-gray-400">
+                    <AccordionTrigger className="text-muted text-start text-sm">
                       {t('group_details.group_info.archived')} ({archivedGroupQuery.data.length})
                     </AccordionTrigger>
                     <AccordionContent>

@@ -55,13 +55,13 @@ export const ExpenseList: React.FC<{
           <React.Fragment key={e.id}>
             {isFirstOfMonth && (
               <div className="flex flex-row items-center gap-4 pt-2">
-                <div className="text-xs font-medium text-gray-700 uppercase">
+                <div className="text-muted text-xs font-medium uppercase">
                   {new Intl.DateTimeFormat(i18n.language, {
                     month: 'long',
                     year: 'numeric',
                   }).format(currentDate)}
                 </div>
-                <Separator className="flex-1 bg-gray-800" />
+                <Separator className="bg-border flex-1" />
               </div>
             )}
             <Link
@@ -98,16 +98,16 @@ const Expense: ExpenseComponent = ({ e, userId }) => {
   return (
     <>
       <div className="flex min-w-0 items-center gap-4">
-        <div className="inline-block w-6 shrink-0 text-center text-xs text-gray-500">
+        <div className="text-muted inline-block w-6 shrink-0 text-center text-xs">
           {toUIDate(e.expenseDate)}
         </div>
-        <CategoryIcon category={e.category} className="size-5 shrink-0 text-gray-400" />
+        <CategoryIcon category={e.category} className="text-muted size-5 shrink-0" />
         <div className="min-w-0 pe-1">
           <p className="flex min-w-0 items-center gap-1.5 text-sm lg:text-base">
             <span className="truncate">{e.name}</span>
             {e.needsReview ? <ReviewChip /> : null}
           </p>
-          <p className="truncate text-xs text-gray-500">
+          <p className="text-muted truncate text-xs">
             {t(e.amount < 0n ? 'expense_list.user_received' : 'expense_list.user_paid', {
               actor: e.paidByUser.id === userId ? 'you' : 'other',
               user: displayName(e.paidByUser),
@@ -130,7 +130,7 @@ const Expense: ExpenseComponent = ({ e, userId }) => {
           </>
         ) : (
           <div>
-            <p className="text-xs text-gray-400">{t('ui.not_involved')}</p>
+            <p className="text-muted text-xs">{t('ui.not_involved')}</p>
           </div>
         )}
       </div>
@@ -148,12 +148,12 @@ const Settlement: ExpenseComponent = ({ e, userId }) => {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="inline-block w-6 text-center text-xs text-gray-500">
+      <div className="text-muted inline-block w-6 text-center text-xs">
         {toUIDate(e.expenseDate)}
       </div>
-      <SettleupIcon className="size-5 shrink-0 text-gray-400" />
+      <SettleupIcon className="text-muted size-5 shrink-0" />
       <div className="min-w-0">
-        <p className="line-clamp-2 text-sm text-gray-400">
+        <p className="text-muted line-clamp-2 text-sm">
           {t('expense_list.settlement', {
             payerRole: e.paidByUser.id === userId ? 'you' : 'other',
             receiverRole: receiverId === userId ? 'you' : 'other',
@@ -186,10 +186,10 @@ const CurrencyConversion: ExpenseComponent = ({ e, userId }) => {
 
   return (
     <div className="flex min-w-0 items-center gap-4">
-      <div className="inline-block w-6 shrink-0 text-center text-xs text-gray-500">
+      <div className="text-muted inline-block w-6 shrink-0 text-center text-xs">
         {toUIDate(e.expenseDate)}
       </div>
-      <CurrencyConversionIcon className="size-5 shrink-0 text-gray-400" />
+      <CurrencyConversionIcon className="text-muted size-5 shrink-0" />
       <div className="min-w-0">
         <p className="truncate text-sm lg:text-base">
           <span dir="ltr">
@@ -200,7 +200,7 @@ const CurrencyConversion: ExpenseComponent = ({ e, userId }) => {
             }
           </span>
         </p>
-        <p className="truncate text-xs text-gray-500">
+        <p className="text-muted truncate text-xs">
           {t('expense_list.conversion_for_users', {
             payerRole: e.paidByUser.id === userId ? 'you' : 'other',
             receiverRole: receiverId === userId ? 'you' : 'other',

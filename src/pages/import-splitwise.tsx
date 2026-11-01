@@ -141,7 +141,7 @@ const ImportSpliwisePage: NextPageWithUser = () => {
                   {t('account.import_from_splitwise_details.choose_file')}
                 </span>
               </div>
-              <div className="ps-4 text-gray-400">
+              <div className="text-muted ps-4">
                 {uploadedFile
                   ? uploadedFile.name
                   : t('account.import_from_splitwise_details.no_file_chosen')}
@@ -164,7 +164,7 @@ const ImportSpliwisePage: NextPageWithUser = () => {
             {importMutation.isPending ? <LoadingSpinner /> : t('actions.import')}
           </Button>
         </div>
-        <div className="mt-4 text-sm text-gray-400">
+        <div className="text-muted mt-4 text-sm">
           {t('account.import_from_splitwise_details.note')}
         </div>
 
@@ -199,7 +199,7 @@ const ImportSpliwisePage: NextPageWithUser = () => {
                             className={`text-sm ${0 < Number(b.amount) ? 'text-green-500' : 'text-orange-600'}`}
                           >
                             {b.currency_code} {Math.abs(Number(b.amount)).toFixed(2)}
-                            <span className="text-xs text-gray-300">
+                            <span className="text-foreground/80 text-xs">
                               {index !== user.balance.length - 1 ? ' + ' : ''}
                             </span>
                           </span>
@@ -247,7 +247,7 @@ const ImportSpliwisePage: NextPageWithUser = () => {
             {t('account.import_from_splitwise_details.follow_to_export_splitwise_data')}
             <Link href="https://export-splitwise.vercel.app/" target="_blank">
               <Button>
-                <DownloadCloud className="me-2 text-gray-800" />
+                <DownloadCloud className="me-2" />
                 {t('account.import_from_splitwise_details.export_splitwise_data_button')}
               </Button>
             </Link>

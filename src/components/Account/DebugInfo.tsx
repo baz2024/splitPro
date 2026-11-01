@@ -129,7 +129,7 @@ export const DebugInfo: React.FC<React.PropsWithChildren> = ({ children }) => {
 const Label: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
   children,
   className,
-}) => <span className={cn('text-sm text-white', className)}>{children}</span>;
+}) => <span className={cn('text-foreground text-sm', className)}>{children}</span>;
 
 const Value: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
   children,

@@ -78,6 +78,12 @@
       "send_test_notification": "إرسال إشعار تجريبي",
       "test_notification_sent": "تم إرسال الإشعار التجريبي",
       "test_notification_failed": "تعذّر إرسال الإشعار التجريبي"
+    },
+    "theme": {
+      "title": "المظهر",
+      "light": "فاتح",
+      "dark": "داكن",
+      "system": "النظام"
     }
   },
   "actions": {

@@ -305,7 +305,7 @@ export const SplitSection: React.FC<SplitSectionProps> = (props) => {
     <div className="mt-4 flex flex-col gap-6 px-2">
       <p
         className={cn(
-          canSplitScreenClosed ? 'text-gray-300' : 'text-red-500',
+          canSplitScreenClosed ? 'text-foreground/80' : 'text-red-500',
           'wrap-break-words min-h-6 flex-1 text-center',
         )}
       >
@@ -319,7 +319,7 @@ export const SplitSection: React.FC<SplitSectionProps> = (props) => {
       {isBoolean && (
         <Button
           variant="outline"
-          className="mx-auto h-8 w-fit gap-2 p-2 text-gray-500"
+          className="text-muted mx-auto h-8 w-fit gap-2 p-2"
           onClick={selectAll}
         >
           {allSelected ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
@@ -450,12 +450,7 @@ export const UserAndAmount: React.FC<{ user: Participant; currency: CurrencyCode
       <EntityAvatar entity={user} size={30} />
       <div className="flex min-w-0 flex-col">
         <p className="truncate">{displayName(user, currentUser?.id)}</p>
-        <p
-          className={cn(
-            canSplitScreenClosed || 'hidden',
-            'max-w-18 truncate text-sm text-gray-400',
-          )}
-        >
+        <p className={cn(canSplitScreenClosed || 'hidden', 'text-muted max-w-18 truncate text-sm')}>
           <span dir="ltr">
             {paidBy && 0n < (shareAmount ?? 0n) ? '-' : ''} {toUIString(shareAmount)}
           </span>

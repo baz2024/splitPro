@@ -177,39 +177,45 @@
   --radius: 0.5rem;
 }
 
+/*
+  Light variant: cool off-white page, white cards lifted by soft navy-tinted shadows,
+  navy text. Every text colour below clears WCAG AA (4.5:1) on the page, card and
+  chip backgrounds; white text on accent/success/warning/danger fills clears 5.4:1.
+*/
 .light,
 [data-theme='light'] {
   color-scheme: light;
 
   /* HeroUI tokens */
-  --background: #f6f8fb;
+  --background: #f2f5f9;
   --foreground: #0b1626;
 
   --surface: #ffffff;
   --surface-foreground: #0b1626;
-  --surface-secondary: #f0f3f8;
+  /* Raised cards (Card variant="secondary") read as near-white on the tinted page. */
+  --surface-secondary: #f8fafd;
   --surface-secondary-foreground: #0b1626;
-  --surface-tertiary: #e8edf4;
+  --surface-tertiary: #ebf0f6;
   --surface-tertiary-foreground: #0b1626;
 
   --overlay: #ffffff;
   --overlay-foreground: #0b1626;
 
-  --muted: #5b6b82;
+  --muted: #4f6079;
 
-  --default: #eaeff6;
+  --default: #e9eef5;
   --default-foreground: #0b1626;
 
-  --accent: #1f6fd1;
+  --accent: #1a64c8;
   --accent-foreground: #ffffff;
 
-  --success: #059669;
+  --success: #047857;
   --success-foreground: #ffffff;
 
-  --warning: #b45309;
+  --warning: #a84a0a;
   --warning-foreground: #ffffff;
 
-  --danger: #d9412b;
+  --danger: #c2361f;
   --danger-foreground: #ffffff;
 
   --segment: #ffffff;
@@ -217,15 +223,24 @@
 
   --field-background: #ffffff;
   --field-foreground: #0b1626;
-  --field-placeholder: #5b6b82;
-  --field-border: #dde4ee;
+  --field-placeholder: #5f6f86;
+  --field-border: #c8d2df;
 
-  --border: #dde4ee;
+  --border: #dce3ec;
   --separator: #e6ebf2;
-  --focus: #1f6fd1;
-  --link: #1f6fd1;
+  --focus: #1a64c8;
+  --link: #1a64c8;
 
-  --backdrop: rgba(11, 22, 38, 0.45);
+  --backdrop: rgba(11, 22, 38, 0.4);
+
+  /* Navy-tinted elevation instead of HeroUI's neutral grey shadows. */
+  --surface-shadow:
+    0 1px 2px 0 rgba(11, 22, 38, 0.05), 0 4px 12px -2px rgba(11, 22, 38, 0.06),
+    0 0 0 1px rgba(11, 22, 38, 0.02);
+  --overlay-shadow:
+    0 2px 8px 0 rgba(11, 22, 38, 0.06), 0 -6px 16px 0 rgba(11, 22, 38, 0.04),
+    0 16px 32px -4px rgba(11, 22, 38, 0.12);
+  --field-shadow: 0 1px 2px 0 rgba(11, 22, 38, 0.04);
 }
 
 /* Legacy shadcn-style aliases, re-declared wherever a theme class is set. */
