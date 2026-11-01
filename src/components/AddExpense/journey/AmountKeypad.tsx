@@ -70,6 +70,7 @@ export const AmountKeypad: React.FC<{
       <div className="flex flex-col items-center gap-3 pt-4">
         <CurrencyPicker currentCurrency={currency} onCurrencyPick={onCurrencyPick} />
         <p
+          dir="ltr"
           className="text-foreground text-center text-5xl font-semibold tracking-tight tabular-nums"
           aria-live="polite"
           aria-label={t('add_journey.manual.amount_label')}
@@ -79,6 +80,7 @@ export const AmountKeypad: React.FC<{
         <p className="text-muted text-sm">{t('add_journey.manual.amount_hint')}</p>
       </div>
       <div
+        dir="ltr"
         className="grid grid-cols-3 gap-2"
         role="group"
         aria-label={t('add_journey.manual.keypad')}
@@ -114,7 +116,7 @@ export const AmountKeypad: React.FC<{
           onPress={onBackspace}
           aria-label={t('add_journey.manual.backspace')}
         >
-          <Delete className="size-6 rtl:rotate-180" />
+          <Delete className="size-6" />
         </Button>
       </div>
     </div>

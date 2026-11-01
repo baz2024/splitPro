@@ -71,7 +71,9 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               <p>{expense.name}</p>
               {expense.transactionId && <Landmark className="text-positive h-4 w-4" />}
             </div>
-            <p className="text-2xl font-semibold">{toUIString(expense.amount)}</p>
+            <p className="text-2xl font-semibold">
+              <span dir="ltr">{toUIString(expense.amount)}</span>
+            </p>
             {!isSameDay(expense.expenseDate, expense.createdAt) ? (
               <p className="text-sm text-gray-500">
                 {toUIDate(expense.expenseDate, { year: true })}
@@ -150,7 +152,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               </Link>
             ),
             amount: (
-              <span className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
+              <span dir="ltr" className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
                 {toUIString(expense.amount)}
               </span>
             ),
@@ -214,7 +216,11 @@ const ExpenseParticipantEntry: React.FC<{
               </Button>
             </Link>
           ),
-          amount: <span className={amountColorClass}>{toUIString(participant.amount)}</span>,
+          amount: (
+            <span dir="ltr" className={amountColorClass}>
+              {toUIString(participant.amount)}
+            </span>
+          ),
         }}
       />
     </div>

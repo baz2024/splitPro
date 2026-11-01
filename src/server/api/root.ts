@@ -1,6 +1,7 @@
 import { groupRouter } from '~/server/api/routers/group';
 import { createTRPCRouter } from '~/server/api/trpc';
 
+import { agentRouter } from './routers/agent';
 import { userRouter } from './routers/user';
 import { bankTransactionsRouter } from './routers/bankTransactions';
 import { expenseRouter } from './routers/expense';
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   bankTransactions: bankTransactionsRouter,
   expense: expenseRouter,
   receipt: receiptRouter,
+  agent: agentRouter,
 });
 
 // Export type definition of API

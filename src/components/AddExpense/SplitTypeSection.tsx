@@ -456,7 +456,9 @@ export const UserAndAmount: React.FC<{ user: Participant; currency: CurrencyCode
             'max-w-18 truncate text-sm text-gray-400',
           )}
         >
-          {paidBy && 0n < (shareAmount ?? 0n) ? '-' : ''} {toUIString(shareAmount)}
+          <span dir="ltr">
+            {paidBy && 0n < (shareAmount ?? 0n) ? '-' : ''} {toUIString(shareAmount)}
+          </span>
         </p>
       </div>
     </div>

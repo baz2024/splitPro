@@ -29,7 +29,16 @@ import type {
   WebViewSource,
 } from 'react-native-webview/lib/WebViewTypes';
 
-import { APP_HOST, APP_ORIGIN, COLORS, EMAIL_SIGNIN_URL, EXCHANGE_URL, HOME_PATH } from '../theme';
+import { WEB_LOCALE, directionStyle, isArabic, stripLocale, t } from '../lib/i18n';
+import {
+  APP_HOST,
+  APP_ORIGIN,
+  COLORS,
+  EMAIL_SIGNIN_URL,
+  EXCHANGE_URL,
+  HOME_PATH,
+  LOCALIZED_HOME_PATH,
+} from '../theme';
 
 // react-native-webview's class type defaults its generic to `undefined`, and `Props & undefined`
 // collapses to `never` under current TypeScript. Re-type it with an object generic.
@@ -75,10 +84,18 @@ const parseUrl = (url: string): URL | null => {
 
 const isAppUrl = (url: URL) => APP_HOST === url.hostname;
 
-const isSignInPage = (url: URL) => isAppUrl(url) && url.pathname.startsWith('/auth/signin');
+// Page paths carry a locale prefix (`/en/balances`, `/ar/balances`); compare without it.
+const isSignInPage = (url: URL) =>
+  isAppUrl(url) && stripLocale(url.pathname).startsWith('/auth/signin');
 
 const isSignedInPage = (url: URL) =>
-  isAppUrl(url) && SIGNED_IN_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
+  isAppUrl(url) &&
+  SIGNED_IN_PREFIXES.some((prefix) => stripLocale(url.pathname).startsWith(prefix));
+
+// Saves the device language as the web app's NEXT_LOCALE cookie, so later relaunches (which
+// open the unprefixed home path) keep it until the user picks another language on the web.
+const persistWebLocaleScript = (locale: string) =>
+  `fetch('/api/locale?locale=' + encodeURIComponent(${JSON.stringify(locale)}), { credentials: 'same-origin' }).catch(function () {}); true;`;
 
 const isGoogleAuthUrl = (url: URL) =>
   'accounts.google.com' === url.hostname ||
@@ -93,7 +110,9 @@ const buildSource = (entry: WebEntry): WebViewSource => {
     return {
       uri: EXCHANGE_URL,
       method: 'POST',
-      body: `accessToken=${encodeURIComponent(entry.accessToken)}&next=${encodeURIComponent(HOME_PATH)}`,
+      // LOCALIZED_HOME_PATH is always a single-slash relative path, so it passes the
+      // server's safeNextPath check.
+      body: `accessToken=${encodeURIComponent(entry.accessToken)}&next=${encodeURIComponent(LOCALIZED_HOME_PATH)}`,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     };
   }
@@ -113,6 +132,9 @@ export const WebAppScreen = ({
   const webViewRef = useRef<WebViewHandle>(null);
   const canGoBackRef = useRef(false);
   const splashHiddenRef = useRef(false);
+  // Fresh sign-ins on an Arabic device store the web language once; a relaunch never does,
+  // so a language chosen later in the web app is respected.
+  const localeSavedRef = useRef('resume' === entry.kind || null === WEB_LOCALE);
   // Email sign-in starts on /auth/signin; every other entry is already signed in.
   const signedInRef = useRef('email' !== entry.kind);
   const signedOutRef = useRef(false);
@@ -171,7 +193,7 @@ export const WebAppScreen = ({
       if (isSignInPage(parsed) && signedInRef.current) {
         signedOutRef.current = true;
         const failed = SupabaseSigninError === parsed.searchParams.get('error');
-        onSignedOut(failed ? 'We could not finish signing you in. Please try again.' : undefined);
+        onSignedOut(failed ? t.signInIncomplete : undefined);
       }
     },
     [onSignedIn, onSignedOut],
@@ -257,6 +279,11 @@ export const WebAppScreen = ({
   const handleLoadEnd = useCallback(() => {
     setRefreshing(false);
     hideSplash();
+    if (localeSavedRef.current || null === WEB_LOCALE) {
+      return;
+    }
+    localeSavedRef.current = true;
+    webViewRef.current?.injectJavaScript(persistWebLocaleScript(WEB_LOCALE));
   }, [hideSplash]);
 
   const handleError = useCallback(() => {
@@ -311,7 +338,7 @@ export const WebAppScreen = ({
   );
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.root, directionStyle]} edges={['top', 'left', 'right', 'bottom']}>
       {'android' === Platform.OS ? (
         // Android WebView has no native pull-to-refresh; enable it only when scrolled to the top.
         <ScrollView
@@ -334,26 +361,29 @@ export const WebAppScreen = ({
       {'email' === entry.kind && onSignInPage && !signedInRef.current ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back to sign-in options"
+          accessibilityLabel={t.backToSignInOptions}
           onPress={onBackToWelcome}
           hitSlop={12}
           style={styles.backChip}
         >
-          <Text style={styles.backChipLabel}>‹ Other options</Text>
+          <Text style={[styles.backChipLabel, textDirection]}>{t.otherOptions}</Text>
         </Pressable>
       ) : null}
       {hasError ? (
         <View style={styles.errorOverlay}>
-          <Text style={styles.errorTitle}>Can't reach Safi</Text>
-          <Text style={styles.errorBody}>Check your connection and try again.</Text>
+          <Text style={[styles.errorTitle, textDirection]}>{t.cantReachSafi}</Text>
+          <Text style={[styles.errorBody, textDirection]}>{t.checkConnection}</Text>
           <Pressable accessibilityRole="button" onPress={handleRefresh} style={styles.retryButton}>
-            <Text style={styles.retryLabel}>Try again</Text>
+            <Text style={[styles.retryLabel, textDirection]}>{t.tryAgain}</Text>
           </Pressable>
         </View>
       ) : null}
     </SafeAreaView>
   );
 };
+
+// Centered labels only need the reading direction, not a start alignment.
+const textDirection = { writingDirection: isArabic ? 'rtl' : 'ltr' } as const;
 
 const styles = StyleSheet.create({
   root: {

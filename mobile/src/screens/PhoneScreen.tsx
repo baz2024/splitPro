@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { sendPhoneCode, toE164, verifyPhoneCode } from '../lib/auth';
+import { directionStyle, ltrStyle, t, textStartStyle } from '../lib/i18n';
 import { COLORS } from '../theme';
 
 interface PhoneScreenProps {
@@ -24,8 +25,7 @@ const CODE_LENGTH = 6;
 const RESEND_SECONDS = 30;
 const CODE_SLOTS = Array.from({ length: CODE_LENGTH }, (_, index) => index);
 
-const describeError = (error: unknown) =>
-  error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+const describeError = (error: unknown) => (error instanceof Error ? error.message : t.genericError);
 
 export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
   const [step, setStep] = useState<'number' | 'code'>('number');
@@ -108,32 +108,33 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.root, directionStyle]} edges={['top', 'left', 'right', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={'ios' === Platform.OS ? 'padding' : undefined}
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t.back}
           onPress={handleBack}
           hitSlop={12}
           style={styles.back}
         >
-          <Text style={styles.backLabel}>‹ Back</Text>
+          <Text style={[styles.backLabel, textStartStyle]}>{t.backChevron}</Text>
         </Pressable>
 
         <View style={styles.body}>
           {'number' === step ? (
             <>
-              <Text style={styles.title} accessibilityRole="header">
-                What's your number?
+              <Text style={[styles.title, textStartStyle]} accessibilityRole="header">
+                {t.numberTitle}
               </Text>
-              <Text style={styles.subtitle}>We'll text you a 6-digit code to sign in.</Text>
+              <Text style={[styles.subtitle, textStartStyle]}>{t.numberSubtitle}</Text>
 
-              <View style={styles.phoneRow}>
+              {/* Phone numbers read left to right in every language. */}
+              <View style={[styles.phoneRow, ltrStyle]}>
                 <TextInput
-                  accessibilityLabel="Country code"
+                  accessibilityLabel={t.countryCode}
                   value={countryCode}
                   onChangeText={(value) =>
                     setCountryCode(`+${value.replace(/\D/g, '').slice(0, 4)}`)
@@ -145,13 +146,13 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
                   maxLength={5}
                 />
                 <TextInput
-                  accessibilityLabel="Phone number"
+                  accessibilityLabel={t.phoneNumber}
                   value={number}
                   onChangeText={setNumber}
                   keyboardType="phone-pad"
                   textContentType="telephoneNumber"
                   autoComplete="tel"
-                  placeholder="Phone number"
+                  placeholder={t.phoneNumber}
                   placeholderTextColor={COLORS.muted}
                   selectionColor={COLORS.accent}
                   style={[styles.input, styles.numberInput]}
@@ -165,15 +166,15 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
             </>
           ) : (
             <>
-              <Text style={styles.title} accessibilityRole="header">
-                Enter the code
+              <Text style={[styles.title, textStartStyle]} accessibilityRole="header">
+                {t.codeTitle}
               </Text>
-              <Text style={styles.subtitle}>Sent to {phone}</Text>
+              <Text style={[styles.subtitle, textStartStyle]}>{t.sentTo(phone)}</Text>
 
               <Pressable
                 accessibilityRole="none"
                 onPress={() => codeInputRef.current?.focus()}
-                style={styles.codeRow}
+                style={[styles.codeRow, ltrStyle]}
               >
                 {CODE_SLOTS.map((index) => {
                   const char = code[index] ?? '';
@@ -191,7 +192,7 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
               {/* One hidden input drives all six boxes, so paste and SMS autofill just work. */}
               <TextInput
                 ref={codeInputRef}
-                accessibilityLabel="6-digit code"
+                accessibilityLabel={t.codeLabel}
                 value={code}
                 onChangeText={handleCodeChange}
                 keyboardType="number-pad"
@@ -212,15 +213,21 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
                 hitSlop={8}
                 style={styles.resend}
               >
-                <Text style={[styles.resendLabel, 0 < resendIn ? styles.resendWaiting : null]}>
-                  {0 < resendIn ? `Resend code in ${resendIn}s` : 'Resend code'}
+                <Text
+                  style={[
+                    styles.resendLabel,
+                    textStartStyle,
+                    0 < resendIn ? styles.resendWaiting : null,
+                  ]}
+                >
+                  {0 < resendIn ? t.resendIn(resendIn) : t.resendCode}
                 </Text>
               </Pressable>
             </>
           )}
 
           {error ? (
-            <Text style={styles.error} accessibilityRole="alert">
+            <Text style={[styles.error, textStartStyle]} accessibilityRole="alert">
               {error}
             </Text>
           ) : null}
@@ -242,7 +249,7 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
             {busy ? (
               <ActivityIndicator color={COLORS.onAccent} />
             ) : (
-              <Text style={styles.buttonLabel}>Send code</Text>
+              <Text style={[styles.buttonLabel, textDirection]}>{t.sendCode}</Text>
             )}
           </Pressable>
         ) : busy ? (
@@ -252,6 +259,9 @@ export const PhoneScreen = ({ onBack, onAccessToken }: PhoneScreenProps) => {
     </SafeAreaView>
   );
 };
+
+// Centered labels only need the reading direction, not a start alignment.
+const textDirection = { writingDirection: textStartStyle.writingDirection } as const;
 
 const styles = StyleSheet.create({
   root: {

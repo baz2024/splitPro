@@ -94,7 +94,7 @@ export const PhoneSignIn: React.FC<{
           aria-label={t('auth.phone.code_label')}
           isDisabled={isBusy}
         >
-          <InputOTP.Group>
+          <InputOTP.Group dir="ltr">
             {OTP_SLOTS.map((index) => (
               <InputOTP.Slot key={index} index={index} />
             ))}
@@ -119,6 +119,7 @@ export const PhoneSignIn: React.FC<{
       }}
     >
       <Input
+        dir="ltr"
         type="tel"
         inputMode="tel"
         autoComplete="tel"

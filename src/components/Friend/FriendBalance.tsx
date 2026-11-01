@@ -30,7 +30,7 @@ export const FriendBalance: React.FC<{
           {t(`ui.expense.statements.${isPositive ? 'you_lent' : 'you_owe'}`)}
         </div>
         <div className={`${isPositive ? 'text-green-500' : 'text-orange-600'} flex text-end`}>
-          {toUIString(balance.amount)}
+          <span dir="ltr">{toUIString(balance.amount)}</span>
         </div>
       </div>
     </div>

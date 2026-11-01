@@ -121,7 +121,7 @@ const Expense: ExpenseComponent = ({ e, userId }) => {
             <div
               className={`xs:max-w-full max-w-32 truncate text-end ${youPaid ? 'text-positive' : 'text-negative'}`}
             >
-              {toUIString(yourExpenseAmount)}
+              <span dir="ltr">{toUIString(yourExpenseAmount)}</span>
             </div>
           </>
         ) : (
@@ -188,11 +188,13 @@ const CurrencyConversion: ExpenseComponent = ({ e, userId }) => {
       <CurrencyConversionIcon className="size-5 shrink-0 text-gray-400" />
       <div className="min-w-0">
         <p className="truncate text-sm lg:text-base">
-          {getCurrencyHelpersCached(e.currency).toUIString(e.amount)} ➡️{' '}
-          {
-            /* @ts-ignore */
-            getCurrencyHelpersCached(e.conversionTo.currency).toUIString(e.conversionTo.amount)
-          }
+          <span dir="ltr">
+            {getCurrencyHelpersCached(e.currency).toUIString(e.amount)} ➡️{' '}
+            {
+              /* @ts-ignore */
+              getCurrencyHelpersCached(e.conversionTo.currency).toUIString(e.conversionTo.amount)
+            }
+          </span>
         </p>
         <p className="truncate text-xs text-gray-500">
           {t('expense_list.conversion_for_users', {

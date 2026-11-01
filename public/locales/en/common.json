@@ -654,5 +654,65 @@
       "scan": "Scan receipt",
       "manual": "Add manually"
     }
+  },
+  "agents": {
+    "account_entry": "Coding agents",
+    "back": "Back to account",
+    "title": "Coding agents",
+    "intro": "Connect a coding agent such as Claude Code. It scans your code for paid APIs and services and reports new ones here for you to confirm.",
+    "loading": "Loading…",
+    "copy": {
+      "action": "Copy",
+      "copied": "Copied",
+      "failed": "Could not copy. Select the text and copy it manually."
+    },
+    "keys": {
+      "title": "API keys",
+      "description": "Your coding agent uses a key to send detected subscriptions to your account.",
+      "name_label": "Key name",
+      "name_placeholder": "e.g. Work laptop",
+      "create": "Create key",
+      "create_error": "Could not create the key",
+      "created_title": "Key \"{name}\" created",
+      "created_warning": "Copy this key now. You will not be able to see it again. Anyone with this key can add items to your inbox.",
+      "created_done": "I have copied it",
+      "token_label": "API key",
+      "empty": "No keys yet. Create one to connect a coding agent.",
+      "created_on": "Created {date}",
+      "last_used": "last used {date}",
+      "never_used": "never used",
+      "revoked": "Revoked",
+      "revoke": "Revoke",
+      "revoke_title": "Revoke this key?",
+      "revoke_description": "Agents using \"{name}\" will stop working straight away. This cannot be undone.",
+      "revoke_success": "Key revoked",
+      "revoke_error": "Could not revoke the key"
+    },
+    "skill": {
+      "title": "Install the skill",
+      "description": "The skill scans your code for paid APIs and services and reports new ones here for you to confirm. Nothing is added until you say so.",
+      "steps": {
+        "create_key": "Create an API key above and copy it.",
+        "install": "Run the install command in your terminal.",
+        "set_key": "Set your key as an environment variable.",
+        "run": "Ask Claude Code to check this project for subscriptions."
+      },
+      "command_label": "Install for Claude Code",
+      "env_label": "Set your key",
+      "env_hint": "Swap the placeholder for the key you created. Add the line to your shell profile to keep it."
+    },
+    "detected": {
+      "title": "Detected subscriptions",
+      "description": "Your coding agent found these paid services. Add them as expenses or dismiss them.",
+      "per_month": "{amount}/mo",
+      "vendor": "Vendor: {vendor}",
+      "reported_by": "Reported by {agent}",
+      "pricing": "Pricing page",
+      "add": "Add as expense",
+      "dismiss": "Dismiss",
+      "dismissed": "{service} dismissed",
+      "error": "Something went wrong. Please try again.",
+      "details": "{count, plural, =0 {Details} one {Details · # clue} other {Details · # clues}}"
+    }
   }
 }

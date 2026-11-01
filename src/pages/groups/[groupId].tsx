@@ -187,7 +187,9 @@ const BalancePage: NextPageWithUser<{
                     null != total._sum.amount ? (
                       <Fragment key={total.currency}>
                         <div className="flex flex-wrap gap-1">
-                          {getCurrencyHelpersCached(total.currency).toUIString(total._sum.amount)}
+                          <span dir="ltr">
+                            {getCurrencyHelpersCached(total.currency).toUIString(total._sum.amount)}
+                          </span>
                         </div>
                         {index < arr.length - 1 ? <span>+</span> : null}
                       </Fragment>

@@ -1,0 +1,7 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Safi",
+    "NSCameraUsageDescription": "يستخدم Safi الكاميرا لمسح الإيصالات ضوئيًا.",
+    "NSPhotoLibraryUsageDescription": "يستخدم Safi مكتبة الصور لإرفاق صور الإيصالات."
+  }
+}

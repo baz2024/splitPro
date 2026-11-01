@@ -64,7 +64,7 @@ export const BankTransactionItem: React.FC<{
               'transition-all duration-200 ease-out',
               shouldShowCheckbox
                 ? 'translate-x-0 opacity-100'
-                : 'pointer-events-none hidden -translate-x-2',
+                : 'pointer-events-none hidden -translate-x-2 rtl:translate-x-2',
             )}
           >
             <Checkbox

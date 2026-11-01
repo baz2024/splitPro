@@ -12,6 +12,7 @@ import {
   signInWithGoogle,
   signOutEverywhere,
 } from './src/lib/auth';
+import { t } from './src/lib/i18n';
 import { PhoneScreen } from './src/screens/PhoneScreen';
 import { WebAppScreen, type WebEntry } from './src/screens/WebAppScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
@@ -82,7 +83,7 @@ const Main = () => {
         }
         setScreen({
           name: 'welcome',
-          error: error instanceof Error ? error.message : 'Google sign-in failed.',
+          error: error instanceof Error ? error.message : t.googleFailed,
         });
       });
   }, [handleAccessToken]);

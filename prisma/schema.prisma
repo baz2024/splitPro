@@ -38,32 +38,34 @@ model Session {
 }
 
 model User {
-  id                   Int                  @id @default(autoincrement())
-  name                 String?
-  email                String?              @unique
-  emailVerified        DateTime?
-  image                String?
-  currency             String               @default("USD")
-  defaultCurrency      String?
-  preferredLanguage    String               @default("")
-  bankingId            String?
-  obapiProviderId      String?
-  accounts             Account[]
-  friendBalances       BalanceView[]        @relation("FriendBalanceView")
-  userBalances         BalanceView[]        @relation("UserBalanceView")
-  cachedBankData       CachedBankData[]     @relation("UserCachedBankData")
-  addedExpenses        Expense[]            @relation("AddedByUser")
-  deletedExpenses      Expense[]            @relation("DeletedByUser")
-  paidExpenses         Expense[]            @relation("PaidByUser")
-  updatedExpenses      Expense[]            @relation("UpdatedByUser")
-  expenseNotes         ExpenseNote[]
-  expenseParticipants  ExpenseParticipant[]
-  groups               Group[]
-  associatedGroups     GroupUser[]
-  friendDefaultSplitsA FriendDefaultSplit[] @relation("FriendDefaultSplitUserA")
-  friendDefaultSplitsB FriendDefaultSplit[] @relation("FriendDefaultSplitUserB")
-  sessions             Session[]
-  hiddenFriendIds      Int[]                @default([])
+  id                    Int                    @id @default(autoincrement())
+  name                  String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  currency              String                 @default("USD")
+  defaultCurrency       String?
+  preferredLanguage     String                 @default("")
+  bankingId             String?
+  obapiProviderId       String?
+  accounts              Account[]
+  friendBalances        BalanceView[]          @relation("FriendBalanceView")
+  userBalances          BalanceView[]          @relation("UserBalanceView")
+  cachedBankData        CachedBankData[]       @relation("UserCachedBankData")
+  addedExpenses         Expense[]              @relation("AddedByUser")
+  deletedExpenses       Expense[]              @relation("DeletedByUser")
+  paidExpenses          Expense[]              @relation("PaidByUser")
+  updatedExpenses       Expense[]              @relation("UpdatedByUser")
+  expenseNotes          ExpenseNote[]
+  expenseParticipants   ExpenseParticipant[]
+  groups                Group[]
+  associatedGroups      GroupUser[]
+  friendDefaultSplitsA  FriendDefaultSplit[]   @relation("FriendDefaultSplitUserA")
+  friendDefaultSplitsB  FriendDefaultSplit[]   @relation("FriendDefaultSplitUserB")
+  sessions              Session[]
+  hiddenFriendIds       Int[]                  @default([])
+  apiKeys               ApiKey[]
+  detectedSubscriptions DetectedSubscription[]
 
   @@schema("public")
 }
@@ -314,6 +316,45 @@ model job_run_details {
   @@schema("cron")
 }
 
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     Int
+  name       String
+  prefix     String
+  hashedKey  String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("public")
+}
+
+model DetectedSubscription {
+  id                String                     @id @default(cuid())
+  userId            Int
+  fingerprint       String
+  service           String
+  vendor            String?
+  category          String                     @default("saas")
+  status            DetectedSubscriptionStatus @default(PENDING)
+  detectedIn        String?
+  evidence          String[]                   @default([])
+  estimatedAmount   BigInt?
+  estimatedCurrency String?
+  pricingUrl        String?
+  agent             String?
+  expenseId         String?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId, status])
+  @@schema("public")
+}
+
 /// Unified balance view that calculates balances from expenses
 /// Replaces both Balance and GroupBalance tables
 view BalanceView {
@@ -328,6 +369,14 @@ view BalanceView {
   user   User   @relation("UserBalanceView", fields: [userId], references: [id], onDelete: Cascade)
   friend User   @relation("FriendBalanceView", fields: [friendId], references: [id], onDelete: Cascade)
   group  Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+enum DetectedSubscriptionStatus {
+  PENDING
+  ADDED
+  DISMISSED
 
   @@schema("public")
 }

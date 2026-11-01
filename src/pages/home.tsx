@@ -12,8 +12,10 @@ import {
 import { type GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
 
+import { DetectedSubscriptionsCard } from '~/components/Agent/DetectedSubscriptionsCard';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { customServerSideTranslations } from '~/utils/i18n/server';
 
@@ -27,6 +29,8 @@ const FEATURES = [
 
 const Home = () => {
   const { t } = useTranslation('home');
+  const { status } = useSession();
+  const signedIn = 'authenticated' === status;
 
   return (
     <>
@@ -47,6 +51,12 @@ const Home = () => {
             </Link>
           </div>
         </nav>
+
+        {signedIn && (
+          <section className="mx-auto mt-4 max-w-5xl px-4 empty:hidden">
+            <DetectedSubscriptionsCard enabled={signedIn} />
+          </section>
+        )}
 
         <section className="mx-auto mt-12 flex max-w-5xl flex-col items-center gap-6 px-4 text-center lg:mt-24 lg:items-start lg:text-start">
           <h1 className="text-foreground max-w-3xl text-3xl leading-tight font-semibold lg:text-5xl lg:leading-tight">
@@ -91,5 +101,5 @@ const Home = () => {
 export default Home;
 
 export const getServerSideProps: GetServerSideProps = async (context) => ({
-  props: await customServerSideTranslations(context.locale, ['home']),
+  props: await customServerSideTranslations(context.locale, ['home', 'common', 'categories']),
 });

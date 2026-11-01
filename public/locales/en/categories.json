@@ -53,6 +53,21 @@
       },
       "name": "Life"
     },
+    "tech": {
+      "items": {
+        "aiApis": "AI APIs",
+        "cloudHosting": "Cloud & hosting",
+        "codingAgents": "Coding agents",
+        "databases": "Databases",
+        "devTools": "Developer tools",
+        "domains": "Domains & DNS",
+        "messagingApis": "Messaging APIs",
+        "monitoring": "Monitoring",
+        "other": "Tech & AI",
+        "saas": "Software subscriptions"
+      },
+      "name": "Tech & AI"
+    },
     "travel": {
       "items": {
         "bicycle": "Bicycle",

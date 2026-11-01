@@ -86,7 +86,7 @@ export const ExpenseDetailsStep: React.FC<{
           {currency}
           <Pencil className="size-3" aria-hidden />
         </span>
-        <span className="text-foreground text-4xl font-semibold tabular-nums">
+        <span dir="ltr" className="text-foreground text-4xl font-semibold tabular-nums">
           {getCurrencyHelpersCached(currency).toUIString(amount * (isNegative ? -1n : 1n), true)}
         </span>
         <FlagHint show={amountFlagged} />

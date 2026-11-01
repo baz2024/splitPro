@@ -284,7 +284,7 @@ const AmountDisplay: React.FC<{
           {t(`ui.expense.statements.${isPositive ? 'you_lent' : 'you_owe'}`)}
         </div>
       )}
-      <span className={cn(isPositive ? 'text-positive' : 'text-negative', className)}>
+      <span dir="ltr" className={cn(isPositive ? 'text-positive' : 'text-negative', className)}>
         {getCurrencyHelpersCached(currency).toUIString(amount)}
         {hasMore && `+`}
       </span>

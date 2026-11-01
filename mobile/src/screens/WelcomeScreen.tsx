@@ -4,6 +4,7 @@ import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthCancelledError, signInWithApple, signInWithGoogle } from '../lib/auth';
+import { directionStyle, isArabic, t, textStartStyle } from '../lib/i18n';
 import { COLORS } from '../theme';
 
 interface WelcomeScreenProps {
@@ -15,8 +16,7 @@ interface WelcomeScreenProps {
 
 type Busy = 'apple' | 'google' | null;
 
-const describeError = (error: unknown) =>
-  error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+const describeError = (error: unknown) => (error instanceof Error ? error.message : t.genericError);
 
 export const WelcomeScreen = ({
   initialError,
@@ -56,29 +56,30 @@ export const WelcomeScreen = ({
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.root, directionStyle]} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.hero}>
         <View style={styles.mark}>
           <View style={styles.logo}>
             <Text style={styles.logoGlyph}>K</Text>
           </View>
           <View>
-            <Text style={styles.brand}>Kafo AI</Text>
-            <Text style={styles.product}>Safi</Text>
+            <Text style={[styles.brand, textStartStyle]}>Kafo AI</Text>
+            <Text style={[styles.product, textStartStyle]}>Safi</Text>
           </View>
         </View>
 
-        <Text style={styles.headline} accessibilityRole="header">
-          Every receipt, subscription and API cost — against your project budget
+        <Text
+          style={[styles.headline, textStartStyle, isArabic ? styles.headlineArabic : null]}
+          accessibilityRole="header"
+        >
+          {t.headline}
         </Text>
-        <Text style={styles.subhead}>
-          Scan, split and settle with your team. Your budget stays in sync.
-        </Text>
+        <Text style={[styles.subhead, textStartStyle]}>{t.subhead}</Text>
       </View>
 
       <View style={styles.actions}>
         {error ? (
-          <Text style={styles.error} accessibilityRole="alert">
+          <Text style={[styles.error, textDirection]} accessibilityRole="alert">
             {error}
           </Text>
         ) : null}
@@ -97,7 +98,7 @@ export const WelcomeScreen = ({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Continue with Google"
+          accessibilityLabel={t.continueWithGoogle}
           disabled={null !== busy}
           onPress={() => {
             run('google', signInWithGoogle).catch(() => undefined);
@@ -114,14 +115,14 @@ export const WelcomeScreen = ({
           ) : (
             <>
               <Text style={styles.googleGlyph}>G</Text>
-              <Text style={styles.secondaryLabel}>Continue with Google</Text>
+              <Text style={[styles.secondaryLabel, textDirection]}>{t.continueWithGoogle}</Text>
             </>
           )}
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Continue with phone"
+          accessibilityLabel={t.continueWithPhone}
           disabled={null !== busy}
           onPress={onPhone}
           style={({ pressed }) => [
@@ -131,7 +132,7 @@ export const WelcomeScreen = ({
             busy ? styles.disabled : null,
           ]}
         >
-          <Text style={styles.primaryLabel}>Continue with phone</Text>
+          <Text style={[styles.primaryLabel, textDirection]}>{t.continueWithPhone}</Text>
         </Pressable>
 
         <Pressable
@@ -141,12 +142,15 @@ export const WelcomeScreen = ({
           hitSlop={12}
           style={styles.linkWrap}
         >
-          <Text style={styles.link}>Use email instead</Text>
+          <Text style={[styles.link, textDirection]}>{t.useEmailInstead}</Text>
         </Pressable>
       </View>
     </SafeAreaView>
   );
 };
+
+// Centered labels only need the reading direction, not a start alignment.
+const textDirection = { writingDirection: textStartStyle.writingDirection } as const;
 
 const styles = StyleSheet.create({
   root: {
@@ -196,6 +200,10 @@ const styles = StyleSheet.create({
     lineHeight: 39,
     fontWeight: '700',
     letterSpacing: -0.5,
+  },
+  // Arabic glyphs and marks sit taller, so give the large headline more room.
+  headlineArabic: {
+    lineHeight: 46,
   },
   subhead: {
     color: COLORS.muted,

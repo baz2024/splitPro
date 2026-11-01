@@ -3,6 +3,7 @@ import { Download, Scale } from 'lucide-react';
 import Head from 'next/head';
 import { useCallback, useEffect, useMemo } from 'react';
 import { DownloadAppDrawer } from '~/components/Account/DownloadAppDrawer';
+import { DetectedSubscriptionsCard } from '~/components/Agent/DetectedSubscriptionsCard';
 import { BalanceEntry } from '~/components/Expense/BalanceEntry';
 import { EmptyState } from '~/components/EmptyState';
 import { AddExpenseShortcuts } from '~/components/AddExpense/journey/AddExpenseShortcuts';
@@ -100,6 +101,8 @@ const BalancePage: NextPageWithUser = ({ user }) => {
           )}
         </div>
 
+        <DetectedSubscriptionsCard className="mx-4 mt-5" />
+
         <div className="mt-5 flex flex-col gap-8 pb-36">
           {balanceQuery.data?.balances.map((balance) => (
             <BalanceEntry
@@ -165,6 +168,6 @@ const CumulatedBalanceDisplay: React.FC<{
 
 BalancePage.auth = true;
 
-export const getStaticProps = withI18nStaticProps(['common']);
+export const getStaticProps = withI18nStaticProps(['common', 'categories']);
 
 export default BalancePage;

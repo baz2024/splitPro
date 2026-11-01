@@ -1,4 +1,12 @@
-import { BadgeInfo, CreditCard, Download, DownloadCloud, FileDown, Languages } from 'lucide-react';
+import {
+  BadgeInfo,
+  Bot,
+  CreditCard,
+  Download,
+  DownloadCloud,
+  FileDown,
+  Languages,
+} from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { signOut } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
@@ -128,6 +136,11 @@ const AccountPage: NextPageWithUser<{
               {t('bank_transactions.to_bank')}
             </AccountButton>
           </BankConnection>
+
+          <AccountButton href="/agents">
+            <Bot className="size-5 text-sky-500" />
+            {t('agents.account_entry')}
+          </AccountButton>
 
           {feedBackPossible && <SubmitFeedback />}
 

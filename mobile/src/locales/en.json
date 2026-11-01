@@ -1,0 +1,7 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Safi",
+    "NSCameraUsageDescription": "Safi uses the camera to scan receipts.",
+    "NSPhotoLibraryUsageDescription": "Safi uses your photo library to attach receipt images."
+  }
+}

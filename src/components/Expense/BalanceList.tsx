@@ -89,6 +89,7 @@ export const BalanceList: React.FC<{
                         })}{' '}
                       </span>
                       <span
+                        dir="ltr"
                         className={clsx(
                           'text-end',
                           0 < totalAmount[1] ? 'text-emerald-500' : 'text-orange-600',

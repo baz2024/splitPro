@@ -4,6 +4,7 @@ import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 
 import { AUTH_REDIRECT_URL } from '../theme';
+import { t } from './i18n';
 import { isSupabaseConfigured, supabase } from './supabase';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -13,14 +14,14 @@ const WEB_SIGNED_IN_KEY = 'splitpro.webSignedIn';
 
 export class AuthCancelledError extends Error {
   constructor() {
-    super('Sign-in was cancelled');
+    super(t.signInCancelled);
     this.name = 'AuthCancelledError';
   }
 }
 
 const assertConfigured = () => {
   if (!isSupabaseConfigured) {
-    throw new Error('Sign-in is not configured in this build (missing Supabase key).');
+    throw new Error(t.signInNotConfigured);
   }
 };
 
@@ -51,7 +52,7 @@ export const signOutEverywhere = async () => {
 
 const requireAccessToken = (accessToken: string | undefined) => {
   if (!accessToken) {
-    throw new Error('Sign-in did not return a session.');
+    throw new Error(t.noSession);
   }
   return accessToken;
 };
@@ -81,7 +82,7 @@ export const signInWithApple = async (): Promise<string> => {
   }
 
   if (!credential.identityToken) {
-    throw new Error('Apple did not return an identity token.');
+    throw new Error(t.appleNoToken);
   }
 
   const { data, error } = await supabase.auth.signInWithIdToken({
@@ -119,7 +120,7 @@ export const signInWithGoogle = async (): Promise<string> => {
     throw error;
   }
   if (!data.url) {
-    throw new Error('Google sign-in could not start.');
+    throw new Error(t.googleCouldNotStart);
   }
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, AUTH_REDIRECT_URL);
@@ -138,7 +139,7 @@ export const signInWithGoogle = async (): Promise<string> => {
 
   const code = returned.searchParams.get('code');
   if (!code) {
-    throw new Error('Google sign-in did not return a code.');
+    throw new Error(t.googleNoCode);
   }
 
   const exchanged = await supabase.auth.exchangeCodeForSession(code);
