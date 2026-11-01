@@ -1,0 +1,35 @@
+{
+  "other_currencies": "Also {amounts} in other currencies. Not converted and not in the chart.",
+  "trend": {
+    "title": "Monthly spend",
+    "subtitle": "Total project spend, last {count} months · {currency}",
+    "this_month": "{month} (this month)",
+    "budget_line": "Budget {amount}",
+    "aria": "Project spend per month for the last {count} months, with this month highlighted"
+  },
+  "table": {
+    "show": "View as table",
+    "month": "Month",
+    "amount": "Amount"
+  },
+  "category": {
+    "title": "Spend by category",
+    "subtitle": "Last {count} months · {currency}",
+    "other": "Other categories",
+    "empty": "No spending in this currency yet."
+  },
+  "services": {
+    "title": "Monthly cost by service",
+    "subtitle": "Monthly run-rate per service · {currency}",
+    "other": "{count, plural, one {# other subscription} other {# other subscriptions}}",
+    "plans": "{count, plural, one {# plan} other {# plans}}"
+  },
+  "my_spend": {
+    "label": "Your spending this month",
+    "no_history": "No earlier months to compare with yet",
+    "same": "Same as your {count}-month average ({average})",
+    "above": "{percent}% above your {count}-month average of {average}",
+    "below": "{percent}% below your {count}-month average of {average}",
+    "trend_aria": "Your spending over the last {count} months, with this month highlighted"
+  }
+}

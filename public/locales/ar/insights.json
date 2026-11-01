@@ -1,0 +1,35 @@
+{
+  "other_currencies": "إضافةً إلى {amounts} بعملات أخرى، غير محوّلة وغير مشمولة في الرسم.",
+  "trend": {
+    "title": "الإنفاق الشهري",
+    "subtitle": "إجمالي إنفاق المشروع، آخر {count} أشهر · {currency}",
+    "this_month": "{month} (هذا الشهر)",
+    "budget_line": "الميزانية {amount}",
+    "aria": "إنفاق المشروع لكل شهر خلال آخر {count} أشهر، مع إبراز هذا الشهر"
+  },
+  "table": {
+    "show": "عرض كجدول",
+    "month": "الشهر",
+    "amount": "المبلغ"
+  },
+  "category": {
+    "title": "الإنفاق حسب الفئة",
+    "subtitle": "آخر {count} أشهر · {currency}",
+    "other": "فئات أخرى",
+    "empty": "لا يوجد إنفاق بهذه العملة بعد."
+  },
+  "services": {
+    "title": "التكلفة الشهرية حسب الخدمة",
+    "subtitle": "المعدل الشهري لكل خدمة · {currency}",
+    "other": "{count, plural, one {اشتراك آخر واحد} two {اشتراكان آخران} few {# اشتراكات أخرى} many {# اشتراكًا آخر} other {# اشتراك آخر}}",
+    "plans": "{count, plural, one {خطة واحدة} two {خطتان} few {# خطط} many {# خطة} other {# خطة}}"
+  },
+  "my_spend": {
+    "label": "إنفاقك هذا الشهر",
+    "no_history": "لا توجد أشهر سابقة للمقارنة بعد",
+    "same": "مماثل لمتوسطك خلال {count} أشهر ({average})",
+    "above": "أعلى بنسبة {percent}% من متوسطك خلال {count} أشهر البالغ {average}",
+    "below": "أقل بنسبة {percent}% من متوسطك خلال {count} أشهر البالغ {average}",
+    "trend_aria": "إنفاقك خلال آخر {count} أشهر، مع إبراز هذا الشهر"
+  }
+}

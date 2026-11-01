@@ -13,6 +13,7 @@ import {
 } from '~/components/Subscriptions/FilterChips';
 import { RunRateCard } from '~/components/Subscriptions/RunRateCard';
 import { SectionCard } from '~/components/Subscriptions/SectionCard';
+import { ServiceCostCard } from '~/components/Subscriptions/ServiceCostCard';
 import { SubscriptionRow } from '~/components/Subscriptions/SubscriptionRow';
 import {
   SUBSCRIPTIONS_NAMESPACES,
@@ -206,6 +207,7 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
           {overview ? (
             <>
               <RunRateCard overview={overview} />
+              <ServiceCostCard overview={overview} />
               <FilterChips value={filter} onChange={setFilter} />
               <div
                 role="tabpanel"
@@ -232,6 +234,7 @@ export const getStaticProps = withI18nStaticProps([
   'billing',
   'categories',
   'currencies',
+  'insights',
   'reminders',
   'unused',
 ]);

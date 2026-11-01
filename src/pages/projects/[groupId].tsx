@@ -18,6 +18,7 @@ import {
   TodayList,
   WhereItGoes,
 } from '~/components/Project/ProjectSections';
+import { ProjectSpendCharts } from '~/components/Project/SpendCharts';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cn } from '~/lib/utils';
 import { daysInMonthOf, getPaceAmount, percentOf } from '~/server/project/budget';
@@ -200,6 +201,7 @@ const ProjectPage: NextPageWithUser = ({ user }) => {
               <p className="text-muted mt-2 text-xs">{t('stats.other_currencies')}</p>
             ) : null}
             <WhereItGoes summary={summary} detailsHref={`/groups/${summary.id}`} />
+            <ProjectSpendCharts groupId={summary.id} />
             <PeopleAndAgents summary={summary} manageHref={`/groups/${summary.id}`} />
 
             <div className="mt-4 flex gap-2.5">
@@ -238,6 +240,12 @@ export default ProjectPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => ({
   props: {
-    ...(await customServerSideTranslations(context.locale, ['common', 'projects', 'currencies'])),
+    ...(await customServerSideTranslations(context.locale, [
+      'common',
+      'projects',
+      'currencies',
+      'insights',
+      'categories',
+    ])),
   },
 });

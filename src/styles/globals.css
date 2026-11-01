@@ -19,6 +19,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-chart-bar: var(--chart-bar);
+  --color-chart-bar-muted: var(--chart-bar-muted);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-baseline: var(--chart-baseline);
+  --color-chart-reference: var(--chart-reference);
+
   --color-positive: var(--success);
   --color-negative: var(--danger);
 
@@ -172,6 +178,17 @@
   --focus: #5aa9ff;
   --link: #5aa9ff;
 
+  /*
+    Charts: one series in a blue step tuned for the dark card (the accent itself is too light
+    for the dataviz lightness band); context bars in a quieter step of the same hue. Validated
+    with the dataviz palette checks against --surface.
+  */
+  --chart-bar: #3d93f0;
+  --chart-bar-muted: #4a6488;
+  --chart-grid: #1f3352;
+  --chart-baseline: #2e4669;
+  --chart-reference: #f1f5f9;
+
   --backdrop: rgba(3, 8, 16, 0.7);
 
   --radius: 0.5rem;
@@ -230,6 +247,13 @@
   --separator: #e6ebf2;
   --focus: #1a64c8;
   --link: #1a64c8;
+
+  /* Charts (validated with the dataviz ordinal check against #ffffff). */
+  --chart-bar: var(--accent);
+  --chart-bar-muted: #9fb0c7;
+  --chart-grid: #e6ebf2;
+  --chart-baseline: #c8d2df;
+  --chart-reference: #0b1626;
 
   --backdrop: rgba(11, 22, 38, 0.4);
 
