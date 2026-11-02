@@ -1,5 +1,6 @@
-import { ChevronLeftIcon } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, ScanSearchIcon } from 'lucide-react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import React from 'react';
@@ -47,6 +48,20 @@ const DataPage: NextPageWithUser = () => {
 
           <p className="text-muted px-1 text-sm">{t('intro')}</p>
 
+          <Link
+            href="/scan-statement"
+            className="border-border bg-surface focus-visible:ring-focus flex min-h-16 items-center gap-3 rounded-[20px] border p-4 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <ScanSearchIcon className="text-accent size-5 shrink-0" aria-hidden />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-foreground text-sm font-semibold">
+                {t('statementscan:entry.data_title')}
+              </span>
+              <span className="text-muted text-xs">{t('statementscan:entry.data_body')}</span>
+            </span>
+            <ChevronRightIcon className="text-muted size-4 shrink-0 rtl:rotate-180" aria-hidden />
+          </Link>
+
           <ExportCard />
           <ImportFlow fallbackCurrency={meQuery.data?.defaultCurrency ?? 'USD'} />
         </div>
@@ -57,6 +72,6 @@ const DataPage: NextPageWithUser = () => {
 
 DataPage.auth = true;
 
-export const getStaticProps = withI18nStaticProps(DATAIO_NAMESPACES);
+export const getStaticProps = withI18nStaticProps([...DATAIO_NAMESPACES, 'statementscan']);
 
 export default DataPage;

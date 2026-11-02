@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, PlusIcon } from 'lucide-react';
+import { ChevronLeftIcon, PlusIcon, ScanSearchIcon } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -188,6 +188,14 @@ const SubscriptionsPage: NextPageWithUser = ({ user }) => {
             </Link>
           </header>
 
+          <Link
+            href="/scan-statement"
+            className="border-border bg-surface text-foreground focus-visible:ring-focus inline-flex min-h-11 items-center gap-2 self-start rounded-full border px-4 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <ScanSearchIcon className="text-accent size-4" aria-hidden />
+            {t('statementscan:entry.subscriptions')}
+          </Link>
+
           {overviewQuery.isPending ? (
             <div className="mt-10 flex justify-center">
               <LoadingSpinner className="text-accent" />
@@ -244,6 +252,7 @@ export const getStaticProps = withI18nStaticProps([
   'currencies',
   'insights',
   'reminders',
+  'statementscan',
   'unused',
 ]);
 

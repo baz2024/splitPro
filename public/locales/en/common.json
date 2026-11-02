@@ -793,7 +793,9 @@
     "detected": {
       "summary": "Your coding agent found {count, plural, one {# new service} other {# new services}}",
       "review": "Review",
-      "hide": "Hide"
+      "hide": "Hide",
+      "scan_cta": "Find subscriptions in a bank statement",
+      "statement_summary": "{count, plural, one {# subscription} other {# subscriptions}} from your statement to review"
     },
     "signin": {
       "page_title": "Sign in to Safi",

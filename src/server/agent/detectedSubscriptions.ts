@@ -1,5 +1,7 @@
 import { type DetectedSubscription, Prisma, type PrismaClient } from '@prisma/client';
 
+import { BigMath } from '~/utils/numbers';
+
 import {
   type DetectedSubscriptionReport,
   formatMinorUnits,
@@ -38,8 +40,50 @@ export const toApiStatus = (
   status: DetectedSubscriptionStatusValue,
 ): SerializedDetectedSubscription['status'] => API_STATUS[status];
 
+/**
+ * Monthly cost of a row's estimate. Agent reports are monthly already; statement-scan rows
+ * store the charge amount with its cadence, so yearly and weekly charges are converted.
+ */
+export const monthlyEstimate = (
+  row: Pick<DetectedSubscription, 'estimatedAmount'> &
+    Partial<Pick<DetectedSubscription, 'cadence'>>,
+): bigint | null => {
+  if (null === row.estimatedAmount) {
+    return null;
+  }
+  if ('yearly' === row.cadence) {
+    return BigMath.roundDiv(row.estimatedAmount, 12n);
+  }
+  if ('weekly' === row.cadence) {
+    return BigMath.roundDiv(row.estimatedAmount * 52n, 12n);
+  }
+  return row.estimatedAmount;
+};
+
+/** Columns the agent API exposes; statement-scan columns are optional so old rows still fit. */
+type SerializableDetectedSubscription = Pick<
+  DetectedSubscription,
+  | 'id'
+  | 'fingerprint'
+  | 'service'
+  | 'vendor'
+  | 'category'
+  | 'status'
+  | 'detectedIn'
+  | 'evidence'
+  | 'estimatedAmount'
+  | 'estimatedCurrency'
+  | 'pricingUrl'
+  | 'agent'
+  | 'expenseId'
+  | 'lastSeenAt'
+  | 'createdAt'
+  | 'updatedAt'
+> &
+  Partial<Pick<DetectedSubscription, 'cadence'>>;
+
 export const serializeDetectedSubscription = (
-  row: DetectedSubscription,
+  row: SerializableDetectedSubscription,
 ): SerializedDetectedSubscription => ({
   id: row.id,
   fingerprint: row.fingerprint,
@@ -52,7 +96,7 @@ export const serializeDetectedSubscription = (
   estimatedMonthlyCost:
     null !== row.estimatedAmount && null !== row.estimatedCurrency
       ? {
-          amount: formatMinorUnits(row.estimatedAmount, row.estimatedCurrency),
+          amount: formatMinorUnits(monthlyEstimate(row) ?? 0n, row.estimatedCurrency),
           currency: row.estimatedCurrency,
         }
       : null,

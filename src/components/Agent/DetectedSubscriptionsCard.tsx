@@ -143,7 +143,8 @@ export const DetectedSubscriptionsCard: React.FC<{ enabled?: boolean; className?
   const dismissMutation = api.agent.dismissDetectedSubscription.useMutation();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const items = pendingQuery.data ?? [];
+  // Statement-scan finds are reviewed on /scan-statement, not in the coding-agent inbox.
+  const items = (pendingQuery.data ?? []).filter((item) => 'statement' !== item.agent);
   if (!enabled || 0 === items.length) {
     return null;
   }

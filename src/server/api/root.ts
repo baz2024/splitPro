@@ -11,6 +11,7 @@ import { expenseRouter } from './routers/expense';
 import { insightsRouter } from './routers/insights';
 import { receiptRouter } from './routers/receipt';
 import { remindersRouter } from './routers/reminders';
+import { statementScanRouter } from './routers/statementScan';
 import { subscriptionsRouter } from './routers/subscriptions';
 
 /**
@@ -31,6 +32,7 @@ export const appRouter = createTRPCRouter({
   billing: billingRouter,
   dataio: dataioRouter,
   insights: insightsRouter,
+  statementScan: statementScanRouter,
 });
 
 // Export type definition of API

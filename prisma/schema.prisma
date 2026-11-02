@@ -380,12 +380,36 @@ model DetectedSubscription {
   expenseId         String?
   /// Last heartbeat from the subscription-monitor skill that still found this service in a repo.
   lastSeenAt        DateTime?
+  /// Statement scan: 'statement' or 'invoice_export' (null for coding-agent reports).
+  source            String?
+  /// Statement scan: 'weekly' | 'monthly' | 'yearly'; null for trials without history.
+  cadence           String?
+  firstSeenAt       DateTime?
+  lastChargedAt     DateTime?
+  nextRenewalAt     DateTime?
+  chargeCount       Int?
+  /// Statement scan flags: 'trial' | 'duplicate' | 'price_rise' | 'annual_soon'.
+  flags             String[]                   @default([])
+  previousAmount    BigInt?
+  yearlyAmount      BigInt?
+  atRiskYearly      BigInt?
+  /// 'high' | 'medium' | 'low'.
+  confidence        String?
+  /// Fingerprint of the stream this row duplicates.
+  duplicateOf       String?
+  /// Latest statement scan that saw this row.
+  scanId            String?
+  /// Statement scan: the full VendorMatch (vendor id, catalog id, trial days, reseller).
+  vendorMatch       Json?
+  /// What the user decided on the confirm list ('using' | 'not_sure' | 'cancel' | 'not_subscription').
+  decision          String?
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
   user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, fingerprint])
   @@index([userId, status])
+  @@index([userId, scanId])
   @@schema("public")
 }
 
