@@ -1,7 +1,7 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
-import { parseEnvBoolean } from './utils/env';
+import { parseEnvBoolean, resolveAppUrl } from './utils/env';
 
 // Public Supabase project values (anon role, safe to ship to the browser by design).
 const DEFAULT_SUPABASE_URL = 'https://lfmhkxsjyvqlswmnppad.supabase.co';
@@ -31,14 +31,12 @@ export const env = createEnv({
     DOCKER_OUTPUT: z.boolean().default(false),
     NEXTAUTH_SECRET: 'production' === process.env.NODE_ENV ? z.string() : z.string().optional(),
     NEXTAUTH_URL: z.preprocess(
-      // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
-      // Since NextAuth.js automatically uses the VERCEL_URL if present.
-      (str) => process.env.VERCEL_URL ?? str,
-      // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+      // Vercel deployments may leave NEXTAUTH_URL unset; the deployment hostname is used then.
+      (str) => resolveAppUrl(str),
       process.env.VERCEL ? z.string() : z.string().url(),
     ),
     NEXTAUTH_URL_INTERNAL: z.preprocess(
-      (str) => process.env.VERCEL_URL ?? str,
+      (str) => resolveAppUrl(str),
       process.env.VERCEL ? z.string() : z.string().url(),
     ),
     CLEAR_CACHE_CRON_RULE: z.string().optional(),

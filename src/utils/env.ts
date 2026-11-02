@@ -14,3 +14,15 @@ export const parseEnvBoolean = (value: string | undefined, fallback = false): bo
 
   return fallback;
 };
+
+/**
+ * The app's public address. An explicitly set value wins; on Vercel the fallback is the
+ * deployment hostname, which comes without a protocol and so needs `https://` added.
+ */
+export const resolveAppUrl = (explicitUrl: unknown, vercelHost = process.env.VERCEL_URL) => {
+  if ('string' === typeof explicitUrl && '' !== explicitUrl.trim()) {
+    return explicitUrl.trim();
+  }
+
+  return vercelHost ? `https://${vercelHost}` : explicitUrl;
+};
