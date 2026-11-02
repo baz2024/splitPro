@@ -61,7 +61,7 @@ base_url='http://127.0.0.1:3000'
 # or the checkout's .env into the deployment under test.
 docker_environment=("PATH=$PATH")
 for name in HOME DOCKER_HOST DOCKER_CONTEXT DOCKER_CONFIG DOCKER_TLS_VERIFY DOCKER_CERT_PATH XDG_RUNTIME_DIR SSH_AUTH_SOCK; do
-  if [[ -v "$name" ]]; then docker_environment+=("$name=${!name}"); fi
+  if [[ -n "${!name+x}" ]]; then docker_environment+=("$name=${!name}"); fi
 done
 compose_base() {
   env -i "${docker_environment[@]}" \

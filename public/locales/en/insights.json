@@ -1,0 +1,60 @@
+{
+  "other_currencies": "Also {amounts} in other currencies. Not converted and not in the chart.",
+  "trend": {
+    "title": "Monthly spend",
+    "subtitle": "Total project spend, last {count} months · {currency}",
+    "this_month": "{month} (this month)",
+    "budget_line": "Budget {amount}",
+    "aria": "Project spend per month for the last {count} months, with this month highlighted",
+    "title_daily": "Daily spend",
+    "spent_label": "Spent",
+    "avg_per_month": "{amount} avg per month · {range}",
+    "avg_per_day": "{amount} avg per day · {range}",
+    "average_line": "Average {amount}",
+    "today": "{day} (today)",
+    "aria_daily": "Project spend per day for the last {count} days, with today highlighted"
+  },
+  "table": {
+    "show": "View as table",
+    "month": "Month",
+    "amount": "Amount",
+    "day": "Day"
+  },
+  "category": {
+    "title": "Spend by category",
+    "subtitle": "Last {count} months · {currency}",
+    "other": "Other categories",
+    "empty": "No spending in this currency yet.",
+    "subtitle_range": "{range} · {currency}",
+    "source_label": "Who added the cost",
+    "sources": {
+      "all": "All",
+      "human": "People",
+      "agent": "Agents"
+    },
+    "source_totals": "People {human} · Agents {agent}",
+    "agent_empty": "No costs reported by coding agents in this range.",
+    "human_empty": "No costs added by people in this range.",
+    "agent_hint": "Agents means costs reported through an agent API key."
+  },
+  "services": {
+    "title": "Monthly cost by service",
+    "subtitle": "Monthly run-rate per service · {currency}",
+    "other": "{count, plural, one {# other subscription} other {# other subscriptions}}",
+    "plans": "{count, plural, one {# plan} other {# plans}}"
+  },
+  "my_spend": {
+    "label": "Your spending this month",
+    "no_history": "No earlier months to compare with yet",
+    "same": "Same as your {count}-month average ({average})",
+    "above": "{percent}% above your {count}-month average of {average}",
+    "below": "{percent}% below your {count}-month average of {average}",
+    "trend_aria": "Your spending over the last {count} months, with this month highlighted"
+  },
+  "range": {
+    "label": "Time range",
+    "1m": "1M",
+    "6m": "6M",
+    "1y": "1Y"
+  }
+}

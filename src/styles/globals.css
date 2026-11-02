@@ -1,18 +1,32 @@
 @import 'tailwindcss';
+@import '@heroui/styles';
 
-@custom-variant dark (&:is(.dark *));
+/* The Expo app in mobile/ has its own styling; keep Tailwind from scanning it. */
+@source not '../../mobile';
 
+/* Explicit theme only: next-themes writes .dark / .light on <html>. */
+@custom-variant dark (&:is(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+
+/*
+  HeroUI v3 (@heroui/styles) already maps --color-background, --color-foreground,
+  --color-surface*, --color-overlay, --color-muted, --color-accent*, --color-border,
+  --color-default*, --color-success/warning/danger*, --color-focus and the radius scale.
+  Below are only the legacy shadcn-style aliases so older screens keep working.
+*/
 @theme inline {
   --breakpoint-xs: 30rem;
 
-  --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
 
-  --color-positive: var(--color-emerald-500);
-  --color-negative: var(--color-orange-600);
+  --color-chart-bar: var(--chart-bar);
+  --color-chart-bar-muted: var(--chart-bar-muted);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-baseline: var(--chart-baseline);
+  --color-chart-reference: var(--chart-reference);
+
+  --color-positive: var(--success);
+  --color-negative: var(--danger);
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -23,21 +37,13 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
 
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -106,7 +112,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
+    border-color: var(--border, currentcolor);
   }
 
   button:not([disabled]),
@@ -115,66 +121,171 @@
   }
 }
 
-:root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(224 71.4% 4.1%);
+/*
+  Midnight Navy theme.
+  Dark is the default (:root) so the page is navy even before next-themes runs;
+  .light / [data-theme='light'] switches to the light variant.
+  These are unlayered, so they win over HeroUI's layered defaults.
+  Legacy note: HeroUI owns --muted (secondary TEXT colour) and --accent (brand blue).
+  Old shadcn fills that used bg-muted / bg-accent now use bg-default.
+*/
+:root,
+.dark,
+[data-theme='dark'] {
+  color-scheme: dark;
 
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(224 71.4% 4.1%);
+  /* HeroUI tokens */
+  --background: #0b1626;
+  --foreground: #f1f5f9;
 
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(224 71.4% 4.1%);
+  --surface: #13233a;
+  --surface-foreground: #f1f5f9;
+  --surface-secondary: #182b46;
+  --surface-secondary-foreground: #f1f5f9;
+  --surface-tertiary: #1d3352;
+  --surface-tertiary-foreground: #f1f5f9;
 
-  --primary: hsl(220.9 39.3% 11%);
-  --primary-foreground: hsl(210 20% 98%);
+  --overlay: #13233a;
+  --overlay-foreground: #f1f5f9;
 
-  --secondary: hsl(220 14.3% 95.9%);
-  --secondary-foreground: hsl(220.9 39.3% 11%);
+  --muted: #8da2c0;
 
-  --muted: hsl(220 14.3% 95.9%);
-  --muted-foreground: hsl(220 8.9% 46.1%);
+  --default: #1a2d48;
+  --default-foreground: #f1f5f9;
 
-  --accent: hsl(220 14.3% 95.9%);
-  --accent-foreground: hsl(220.9 39.3% 11%);
+  --accent: #5aa9ff;
+  --accent-foreground: #0b1626;
 
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 20% 98%);
+  --success: #34d399;
+  --success-foreground: #0b1626;
 
-  --border: hsl(220 13% 91%);
-  --input: hsl(220 13% 91%);
-  --ring: hsl(224 71.4% 4.1%);
+  --warning: #fbbf24;
+  --warning-foreground: #0b1626;
+
+  --danger: #f0533a;
+  --danger-foreground: #ffffff;
+
+  --segment: #25406a;
+  --segment-foreground: #f1f5f9;
+
+  --field-background: #0f1e33;
+  --field-foreground: #f1f5f9;
+  --field-placeholder: #8da2c0;
+  --field-border: #1f3352;
+
+  --border: #1f3352;
+  --separator: #1a2c47;
+  --focus: #5aa9ff;
+  --link: #5aa9ff;
+
+  /*
+    Charts: one series in a blue step tuned for the dark card (the accent itself is too light
+    for the dataviz lightness band); context bars in a quieter step of the same hue. Validated
+    with the dataviz palette checks against --surface.
+  */
+  --chart-bar: #3d93f0;
+  --chart-bar-muted: #4a6488;
+  --chart-grid: #1f3352;
+  --chart-baseline: #2e4669;
+  --chart-reference: #f1f5f9;
+
+  --backdrop: rgba(3, 8, 16, 0.7);
 
   --radius: 0.5rem;
 }
 
-.dark {
-  --background: hsl(224 71.4% 4.1%);
-  --foreground: hsl(222 2% 83%);
+/*
+  Light variant: cool off-white page, white cards lifted by soft navy-tinted shadows,
+  navy text. Every text colour below clears WCAG AA (4.5:1) on the page, card and
+  chip backgrounds; white text on accent/success/warning/danger fills clears 5.4:1.
+*/
+.light,
+[data-theme='light'] {
+  color-scheme: light;
 
-  --card: hsl(224 71.4% 4.1%);
-  --card-foreground: hsl(210 20% 98%);
+  /* HeroUI tokens */
+  --background: #f2f5f9;
+  --foreground: #0b1626;
 
-  --popover: hsl(224 71.4% 4.1%);
-  --popover-foreground: hsl(210 20% 98%);
+  --surface: #ffffff;
+  --surface-foreground: #0b1626;
+  /* Raised cards (Card variant="secondary") read as near-white on the tinted page. */
+  --surface-secondary: #f8fafd;
+  --surface-secondary-foreground: #0b1626;
+  --surface-tertiary: #ebf0f6;
+  --surface-tertiary-foreground: #0b1626;
 
-  --primary: hsl(189 94% 43%);
-  --primary-foreground: hsl(220.9 39.3% 11%);
+  --overlay: #ffffff;
+  --overlay-foreground: #0b1626;
 
-  --secondary: hsl(215 27.9% 16.9%);
-  --secondary-foreground: hsl(210 20% 98%);
+  --muted: #4f6079;
 
-  --muted: hsl(215 27.9% 16.9%);
-  --muted-foreground: hsl(217.9 10.6% 64.9%);
+  --default: #e9eef5;
+  --default-foreground: #0b1626;
 
-  --accent: hsl(215 27.9% 16.9%);
-  --accent-foreground: hsl(210 20% 98%);
+  --accent: #1a64c8;
+  --accent-foreground: #ffffff;
 
-  --destructive: hsl(0 74% 42%);
-  --destructive-foreground: hsl(210 20% 98%);
+  --success: #047857;
+  --success-foreground: #ffffff;
 
-  --border: hsl(215 27.9% 16.9%);
-  --input: hsl(215 27.9% 16.9%);
-  --ring: hsl(221 39% 11%);
+  --warning: #a84a0a;
+  --warning-foreground: #ffffff;
+
+  --danger: #c2361f;
+  --danger-foreground: #ffffff;
+
+  --segment: #ffffff;
+  --segment-foreground: #0b1626;
+
+  --field-background: #ffffff;
+  --field-foreground: #0b1626;
+  --field-placeholder: #5f6f86;
+  --field-border: #c8d2df;
+
+  --border: #dce3ec;
+  --separator: #e6ebf2;
+  --focus: #1a64c8;
+  --link: #1a64c8;
+
+  /* Charts (validated with the dataviz ordinal check against #ffffff). */
+  --chart-bar: var(--accent);
+  --chart-bar-muted: #9fb0c7;
+  --chart-grid: #e6ebf2;
+  --chart-baseline: #c8d2df;
+  --chart-reference: #0b1626;
+
+  --backdrop: rgba(11, 22, 38, 0.4);
+
+  /* Navy-tinted elevation instead of HeroUI's neutral grey shadows. */
+  --surface-shadow:
+    0 1px 2px 0 rgba(11, 22, 38, 0.05), 0 4px 12px -2px rgba(11, 22, 38, 0.06),
+    0 0 0 1px rgba(11, 22, 38, 0.02);
+  --overlay-shadow:
+    0 2px 8px 0 rgba(11, 22, 38, 0.06), 0 -6px 16px 0 rgba(11, 22, 38, 0.04),
+    0 16px 32px -4px rgba(11, 22, 38, 0.12);
+  --field-shadow: 0 1px 2px 0 rgba(11, 22, 38, 0.04);
+}
+
+/* Legacy shadcn-style aliases, re-declared wherever a theme class is set. */
+:root,
+.dark,
+.light,
+[data-theme='dark'],
+[data-theme='light'] {
+  --card: var(--surface);
+  --card-foreground: var(--surface-foreground);
+  --popover: var(--overlay);
+  --popover-foreground: var(--overlay-foreground);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--default);
+  --secondary-foreground: var(--default-foreground);
+  --muted-foreground: var(--muted);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--danger-foreground);
+  --input: var(--border);
+  --ring: var(--focus);
 }
 
 @layer base {
@@ -231,8 +342,8 @@ input[type='number'] {
   width: 100px;
   height: 100%;
   box-shadow:
-    0 0 10px #29d,
-    0 0 5px #29d;
+    0 0 10px var(--accent),
+    0 0 5px var(--accent);
   opacity: 1;
 
   -webkit-transform: rotate(3deg) translate(0px, -4px);
@@ -255,8 +366,8 @@ input[type='number'] {
   box-sizing: border-box;
 
   border: solid 2px transparent;
-  border-top-color: #29d;
-  border-left-color: #29d;
+  border-top-color: var(--accent);
+  border-left-color: var(--accent);
   border-radius: 50%;
 
   -webkit-animation: nprogress-spinner 400ms linear infinite;
@@ -288,4 +399,22 @@ input[type='number'] {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/*
+  Disabled solid HeroUI buttons (primary, danger): HeroUI only fades them, which still reads as
+  an active blue button. Swap to a muted outline with muted text in both themes. Pending buttons
+  keep their colour so a save in progress doesn't look disabled.
+*/
+.button:is(.button--primary, .button--danger):is(
+    :disabled,
+    [aria-disabled='true'],
+    [data-disabled='true']
+  ):not([data-pending='true']) {
+  --button-bg: var(--default);
+  --button-bg-hover: var(--default);
+  --button-bg-pressed: var(--default);
+  --button-fg: var(--muted);
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px var(--border);
 }

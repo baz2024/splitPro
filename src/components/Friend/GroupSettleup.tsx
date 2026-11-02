@@ -107,10 +107,10 @@ export const GroupSettleUp: React.FC<{
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-5">
             <EntityAvatar entity={sender} />
-            <ArrowRightIcon className="h-6 w-6 text-gray-600 rtl:rotate-180" />
+            <ArrowRightIcon className="text-muted h-6 w-6 rtl:rotate-180" />
             <EntityAvatar entity={receiver} />
           </div>
-          <p className="mt-2 text-center text-sm text-gray-400">{paymentText}</p>
+          <p className="text-muted mt-2 text-center text-sm">{paymentText}</p>
         </div>
         <CurrencyInput
           currency={currency}

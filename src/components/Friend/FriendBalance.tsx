@@ -20,7 +20,7 @@ export const FriendBalance: React.FC<{
         <EntityAvatar entity={user} size={30} />
         <div>
           <div className="text-foreground">{user.name}</div>
-          {groupName ? <div className="text-xs text-gray-500">{groupName}</div> : null}
+          {groupName ? <div className="text-muted text-xs">{groupName}</div> : null}
         </div>
       </div>
       <div>
@@ -30,7 +30,7 @@ export const FriendBalance: React.FC<{
           {t(`ui.expense.statements.${isPositive ? 'you_lent' : 'you_owe'}`)}
         </div>
         <div className={`${isPositive ? 'text-green-500' : 'text-orange-600'} flex text-end`}>
-          {toUIString(balance.amount)}
+          <span dir="ltr">{toUIString(balance.amount)}</span>
         </div>
       </div>
     </div>

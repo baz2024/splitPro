@@ -1,0 +1,36 @@
+{
+  "chip": "Review",
+  "chip_label": "Needs review",
+  "card": {
+    "title": "Check this expense",
+    "intro": "Kafo AI wasn't sure about part of this receipt. Check the details, then confirm.",
+    "looks_right": "Looks right",
+    "marked": "Marked as reviewed",
+    "failed": "Couldn't mark as reviewed. Try again.",
+    "no_reasons": "Flagged for a quick check."
+  },
+  "reasons": {
+    "skipped": "Saved before Kafo AI finished reading the receipt",
+    "field": {
+      "merchant": "Merchant name may be misread",
+      "total": "Total may be misread",
+      "date": "Date may be misread",
+      "category": "Category was a guess",
+      "currency": "Currency was inferred",
+      "tax": "Tax may be misread"
+    }
+  },
+  "reading": {
+    "leave_hint": "You can leave this screen — we'll flag it \"Review\" if anything is unsure.",
+    "type_instead": "Fill it in while AI reads"
+  },
+  "warning_fields": "Kafo AI wasn't sure about: {fields}",
+  "fields": {
+    "merchant": "Merchant",
+    "total": "Total",
+    "date": "Date",
+    "category": "Category",
+    "currency": "Currency",
+    "tax": "Tax"
+  }
+}

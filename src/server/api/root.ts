@@ -1,9 +1,18 @@
 import { groupRouter } from '~/server/api/routers/group';
 import { createTRPCRouter } from '~/server/api/trpc';
 
+import { agentRouter } from './routers/agent';
+import { billingRouter } from './routers/billing';
+import { dataioRouter } from './routers/dataio';
 import { userRouter } from './routers/user';
+import { projectRouter } from './routers/project';
 import { bankTransactionsRouter } from './routers/bankTransactions';
 import { expenseRouter } from './routers/expense';
+import { insightsRouter } from './routers/insights';
+import { receiptRouter } from './routers/receipt';
+import { remindersRouter } from './routers/reminders';
+import { statementScanRouter } from './routers/statementScan';
+import { subscriptionsRouter } from './routers/subscriptions';
 
 /**
  * This is the primary router for your server.
@@ -15,6 +24,15 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   bankTransactions: bankTransactionsRouter,
   expense: expenseRouter,
+  receipt: receiptRouter,
+  agent: agentRouter,
+  project: projectRouter,
+  subscriptions: subscriptionsRouter,
+  reminders: remindersRouter,
+  billing: billingRouter,
+  dataio: dataioRouter,
+  insights: insightsRouter,
+  statementScan: statementScanRouter,
 });
 
 // Export type definition of API

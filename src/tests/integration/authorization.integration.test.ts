@@ -54,6 +54,26 @@ describe('authorization', () => {
     expect(await accountingSnapshot()).toEqual(before);
   });
 
+  it('lets only the creator archive or unarchive a group', async () => {
+    const { owner, member, group } = await testScenario();
+    await expect(
+      callerFor(member.id).group.toggleArchive({ groupId: group.id }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(await db.group.findUnique({ where: { id: group.id } })).toMatchObject({
+      archivedAt: null,
+    });
+
+    await callerFor(owner.id).group.toggleArchive({ groupId: group.id });
+    const archived = await db.group.findUnique({ where: { id: group.id } });
+    expect(archived?.archivedAt).not.toBeNull();
+
+    await expect(
+      callerFor(member.id).group.toggleArchive({ groupId: group.id }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    const stillArchived = await db.group.findUnique({ where: { id: group.id } });
+    expect(stillArchived?.archivedAt).not.toBeNull();
+  });
+
   it('rejects writes to archived groups', async () => {
     const { owner, group, input } = await testScenario();
     const caller = callerFor(owner.id);

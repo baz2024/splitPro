@@ -20,7 +20,11 @@ import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
 import { BigMath } from '~/utils/numbers';
 
+import { SyncedBadge } from '../Billing/SyncedBadge';
 import { CurrencyConversion } from '../Friend/CurrencyConversion';
+import { ReviewReasonsCard } from '../Review/ReviewReasonsCard';
+import { AddedByAgent } from '../Safi/AddedByAgent';
+import { Money } from '../Safi/Money';
 import { EntityAvatar } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { CategoryIcon } from '../ui/categoryIcons';
@@ -59,26 +63,41 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
 
   const { toUIString } = getCurrencyHelpersCached(expense.currency);
 
+  const canMarkReviewed =
+    user.id === expense.addedBy ||
+    user.id === expense.paidBy ||
+    expense.expenseParticipants.some((p) => p.userId === user.id && 0n !== p.amount);
+
   return (
     <>
+      {expense.needsReview && !expense.deletedBy ? (
+        <ReviewReasonsCard
+          expenseId={expense.id}
+          reviewReasons={expense.reviewReasons}
+          canMarkReviewed={canMarkReviewed}
+        />
+      ) : null}
       <div className="mb-4 flex items-start justify-between gap-2">
         <div className="flex items-start gap-4">
           <div className="rounded-lg border p-2 text-xl">
-            <CategoryIcon category={expense.category} className="text-gray-400" size={24} />
+            <CategoryIcon category={expense.category} className="text-muted" size={24} />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex w-full items-center gap-2">
               <p>{expense.name}</p>
               {expense.transactionId && <Landmark className="text-positive h-4 w-4" />}
             </div>
-            <p className="text-2xl font-semibold">{toUIString(expense.amount)}</p>
+            {expense.syncedFrom ? (
+              <SyncedBadge provider={expense.syncedFrom} className="self-start" />
+            ) : null}
+            <p className="text-2xl font-semibold">
+              <Money amount={expense.amount} currency={expense.currency} />
+            </p>
             {!isSameDay(expense.expenseDate, expense.createdAt) ? (
-              <p className="text-sm text-gray-500">
-                {toUIDate(expense.expenseDate, { year: true })}
-              </p>
+              <p className="text-muted text-sm">{toUIDate(expense.expenseDate, { year: true })}</p>
             ) : null}
             {expense.updatedByUser ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-muted text-sm">
                 {t('expense_metadata.edited_by', {
                   actor: expense.updatedByUser.id === user.id ? 'you' : 'other',
                   user: displayName(expense.updatedByUser),
@@ -95,7 +114,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
                 })}
               </p>
             ) : (
-              <p className="text-sm text-gray-500">
+              <p className="text-muted text-sm">
                 {t('expense_metadata.added_by', {
                   actor: expense.addedByUser.id === user.id ? 'you' : 'other',
                   user: displayName(expense.addedByUser),
@@ -103,6 +122,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
                 })}
               </p>
             )}
+            <AddedByAgent apiKey={expense.reportedByApiKey} />
             {expense.recurrence ? (
               <Link href="/recurring" className="text-primary text-sm hover:underline">
                 {t('recurrence.recurring')}
@@ -110,7 +130,7 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               </Link>
             ) : null}
             {expense.group ? (
-              <Link href={`/groups/${expense.group.id}`}>
+              <Link href={`/projects/${expense.group.id}`}>
                 <Button variant="outline" size="sm" className="mt-2 gap-2">
                   <div className="relative">
                     <Users className="size-4" />
@@ -150,9 +170,9 @@ const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ user, expense }) => {
               </Link>
             ),
             amount: (
-              <span className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
+              <bdi dir="ltr" className={0n < expense.amount ? 'text-negative' : 'text-positive'}>
                 {toUIString(expense.amount)}
-              </span>
+              </bdi>
             ),
           }}
         />
@@ -214,7 +234,11 @@ const ExpenseParticipantEntry: React.FC<{
               </Button>
             </Link>
           ),
-          amount: <span className={amountColorClass}>{toUIString(participant.amount)}</span>,
+          amount: (
+            <bdi dir="ltr" className={amountColorClass}>
+              {toUIString(participant.amount)}
+            </bdi>
+          ),
         }}
       />
     </div>
@@ -372,10 +396,10 @@ export const EditSettlement: React.FC<{ expense: ExpenseDetailsOutput }> = ({ ex
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-5">
             <EntityAvatar entity={sender} />
-            <ArrowRightIcon className="h-6 w-6 text-gray-600 rtl:rotate-180" />
+            <ArrowRightIcon className="text-muted h-6 w-6 rtl:rotate-180" />
             <EntityAvatar entity={receiver} />
           </div>
-          <p className="mt-2 text-center text-sm text-gray-400">
+          <p className="text-muted mt-2 text-center text-sm">
             {t('ui.transfer', {
               senderRole: sender.id === session?.user.id ? 'you' : 'other',
               receiverRole: receiver.id === session?.user.id ? 'you' : 'other',
@@ -384,7 +408,7 @@ export const EditSettlement: React.FC<{ expense: ExpenseDetailsOutput }> = ({ ex
             })}
           </p>
           {expense.group ? (
-            <p className="mt-1 text-center text-xs text-gray-500">{expense.group.name}</p>
+            <p className="text-muted mt-1 text-center text-xs">{expense.group.name}</p>
           ) : null}
         </div>
         <CurrencyInput

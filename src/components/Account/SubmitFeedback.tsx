@@ -53,7 +53,7 @@ export const SubmitFeedback: React.FC = () => {
   const trigger = useMemo(
     () => (
       <AccountButton>
-        <MessageSquare className="h-5 w-5 text-green-500" />
+        <MessageSquare className="text-muted h-5 w-5" />
         {t('account.submit_feedback')}
       </AccountButton>
     ),

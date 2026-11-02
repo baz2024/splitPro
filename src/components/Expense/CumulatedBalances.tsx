@@ -58,7 +58,7 @@ export const CumulatedBalances: React.FC<{
           />
         </>
       )}
-      {0 === balances.length ? <div className="text-gray-500">{t('ui.settled_up')}</div> : null}
+      {0 === balances.length ? <div className="text-muted">{t('ui.settled_up')}</div> : null}
     </div>
   );
 };

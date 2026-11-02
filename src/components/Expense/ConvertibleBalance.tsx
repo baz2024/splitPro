@@ -11,6 +11,7 @@ import { currencyConversion } from '~/utils/numbers';
 import { isCurrencyCode } from '~/lib/currency';
 import { cn } from '~/lib/utils';
 import { SHOW_ALL_VALUE, useCurrencyPreferenceStore } from '~/store/currencyPreferenceStore';
+import { Money } from '../Safi/Money';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -264,29 +265,23 @@ const AmountDisplay: React.FC<{
   withText?: boolean;
   hasMore?: boolean;
 }> = ({ className = '', amount, currency, withText = false, hasMore = false }) => {
-  const { t, getCurrencyHelpersCached } = useTranslationWithUtils();
+  const { t } = useTranslationWithUtils();
 
   if (amount === 0n) {
-    return <span className={cn('text-gray-500', className)}>{t('ui.settled_up')}</span>;
+    return <span className={cn('text-muted', className)}>{t('ui.settled_up')}</span>;
   }
 
   const isPositive = amount > 0n;
   return (
     <div>
       {withText && (
-        <div
-          className={cn(
-            'text-end text-xs',
-            isPositive ? 'text-positive' : 'text-negative',
-            className,
-          )}
-        >
+        <div className={cn('text-muted text-end text-xs', className)}>
           {t(`ui.expense.statements.${isPositive ? 'you_lent' : 'you_owe'}`)}
         </div>
       )}
-      <span className={cn(isPositive ? 'text-positive' : 'text-negative', className)}>
-        {getCurrencyHelpersCached(currency).toUIString(amount)}
-        {hasMore && `+`}
+      <span className={cn('whitespace-nowrap', className)}>
+        <Money amount={amount} currency={currency} tone={isPositive ? 'owed' : 'owe'} />
+        {hasMore && <span className={isPositive ? 'text-positive' : 'text-negative'}>+</span>}
       </span>
     </div>
   );

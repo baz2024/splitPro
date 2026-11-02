@@ -6,12 +6,12 @@ import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import React, { useCallback } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import { useAddExpenseStore } from '~/store/addStore';
 import { api } from '~/utils/api';
 import { deserializeDefaultSplit } from '~/lib/defaultSplit';
-import { getInviteErrorToastKey, isInviteEmailSendFailed } from '~/lib/error/invite';
+import { getInviteErrorToastKey, isInviteSendFailed } from '~/lib/error/invite';
+import { getInviteTarget, toInviteFriendInput } from '~/lib/inviteTarget';
 
 import { EntityAvatar } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -38,7 +38,9 @@ export const SelectUserOrGroup: React.FC<{
   const groupsQuery = api.group.getAllGroups.useQuery();
   const addFriendMutation = api.user.inviteFriend.useMutation();
 
-  const isEmail = z.string().email().safeParse(nameOrEmail);
+  const inviteTarget = getInviteTarget(nameOrEmail);
+  const isValidTarget = 'email' === inviteTarget.kind || 'phone' === inviteTarget.kind;
+  const isPhone = 'phone' === inviteTarget.kind;
 
   const filteredGroups = groupsQuery.data?.filter((g) =>
     g.group.name.toLowerCase().includes(nameOrEmail.toLowerCase()),
@@ -49,54 +51,50 @@ export const SelectUserOrGroup: React.FC<{
 
   const onAddEmailClick = useCallback(
     (invite = false) => {
-      if (isEmail.success) {
-        const email = nameOrEmail;
+      if ('email' === inviteTarget.kind || 'phone' === inviteTarget.kind) {
+        const target = inviteTarget;
+        const typedValue = nameOrEmail;
         const removePendingParticipant = () => {
           const pendingParticipant = useAddExpenseStore
             .getState()
             .participants.find((participant) => -1 === participant.id);
-          if (email === pendingParticipant?.email) {
+          if (typedValue === pendingParticipant?.name) {
             removeParticipant(-1);
           }
         };
         const addParticipant = (user: User) => {
           removePendingParticipant();
           addOrUpdateParticipant(user);
-          if (email === useAddExpenseStore.getState().nameOrEmail) {
+          if (typedValue === useAddExpenseStore.getState().nameOrEmail) {
             setNameOrEmail('');
           }
         };
 
-        addFriendMutation.mutate(
-          { email, sendInviteEmail: invite },
-          {
-            onSuccess: addParticipant,
-            onError: (err) => {
-              const appErrorCode = err.data?.appErrorCode;
-              toast.error(t(getInviteErrorToastKey(appErrorCode)));
+        addFriendMutation.mutate(toInviteFriendInput(target, invite), {
+          onSuccess: addParticipant,
+          onError: (err) => {
+            const appErrorCode = err.data?.appErrorCode;
+            toast.error(t(getInviteErrorToastKey(appErrorCode)));
 
-              // The friend row already exists whenever this router throws, so retry the participant-add.
-              if (isInviteEmailSendFailed(appErrorCode)) {
-                addFriendMutation.mutate(
-                  { email, sendInviteEmail: false },
-                  {
-                    onSuccess: addParticipant,
-                    onError: () => {
-                      removePendingParticipant();
-                      toast.error(t('errors.add_member_failed'));
-                    },
-                  },
-                );
-              } else {
-                removePendingParticipant();
-              }
-            },
+            // The friend row already exists whenever this router throws, so retry the participant-add.
+            if (isInviteSendFailed(appErrorCode)) {
+              addFriendMutation.mutate(toInviteFriendInput(target, false), {
+                onSuccess: addParticipant,
+                onError: () => {
+                  removePendingParticipant();
+                  toast.error(t('errors.add_member_failed'));
+                },
+              });
+            } else {
+              removePendingParticipant();
+            }
           },
-        );
+        });
         addOrUpdateParticipant({
           id: -1,
-          name: nameOrEmail,
-          email: nameOrEmail,
+          name: typedValue,
+          email: 'email' === target.kind ? target.email : null,
+          phone: 'phone' === target.kind ? target.phone : null,
           emailVerified: new Date(),
           image: null,
           currency: 'USD',
@@ -110,7 +108,7 @@ export const SelectUserOrGroup: React.FC<{
       }
     },
     [
-      isEmail.success,
+      inviteTarget,
       nameOrEmail,
       addFriendMutation,
       addOrUpdateParticipant,
@@ -172,9 +170,10 @@ export const SelectUserOrGroup: React.FC<{
         <div>
           {enableSendingInvites ? (
             <div className="mt-1 text-orange-600">
-              {isEmail.success
+              {'email' === inviteTarget.kind
                 ? t('expense_details.add_expense_details.select_user_or_group.warning')
                 : null}
+              {'invalid-phone' === inviteTarget.kind ? t('errors.valid_phone') : null}
             </div>
           ) : (
             <div>{t('expense_details.add_expense_details.select_user_or_group.note')}</div>
@@ -185,17 +184,19 @@ export const SelectUserOrGroup: React.FC<{
             <Button
               className="mt-4 text-cyan-500 hover:text-cyan-500"
               variant="outline"
-              disabled={!isEmail.success}
+              disabled={!isValidTarget}
               onClick={handleAddEmailClickTrue}
             >
               <SendIcon className="me-2 h-4 w-4" />
-              {t('expense_details.add_expense_details.select_user_or_group.send_invite')}
+              {isPhone
+                ? t('expense_details.add_expense_details.select_user_or_group.send_invite_sms')
+                : t('expense_details.add_expense_details.select_user_or_group.send_invite')}
             </Button>
           )}
           <Button
             className="mt-4 text-cyan-500 hover:text-cyan-500"
             variant="outline"
-            disabled={!isEmail.success}
+            disabled={!isValidTarget}
             onClick={handleAddEmailClickFalse}
           >
             <UserPlusIcon className="me-2 h-4 w-4" />
@@ -206,11 +207,11 @@ export const SelectUserOrGroup: React.FC<{
       <div className="mt-2">
         {filteredFriends?.length ? (
           <>
-            <div className="font-normal text-gray-500">{t('actors.friends')}</div>
+            <div className="text-muted font-normal">{t('actors.friends')}</div>
             {filteredFriends.map((f) => (
               <button
                 key={f.id}
-                className="flex w-full items-center justify-between border-b border-gray-900 py-4"
+                className="border-border flex w-full items-center justify-between border-b py-4"
                 onClick={() => handleFriendClick(f)}
               >
                 <div className="flex min-w-0 items-center gap-4">
@@ -230,12 +231,12 @@ export const SelectUserOrGroup: React.FC<{
         {/*Can't select multiple groups or groups with outside ppl */}
         {filteredGroups?.length && 1 === participants.length ? (
           <>
-            <div className="mt-8 text-gray-500">{t('actors.groups')}</div>
+            <div className="text-muted mt-8">{t('actors.groups')}</div>
             <div className="mt-2 flex flex-col gap-1">
               {filteredGroups.map((g) => (
                 <button
                   key={g.groupId}
-                  className="border-b border-gray-900 py-4"
+                  className="border-border border-b py-4"
                   onClick={() => onGroupSelect(g.group)}
                 >
                   <div className="flex min-w-0 items-center gap-4">

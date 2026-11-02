@@ -1,6 +1,4 @@
-import { HeartHandshakeIcon, Landmark, RefreshCcwDot, X } from 'lucide-react';
-import { useTranslation } from 'next-i18next';
-import Link from 'next/link';
+import { Landmark, RefreshCcwDot, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import React, { useCallback } from 'react';
 
@@ -11,6 +9,7 @@ import { api } from '~/utils/api';
 import { toast } from 'sonner';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { cronToBackend } from '~/lib/cron';
+import { notifiedParticipants } from '~/lib/notifyNote';
 import { cn } from '~/lib/utils';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -270,6 +269,8 @@ export const AddOrEditExpensePage: React.FC<{
     router.back();
   }, [router]);
 
+  const notified = notifiedParticipants(participants, currentUser?.id);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -324,7 +325,7 @@ export const AddOrEditExpensePage: React.FC<{
           <div className="h-[180px]">
             {amount && '' !== description ? (
               <>
-                <div className="flex flex-col items-center justify-center text-sm text-gray-400 sm:mt-4 sm:flex-row">
+                <div className="text-muted flex flex-col items-center justify-center text-sm sm:mt-4 sm:flex-row">
                   <p>{t(`ui.expense.${isNegative ? 'received_by' : 'paid_by'}`)}</p>
                   <PayerSelectionForm>
                     <Button
@@ -353,6 +354,14 @@ export const AddOrEditExpensePage: React.FC<{
                   </SplitExpenseForm>
                 </div>
 
+                {0 < notified.length ? (
+                  <p className="text-muted mt-3 text-center text-xs" data-testid="notify-note">
+                    {t('audit_c.notify.will_be_notified', {
+                      count: notified.length,
+                      name: displayName(notified[0]),
+                    })}
+                  </p>
+                ) : null}
                 <div className="mt-4 flex items-start justify-between sm:mt-10">
                   <DateSelector
                     mode="single"
@@ -397,7 +406,6 @@ export const AddOrEditExpensePage: React.FC<{
                 </Button>
               </RecurrenceInput>
             )}
-            <SponsorUs />
             <div className="flex gap-2">
               <AddBankTransactions bankConnectionEnabled={bankConnectionEnabled}>
                 <Button
@@ -405,7 +413,7 @@ export const AddOrEditExpensePage: React.FC<{
                   className="hover:text-foreground/80 items-center justify-between px-2"
                 >
                   <Landmark
-                    className={cn(transactionId ? 'text-primary' : 'text-white-500', 'h-6 w-6')}
+                    className={cn(transactionId ? 'text-primary' : 'text-muted', 'h-6 w-6')}
                   />
                 </Button>
               </AddBankTransactions>
@@ -421,25 +429,6 @@ export const AddOrEditExpensePage: React.FC<{
           </div>
         </>
       )}
-    </div>
-  );
-};
-
-const SponsorUs = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="flex justify-center">
-      <Link href="https://github.com/sponsors/krokosik" target="_blank" className="mx-auto">
-        <Button
-          variant="outline"
-          className="text-md hover:text-foreground/80 justify-between rounded-full border-pink-500"
-        >
-          <div className="flex items-center gap-4">
-            <HeartHandshakeIcon className="h-5 w-5 text-pink-500" />
-            {t('expense_details.add_expense_details.sponsor_us')}
-          </div>
-        </Button>
-      </Link>
     </div>
   );
 };

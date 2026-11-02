@@ -38,32 +38,36 @@ model Session {
 }
 
 model User {
-  id                   Int                  @id @default(autoincrement())
-  name                 String?
-  email                String?              @unique
-  emailVerified        DateTime?
-  image                String?
-  currency             String               @default("USD")
-  defaultCurrency      String?
-  preferredLanguage    String               @default("")
-  bankingId            String?
-  obapiProviderId      String?
-  accounts             Account[]
-  friendBalances       BalanceView[]        @relation("FriendBalanceView")
-  userBalances         BalanceView[]        @relation("UserBalanceView")
-  cachedBankData       CachedBankData[]     @relation("UserCachedBankData")
-  addedExpenses        Expense[]            @relation("AddedByUser")
-  deletedExpenses      Expense[]            @relation("DeletedByUser")
-  paidExpenses         Expense[]            @relation("PaidByUser")
-  updatedExpenses      Expense[]            @relation("UpdatedByUser")
-  expenseNotes         ExpenseNote[]
-  expenseParticipants  ExpenseParticipant[]
-  groups               Group[]
-  associatedGroups     GroupUser[]
-  friendDefaultSplitsA FriendDefaultSplit[] @relation("FriendDefaultSplitUserA")
-  friendDefaultSplitsB FriendDefaultSplit[] @relation("FriendDefaultSplitUserB")
-  sessions             Session[]
-  hiddenFriendIds      Int[]                @default([])
+  id                    Int                    @id @default(autoincrement())
+  name                  String?
+  email                 String?                @unique
+  phone                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  currency              String                 @default("USD")
+  defaultCurrency       String?
+  preferredLanguage     String                 @default("")
+  bankingId             String?
+  obapiProviderId       String?
+  accounts              Account[]
+  friendBalances        BalanceView[]          @relation("FriendBalanceView")
+  userBalances          BalanceView[]          @relation("UserBalanceView")
+  cachedBankData        CachedBankData[]       @relation("UserCachedBankData")
+  addedExpenses         Expense[]              @relation("AddedByUser")
+  deletedExpenses       Expense[]              @relation("DeletedByUser")
+  paidExpenses          Expense[]              @relation("PaidByUser")
+  updatedExpenses       Expense[]              @relation("UpdatedByUser")
+  expenseNotes          ExpenseNote[]
+  expenseParticipants   ExpenseParticipant[]
+  groups                Group[]
+  associatedGroups      GroupUser[]
+  friendDefaultSplitsA  FriendDefaultSplit[]   @relation("FriendDefaultSplitUserA")
+  friendDefaultSplitsB  FriendDefaultSplit[]   @relation("FriendDefaultSplitUserB")
+  sessions              Session[]
+  hiddenFriendIds       Int[]                  @default([])
+  apiKeys               ApiKey[]
+  detectedSubscriptions DetectedSubscription[]
+  billingConnections    BillingConnection[]
 
   @@schema("public")
 }
@@ -105,7 +109,11 @@ model Group {
   splitwiseGroupId  String?            @unique
   simplifyDebts     Boolean            @default(false)
   archivedAt        DateTime?
+  budgetAmount      BigInt?
+  budgetCurrency    String?
+  budgetSource      String?
   expenses          Expense[]
+  agentApiKeys      ApiKey[]
   createdBy         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   groupUsers        GroupUser[]
   groupBalances     BalanceView[]
@@ -185,6 +193,8 @@ model Expense {
   recurrenceId        Int?
   id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   conversionToId      String?              @unique @db.Uuid
+  needsReview         Boolean              @default(false)
+  reviewReasons       String[]             @default([])
   addedByUser         User                 @relation("AddedByUser", fields: [addedBy], references: [id], onDelete: Cascade)
   deletedByUser       User?                @relation("DeletedByUser", fields: [deletedBy], references: [id], onDelete: Cascade)
   group               Group?               @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -195,7 +205,11 @@ model Expense {
   updatedByUser       User?                @relation("UpdatedByUser", fields: [updatedBy], references: [id])
   expenseNotes        ExpenseNote[]
   expenseParticipants ExpenseParticipant[]
+  reportedByApiKeyId  String?
+  agentIdempotencyKey String?
+  reportedByApiKey    ApiKey?              @relation(fields: [reportedByApiKeyId], references: [id], onDelete: SetNull)
 
+  @@unique([reportedByApiKeyId, agentIdempotencyKey])
   @@index([groupId])
   @@index([paidBy])
   @@schema("public")
@@ -225,11 +239,17 @@ model ExpenseNote {
 }
 
 model ExpenseRecurrence {
-  id       Int       @id @default(autoincrement())
-  jobId    BigInt    @unique
-  notified Boolean   @default(true)
-  expense  Expense[]
-  job      job       @relation(fields: [jobId], references: [jobid], onDelete: Cascade)
+  id                  Int       @id @default(autoincrement())
+  jobId               BigInt    @unique
+  notified            Boolean   @default(true)
+  /// Days before each renewal to remind participants; null means no reminder.
+  remindDaysBefore    Int?
+  /// Renewal date (next run of the job) the last reminder covered, so each renewal is reminded once.
+  lastReminderSentFor DateTime?
+  /// Last time the user said they still use this subscription ("Still using").
+  lastConfirmedUsedAt DateTime?
+  expense             Expense[]
+  job                 job       @relation(fields: [jobId], references: [jobid], onDelete: Cascade)
 
   @@schema("public")
 }
@@ -314,6 +334,85 @@ model job_run_details {
   @@schema("cron")
 }
 
+model ApiKey {
+  id               String    @id @default(cuid())
+  userId           Int
+  name             String
+  prefix           String
+  hashedKey        String    @unique
+  createdAt        DateTime  @default(now())
+  lastUsedAt       DateTime?
+  revokedAt        DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthlyCapAmount BigInt?
+  capCurrency      String?
+  groupId          Int?
+  agentLabel       String?
+  model            String?
+  /// Set while the owner has paused the agent: the agent API rejects it and tells it to stop.
+  pausedAt         DateTime?
+  /// Last four characters of the token, for a masked "safi_AbC…wxyz" display.
+  lastFour         String?
+  /// Providers (catalog ids) or models this agent may report spend for; empty means anything.
+  allowList        String[]  @default([])
+  group            Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  reportedExpenses Expense[]
+
+  @@index([userId])
+  @@index([groupId])
+  @@schema("public")
+}
+
+model DetectedSubscription {
+  id                String                     @id @default(cuid())
+  userId            Int
+  fingerprint       String
+  service           String
+  vendor            String?
+  category          String                     @default("saas")
+  status            DetectedSubscriptionStatus @default(PENDING)
+  detectedIn        String?
+  evidence          String[]                   @default([])
+  estimatedAmount   BigInt?
+  estimatedCurrency String?
+  pricingUrl        String?
+  agent             String?
+  expenseId         String?
+  /// Last heartbeat from the subscription-monitor skill that still found this service in a repo.
+  lastSeenAt        DateTime?
+  /// Statement scan: 'statement' or 'invoice_export' (null for coding-agent reports).
+  source            String?
+  /// Statement scan: 'weekly' | 'monthly' | 'yearly'; null for trials without history.
+  cadence           String?
+  firstSeenAt       DateTime?
+  lastChargedAt     DateTime?
+  nextRenewalAt     DateTime?
+  chargeCount       Int?
+  /// Statement scan flags: 'trial' | 'duplicate' | 'price_rise' | 'annual_soon'.
+  flags             String[]                   @default([])
+  previousAmount    BigInt?
+  yearlyAmount      BigInt?
+  atRiskYearly      BigInt?
+  /// 'high' | 'medium' | 'low'.
+  confidence        String?
+  /// Fingerprint of the stream this row duplicates.
+  duplicateOf       String?
+  /// Latest statement scan that saw this row.
+  scanId            String?
+  /// Statement scan: the full VendorMatch (vendor id, catalog id, trial days, reseller).
+  vendorMatch       Json?
+  /// What the user decided on the confirm list ('using' | 'not_sure' | 'cancel' | 'not_subscription').
+  decision          String?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId, status])
+  @@index([userId, scanId])
+  @@schema("public")
+}
+
 /// Unified balance view that calculates balances from expenses
 /// Replaces both Balance and GroupBalance tables
 view BalanceView {
@@ -328,6 +427,65 @@ view BalanceView {
   user   User   @relation("UserBalanceView", fields: [userId], references: [id], onDelete: Cascade)
   friend User   @relation("FriendBalanceView", fields: [friendId], references: [id], onDelete: Cascade)
   group  Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+/// A provider billing account whose charges are imported as expenses (billing sync).
+model BillingConnection {
+  id                String          @id @default(cuid())
+  userId            Int
+  provider          BillingProvider
+  /// Project (group) the imported costs are posted into; null posts them as personal expenses.
+  groupId           Int?
+  /// Provider team or organisation id, only needed for account-wide tokens.
+  externalAccountId String?
+  label             String?
+  /// AES-256-GCM ciphertext of the provider token ("v<keyVersion>:<iv>:<tag>:<data>", base64).
+  encryptedToken    String
+  tokenLast4        String
+  /// active | error
+  status            String          @default("active")
+  lastSyncedAt      DateTime?
+  lastError         String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imports           BillingImport[]
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([provider, status])
+  @@schema("public")
+}
+
+/// Idempotency ledger: one row per (connection, month, service) linking to the expense it feeds.
+model BillingImport {
+  id           String            @id @default(cuid())
+  connectionId String
+  /// "<YYYY-MM>:<service key>", e.g. "2026-11:function-invocations".
+  periodKey    String
+  expenseId    String?
+  amount       BigInt
+  currency     String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  connection   BillingConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, periodKey])
+  @@schema("public")
+}
+
+enum BillingProvider {
+  VERCEL
+  SUPABASE
+
+  @@schema("public")
+}
+
+enum DetectedSubscriptionStatus {
+  PENDING
+  ADDED
+  DISMISSED
 
   @@schema("public")
 }

@@ -11,13 +11,13 @@
     },
     "download_app": "Download app",
     "download_app_details": {
-      "download_as_pwa": "You can download SplitPro as a PWA to your home screen.",
+      "download_as_pwa": "You can download Safi as a PWA to your home screen.",
       "title": "Download app",
       "using_android": "If you are using Android, checkout this",
       "using_ios": "If you are using iOS, checkout this",
       "video": "video"
     },
-    "download_splitpro_data": "Download SplitPro data",
+    "download_splitpro_data": "Download Safi data",
     "default_balance_currency": "Default balance currency",
     "edit_name": {
       "apply_avatar": "Apply avatar",
@@ -78,6 +78,12 @@
       "send_test_notification": "Send test notification",
       "test_notification_sent": "Test notification sent",
       "test_notification_failed": "Could not send test notification"
+    },
+    "theme": {
+      "title": "Appearance",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     }
   },
   "actions": {
@@ -121,7 +127,37 @@
     "send_magic_link": "Send magic link",
     "sending": "Sending...",
     "setup_instructions": "Docker setup instructions",
-    "trouble_logging_in": "Trouble logging in? Contact"
+    "trouble_logging_in": "Trouble logging in? Contact",
+    "supabase_error": "We couldn't sign you in. Please try again.",
+    "welcome": {
+      "brand": "Kafo AI",
+      "page_title": "Sign in to Kafo AI",
+      "headline": "Every receipt, subscription and API cost — against your project budget",
+      "subtitle": "Snap receipts, track subscriptions and see what your agents spend, all in one place.",
+      "continue_apple": "Continue with Apple",
+      "continue_google": "Continue with Google",
+      "continue_phone": "Continue with phone",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    },
+    "phone": {
+      "label": "Phone number",
+      "placeholder": "+1 555 555 0100",
+      "send_code": "Send code",
+      "code_sent": "Code sent to {phone}",
+      "enter_code": "Enter the 6-digit code we sent to {phone}",
+      "code_label": "6-digit code",
+      "verify": "Verify and continue",
+      "verifying": "Verifying...",
+      "change_number": "Use a different number",
+      "invalid": "Enter your phone number with country code",
+      "send_failed": "We couldn't send a code to that number",
+      "verify_failed": "That code didn't work. Please try again."
+    },
+    "callback": {
+      "signing_in": "Signing you in...",
+      "back_to_signin": "Back to sign in"
+    }
   },
   "currency_conversion": {
     "amount_to_receive": "Amount to receive",
@@ -164,6 +200,7 @@
     "upload_failed": "Failed to upload file",
     "uploading_error": "Error uploading file",
     "valid_email": "Enter valid email",
+    "valid_phone": "Enter the phone number in international format, starting with +",
     "group_balances_malformed": "Group balances data is malformed, please report an issue or try recalculating.",
     "currency_conversion_malformed": "Currency conversion data is malformed",
     "invalid_cron_expression": "Invalid cron expression",
@@ -176,7 +213,9 @@
     "expense_deletion_failed": "An unexpected error occurred while deleting the expense.",
     "friend_deletion_failed": "Failed to delete friend",
     "signin_failed": "Sign-in failed. Please try again.",
-    "invite_email_failed": "Failed to send invite email. Check the SMTP configuration."
+    "invite_email_failed": "Failed to send invite email. Check the SMTP configuration.",
+    "invite_sms_failed": "Failed to send invite SMS. Check the Twilio configuration.",
+    "invite_sms_disabled": "SMS invites are not set up on this server."
   },
   "bank_transactions": {
     "choose_bank_provider": "Choose bank provider",
@@ -198,11 +237,12 @@
       "description_placeholder": "Enter description",
       "pick_a_date": "Pick a date",
       "select_user_or_group": {
-        "add_to_split_pro": "Add to Split Pro",
+        "add_to_split_pro": "Add to Safi",
         "note": "Note: sending invite is disabled for now because of spam",
         "only_one_group_time": "You can have only one group at a time",
         "send_invite": "Send invite to user",
-        "warning": "Warning: Don't use send invite if it's invalid email. use add to Split Pro instead. Your account will be blocked if this feature is misused",
+        "send_invite_sms": "Send invite by SMS",
+        "warning": "Warning: Don't use send invite if it's invalid email. use add to Safi instead. Your account will be blocked if this feature is misused",
         "empty_image_alt": "No users found"
       },
       "split_type_section": {
@@ -349,12 +389,13 @@
     "no_members": {
       "add_members": "Add members",
       "add_members_details": {
-        "add_to_split_pro": "Add to Split Pro",
+        "add_to_split_pro": "Add to Safi",
         "note": "Note: sending email invites is disabled",
         "placeholder": "Enter name or email",
         "send_invite": "Send invite to user",
+        "send_invite_sms": "Send invite by SMS",
         "title": "Add members",
-        "warning": "Warning: Don't use send invite if it's invalid email. use add to Split Pro instead. Your account will be blocked if this feature is misused"
+        "warning": "Warning: Don't use send invite if it's invalid email. use add to Safi instead. Your account will be blocked if this feature is misused"
       },
       "invite_link": "Invite link",
       "no_members": "No members in the group yet."
@@ -371,9 +412,9 @@
     "text": "Join to the group and you can add, manage expenses, and track your balances"
   },
   "meta": {
-    "application_name": "SplitPro",
+    "application_name": "Safi",
     "description": "Split Expenses with your friends for free",
-    "title": "SplitPro: Split Expenses with your friends for free"
+    "title": "Safi: Split Expenses with your friends for free"
   },
   "balances": {
     "user_preferences": {
@@ -392,7 +433,8 @@
     "add_expense": "Add Expense",
     "recurring": "Recurring",
     "balances": "Balances",
-    "groups": "Groups"
+    "groups": "Groups",
+    "projects": "Projects"
   },
   "recurrence": {
     "title": "Recurrence",
@@ -488,7 +530,7 @@
     "settle_up_name": "Settle up",
     "settled_up": "Settled up",
     "settlement": "Settlement",
-    "share_text": "Check out SplitPro. It's an open source free alternative for Splitwise",
+    "share_text": "Check out Safi. It's an open source free alternative for Splitwise",
     "show_all_currencies": "Show all currencies",
     "today": "Today",
     "in_group": "In group",
@@ -541,5 +583,310 @@
     "enable_description": "Don't miss important events. Subscribe to receive notifications when expenses are added or updated.",
     "permission_granted": "You will receive notifications now",
     "subscribe": "Subscribe"
+  },
+  "empty_states": {
+    "balances": {
+      "title": "You're all square",
+      "description": "Add an expense with a friend or group and you'll see who owes whom here."
+    },
+    "groups": {
+      "title": "No groups yet",
+      "description": "Create a group for a trip, a home or a team to track shared costs together."
+    },
+    "activity": {
+      "description": "Expenses, payments and changes from your friends and groups will show up here."
+    }
+  },
+  "add_journey": {
+    "mode_label": "How do you want to add it?",
+    "modes": {
+      "scan": "Scan",
+      "manual": "Manual",
+      "import": "Import"
+    },
+    "titles": {
+      "scan": "Add expense",
+      "reading": "Reading receipt",
+      "review": "Review expense",
+      "amount": "Add expense",
+      "details": "Expense details",
+      "split": "Split expense"
+    },
+    "scan": {
+      "frame_title": "Fit the receipt inside the frame",
+      "frame_hint": "Kafo AI reads the total, date and shop for you.",
+      "shutter": "Take photo",
+      "gallery": "Choose from photos",
+      "powered_by": "Read by Kafo AI. You can change anything before saving.",
+      "reading_title": "Reading receipt",
+      "reading_hint": "This takes a few seconds.",
+      "unsupported": "This photo type can't be scanned. Enter the details by hand.",
+      "too_large": "This photo is too large to scan. Enter the details by hand.",
+      "failed": "Couldn't read the receipt. Enter the details by hand.",
+      "frame_chip": "AI fills amount, date and merchant",
+      "flash": "Flash is set in your camera app",
+      "reading_row": "Reading…",
+      "not_found": "Not found",
+      "preview_alt": "Receipt photo",
+      "reading_footnote": "Keep this screen open. Anything AI isn't sure about is flagged for you to check.",
+      "fields": {
+        "merchant": "Merchant",
+        "total": "Total",
+        "date": "Date",
+        "category": "Category"
+      }
+    },
+    "manual": {
+      "amount_label": "Amount",
+      "amount_hint": "Type the total",
+      "keypad": "Number pad",
+      "decimal": "Decimal point",
+      "backspace": "Delete last digit",
+      "what_for": "What for?",
+      "what_for_placeholder": "Add a description",
+      "attach": "Attach receipt photo (optional)",
+      "attached": "Receipt photo attached",
+      "attach_short": "Attach receipt",
+      "attached_short": "Receipt attached",
+      "uploading": "Uploading photo…",
+      "change_currency": "Change currency"
+    },
+    "review": {
+      "edit_amount": "Change amount",
+      "check": "Check",
+      "warning_title": "Some details need a look",
+      "warning_fields": "Kafo AI wasn't sure about these:",
+      "fields": {
+        "merchant": "Description",
+        "amount": "Amount",
+        "currency": "Currency",
+        "date": "Date",
+        "category": "Category"
+      },
+      "receipt": "Receipt",
+      "repeat": "Repeat",
+      "repeat_on": "Repeats",
+      "repeat_off": "Doesn't repeat",
+      "filled_from_photo": "Filled from photo",
+      "project": "Project",
+      "no_project": "None",
+      "edit_date": "Change date",
+      "untitled": "No description",
+      "warning_pill": "{fields} looked unclear — please confirm"
+    },
+    "split": {
+      "who": "Who's in",
+      "method": "Split method",
+      "equal": "Equal",
+      "shares": "Shares",
+      "percent": "%",
+      "exact": "Exact",
+      "budget_title": "{project} · {month} budget",
+      "budget_left": "{amount} left after this expense",
+      "budget_over": "{amount} over budget after this expense",
+      "receipt_attached": "receipt ✓",
+      "paid": "Paid {amount}",
+      "owes": "Owes {name}",
+      "not_included": "Not included",
+      "people": "People in this expense",
+      "budget_adds": "This adds {amount} — {left} left for {days, plural, one {# day} other {# days}}",
+      "budget_adds_over": "This adds {amount} — {over} over budget",
+      "notify": "{count, plural, =1 {{name} gets a notification when you save.} other {# people get a notification when you save.}}"
+    },
+    "choose_people": "Choose who's splitting",
+    "save": "Save expense",
+    "saved": "Expense saved",
+    "shortcuts": {
+      "scan": "Scan receipt",
+      "manual": "Add manually"
+    },
+    "close": "Close",
+    "sentence": {
+      "paid_by": "Paid by",
+      "split": "split",
+      "equally": "equally ({count})",
+      "unequally": "unequally",
+      "change_payer": "Change who paid",
+      "change_split": "Change how it's split"
+    },
+    "next_split": "Next: split",
+    "saved_notified": "{count, plural, =0 {Expense saved} =1 {Expense saved · {name} notified} other {Expense saved · # people notified}}"
+  },
+  "agents": {
+    "account_entry": "Coding agents",
+    "back": "Back to account",
+    "title": "Coding agents",
+    "intro": "Connect a coding agent such as Claude Code. It scans your code for paid APIs and services and reports new ones here for you to confirm.",
+    "loading": "Loading…",
+    "copy": {
+      "action": "Copy",
+      "copied": "Copied",
+      "failed": "Could not copy. Select the text and copy it manually."
+    },
+    "keys": {
+      "title": "API keys",
+      "description": "Your coding agent uses a key to send detected subscriptions to your account.",
+      "name_label": "Key name",
+      "name_placeholder": "e.g. Work laptop",
+      "create": "Create key",
+      "create_error": "Could not create the key",
+      "created_title": "Key \"{name}\" created",
+      "created_warning": "Copy this key now. You will not be able to see it again. Anyone with this key can add items to your inbox.",
+      "created_done": "I have copied it",
+      "token_label": "API key",
+      "empty": "No keys yet. Create one to connect a coding agent.",
+      "created_on": "Created {date}",
+      "last_used": "last used {date}",
+      "never_used": "never used",
+      "revoked": "Revoked",
+      "revoke": "Revoke",
+      "revoke_title": "Revoke this key?",
+      "revoke_description": "Agents using \"{name}\" will stop working straight away. This cannot be undone.",
+      "revoke_success": "Key revoked",
+      "revoke_error": "Could not revoke the key"
+    },
+    "skill": {
+      "title": "Install the skill",
+      "description": "The skill scans your code for paid APIs and services and reports new ones here for you to confirm. Nothing is added until you say so.",
+      "steps": {
+        "create_key": "Create an API key above and copy it.",
+        "install": "Run the install command in your terminal.",
+        "set_key": "Set your key as an environment variable.",
+        "run": "Ask Claude Code to check this project for subscriptions."
+      },
+      "command_label": "Install for Claude Code",
+      "env_label": "Set your key",
+      "env_hint": "Swap the placeholder for the key you created. Add the line to your shell profile to keep it."
+    },
+    "detected": {
+      "title": "Detected subscriptions",
+      "description": "Your coding agent found these paid services. Add them as expenses or dismiss them.",
+      "per_month": "{amount}/mo",
+      "vendor": "Vendor: {vendor}",
+      "reported_by": "Reported by {agent}",
+      "pricing": "Pricing page",
+      "add": "Add as expense",
+      "dismiss": "Dismiss",
+      "dismissed": "{service} dismissed",
+      "error": "Something went wrong. Please try again.",
+      "details": "{count, plural, =0 {Details} one {Details · # clue} other {Details · # clues}}"
+    }
+  },
+  "audit_a": {
+    "switchers": {
+      "button_label": "Language and currency",
+      "language": "Language",
+      "currency": "Currency"
+    },
+    "headline": {
+      "owed_by_one": "Overall, {name} owes you <amount/>",
+      "owed": "Overall, you are owed <amount/>",
+      "owe_to_one": "Overall, you owe {name} <amount/>",
+      "owe": "Overall, you owe <amount/>",
+      "mixed": "Overall, you are owed <owed/> and you owe <owe/>",
+      "settled": "You're all settled up"
+    },
+    "row": {
+      "owes_you": "owes you",
+      "you_owe": "you owe"
+    },
+    "detected": {
+      "summary": "Your coding agent found {count, plural, one {# new service} other {# new services}}",
+      "review": "Review",
+      "hide": "Hide",
+      "scan_cta": "Find subscriptions in a bank statement",
+      "statement_summary": "{count, plural, one {# subscription} other {# subscriptions}} from your statement to review"
+    },
+    "signin": {
+      "page_title": "Sign in to Safi",
+      "by_kafo": "by Kafo AI",
+      "invite_question": "Got an invite?",
+      "invite_hint": "Open your invite link to join the project straight away."
+    }
+  },
+  "audit_b": {
+    "addcost": {
+      "scan": "Scan",
+      "plans": "Plans",
+      "list_price_note": "List price in USD, check your plan",
+      "per_seat": "/ seat"
+    }
+  },
+  "audit_c": {
+    "pace": {
+      "on_track": "On track · {left} left",
+      "at_risk": "On pace to spend {projected} by {date}, {over} over budget",
+      "over": "Over budget by {over} · on pace for {projected} by {date}"
+    },
+    "project": {
+      "archived_on": "Archived on {date}",
+      "all_expenses": "All expenses"
+    },
+    "expense_row": {
+      "no_balance": "No balance"
+    },
+    "settings": {
+      "title": "Project settings",
+      "deleted": "Project deleted",
+      "archived": "Project archived",
+      "unarchived": "Project restored",
+      "archive_creator_only": "Only the project creator can archive it.",
+      "remove_member": "Remove {name}",
+      "remove": "Remove",
+      "delete": "Delete project",
+      "delete_title": "Delete {name}?",
+      "delete_description": "This deletes the project and all its expenses for everyone. It can't be undone."
+    },
+    "members": {
+      "title": "Members · {count}",
+      "settle_up": "Settle up",
+      "all_settled": "Everyone is settled up.",
+      "invite_link": "Invite link",
+      "exported": "{count, plural, one {Exported # expense} other {Exported # expenses}}",
+      "export_failed": "Could not export this project",
+      "settled": "Settled up",
+      "is_owed": "is owed {amount}{count, plural, =0 {} other { + # more}}",
+      "owes": "owes {amount}{count, plural, =0 {} other { + # more}}",
+      "you_are_owed": "you are owed {amount}{count, plural, =0 {} other { + # more}}",
+      "you_owe": "you owe {amount}{count, plural, =0 {} other { + # more}}"
+    },
+    "scan": {
+      "title": "What we read",
+      "check": "Check",
+      "check_count": "{count, plural, one {Check the highlighted field} other {Check the # highlighted fields}}",
+      "all_clear": "Read from your receipt"
+    },
+    "notify": {
+      "will_be_notified": "{count, plural, one {{name} will be notified} other {# people will be notified}}",
+      "was_notified": "{count, plural, one {{name} was notified} other {# people were notified}}",
+      "saved_title": "Expense saved",
+      "add_another": "Add another",
+      "done": "Done"
+    },
+    "invite": {
+      "preview_sms": "Text message to {to}",
+      "preview_email": "Email to {to}",
+      "subject": "Subject: {subject}",
+      "preview_note": "Nothing is sent until you tap Send invite.",
+      "send": "Send invite"
+    }
+  },
+  "audit_d": {
+    "agent": {
+      "added_by": "Added by {name} agent"
+    },
+    "journey": {
+      "import_link": "Import from your bank instead",
+      "leave_import": "Cancel import"
+    }
+  },
+  "audit_f": {
+    "pace": {
+      "early": "Spent {spent} so far this month · {left} left in budget",
+      "over_early": "Over budget by {over}"
+    }
+  },
+  "audit_g": {
+    "skill_create_key": "Tap \"Add agent & get token\" and copy the key it shows you."
   }
 }

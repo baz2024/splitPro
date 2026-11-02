@@ -202,6 +202,8 @@ export const groupRouter = createTRPCRouter({
           groupId: input.groupId,
           userId,
         })),
+        // Adding someone who is already a member must not fail the whole request.
+        skipDuplicates: true,
       });
 
       await ctx.db.groupDefaultSplit.deleteMany({ where: { groupId: input.groupId } });
@@ -415,6 +417,14 @@ export const groupRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Only group members can archive/unarchive the group',
+        });
+      }
+
+      // Archiving hides the project for everyone, so it sits with delete: creator only.
+      if (ctx.session.user.id !== group.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only the project creator can archive or unarchive it',
         });
       }
 

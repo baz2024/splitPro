@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import { AddOrEditExpensePage } from '~/components/AddExpense/AddExpensePage';
+import { AddCostPage } from '~/components/AddCost/AddCostPage';
 import MainLayout from '~/components/Layout/MainLayout';
 import { env } from '~/env';
 import { cronFromBackend } from '~/lib/cron';
@@ -67,6 +68,7 @@ const AddPage: NextPageWithUser<{
       ...user,
       defaultCurrency: user.defaultCurrency ?? null,
       emailVerified: null,
+      phone: null,
       name: user.name ?? null,
       email: user.email ?? null,
       image: user.image ?? null,
@@ -247,10 +249,16 @@ const AddPage: NextPageWithUser<{
   return (
     <>
       <Head>
-        <title>{parsedExpenseId ? t('actions.edit_expense') : t('actions.add_expense')}</title>
+        <title>{parsedExpenseId ? t('actions.edit_expense') : t('title', { ns: 'addcost' })}</title>
       </Head>
       <MainLayout hideAppBar>
-        {currentUser && (!parsedExpenseId || expenseQuery.data) && (
+        {currentUser && !parsedExpenseId && (
+          <AddCostPage
+            enableSendingInvites={enableSendingInvites}
+            bankConnectionEnabled={bankConnectionEnabled}
+          />
+        )}
+        {currentUser && parsedExpenseId && expenseQuery.data && (
           <AddOrEditExpensePage
             enableSendingInvites={enableSendingInvites}
             expenseId={parsedExpenseId}
@@ -271,6 +279,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => ({
     enableSendingInvites: env.ENABLE_SENDING_INVITES,
     bankConnectionEnabled: isBankConnectionConfigured(),
     maxUploadFileSizeMB: env.UPLOAD_MAX_FILE_SIZE_MB,
-    ...(await customServerSideTranslations(context.locale, ['common', 'categories', 'currencies'])),
+    ...(await customServerSideTranslations(context.locale, [
+      'common',
+      'categories',
+      'currencies',
+      'addcost',
+      'reminders',
+    ])),
   },
 });

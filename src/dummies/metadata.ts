@@ -64,6 +64,18 @@ export const CATEGORY_AMOUNT_RANGES = {
   water: [1000n, 10000n], // $10.00–$100.00 monthly utility
   utilities: [500n, 10000n], // $5.00–$100.00 general utilities (fallback for section)
 
+  // Tech & AI category
+  aiApis: [500n, 20000n], // $5.00–$200.00 monthly API usage
+  codingAgents: [1000n, 20000n], // $10.00–$200.00 monthly seat
+  cloudHosting: [500n, 50000n], // $5.00–$500.00 monthly hosting
+  databases: [100n, 10000n], // $1.00–$100.00 monthly database plan
+  devTools: [500n, 5000n], // $5.00–$50.00 monthly seat
+  domains: [500n, 5000n], // $5.00–$50.00 yearly domain
+  monitoring: [100n, 10000n], // $1.00–$100.00 monthly monitoring
+  messagingApis: [100n, 5000n], // $1.00–$50.00 monthly messaging usage
+  saas: [500n, 10000n], // $5.00–$100.00 monthly subscription
+  tech: [500n, 10000n], // $5.00–$100.00 general tech (fallback for section)
+
   // General category
   general: [500n, 20000n], // $5.00–$200.00 for misc
 } as const satisfies Record<CategoryItem, readonly [bigint, bigint]>;

@@ -1,259 +1,98 @@
+import { Card, buttonVariants } from '@heroui/react';
 import {
   ArrowRight,
-  Banknote,
-  Bell,
-  DollarSign,
-  FileUp,
-  GitFork,
-  Globe,
-  Import,
-  Landmark,
+  Bot,
+  Camera,
   type LucideIcon,
-  Merge,
+  PiggyBank,
   RefreshCw,
-  Split,
+  Sparkles,
   Users,
 } from 'lucide-react';
 import { type GetServerSideProps } from 'next';
 import Head from 'next/head';
-import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
-import { BackgroundGradient } from '~/components/ui/background-gradient';
-import { Button } from '~/components/ui/button';
 
+import { DetectedSubscriptionsCard } from '~/components/Agent/DetectedSubscriptionsCard';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { customServerSideTranslations } from '~/utils/i18n/server';
-import { SiGithub } from '@icons-pack/react-simple-icons';
 
-const FeatureRow = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex flex-col gap-20 lg:flex-row lg:gap-8">{children}</div>
-);
-
-const FeatureCard = ({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex flex-col gap-1 lg:w-1/2">
-    <div className="flex flex-row justify-center gap-1 lg:flex-col">
-      <Icon className="text-primary size-6" />
-      <p className="text-lg font-medium">{title}</p>
-    </div>
-    <p className="px-4 text-gray-400 lg:px-0">{description}</p>
-  </div>
-);
+const FEATURES = [
+  { icon: PiggyBank, key: 'budgets' },
+  { icon: Camera, key: 'receipts' },
+  { icon: Bot, key: 'agents' },
+  { icon: RefreshCw, key: 'subscriptions' },
+  { icon: Users, key: 'split' },
+] as const satisfies readonly { icon: LucideIcon; key: string }[];
 
 const Home = () => {
   const { t } = useTranslation('home');
+  const { status } = useSession();
+  const signedIn = 'authenticated' === status;
 
   return (
     <>
       <Head>
-        <title>{t('meta.title')}</title>
-        <meta name="description" content={t('meta.description')} />
+        <title>{t('kafo.meta_title')}</title>
+        <meta name="description" content={t('kafo.meta_description')} />
       </Head>
-      <main className="min-h-screen">
-        <nav className="sticky z-40 mx-auto flex max-w-5xl items-center justify-between px-4 py-4 lg:px-0 lg:py-5">
-          <div className="flex items-center gap-2">
-            <p className="text-2xl font-medium">{t('nav.app_name')}</p>
-          </div>
-          <div className="flex items-center gap-8">
+      <main className="min-h-dvh">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 lg:py-5">
+          <p className="flex items-center gap-2 text-xl font-semibold">
+            <Sparkles className="text-accent size-5" aria-hidden />
+            {t('kafo.brand')}
+          </p>
+          <div className="flex items-center gap-4 text-sm">
             <LanguageSelector />
-            <Link href="/terms">{t('nav.terms')}</Link>
-            <Link href="/privacy">{t('nav.privacy')}</Link>
+            <Link href="/auth/signin" className="text-accent font-medium">
+              {t('kafo.sign_in')}
+            </Link>
           </div>
         </nav>
-        <div className="mx-auto mt-20 flex w-full items-start justify-center gap-16 px-4 lg:max-w-5xl lg:px-0">
-          <div>
-            <div className="mb-32 text-center lg:mb-0 lg:h-[70vh] lg:text-start">
-              <h1 className="max-w-3xl text-center text-2xl leading-loose font-semibold text-gray-100 lg:text-start lg:text-5xl lg:leading-16">
-                {t('hero.title_before_highlight')}{' '}
-                <span className="text-primary font-bold">{t('hero.title_highlight')}</span>
-                {t('hero.title_after_highlight')}
-              </h1>
-              <h2 className="mt-5 text-gray-300 lg:mt-8 lg:text-lg">
-                <a
-                  className="text-primary hover:underline"
-                  href="https://github.com/oss-apps/split-pro"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {t('hero.subtitle')}
-                </a>
-              </h2>
-              <div className="mt-10 flex flex-col gap-6 lg:flex-row">
-                <Link href="/auth/signin" className="mx-auto lg:mx-0">
-                  <Button className="flex w-[200px] items-center gap-2 rounded-full">
-                    {t('hero.add_expense_button')}{' '}
-                    <ArrowRight size={15} className="rtl:rotate-180" />{' '}
-                  </Button>
-                </Link>
-                <Link
-                  href="https://github.com/oss-apps/split-pro"
-                  target="_blank"
-                  className="mx-auto lg:mx-0"
-                >
-                  <Button
-                    variant="outline"
-                    className="flex w-[200px] items-center gap-2 rounded-full"
-                  >
-                    <SiGithub className="size-4" /> {t('hero.star_github_button')}
-                  </Button>
-                </Link>
-              </div>
-              <div className="mt-40" />
-            </div>
-            <div className="mt-8 mb-20 flex justify-center lg:hidden">
-              <MobileScreenShot />
-            </div>
-            <div className="flex flex-col gap-20 text-center lg:text-start">
-              <p className="text-2xl">{t('features.title')}</p>
 
-              <FeatureRow>
-                <FeatureCard
-                  icon={Users}
-                  title={t('features.groups_and_friends.title')}
-                  description={t('features.groups_and_friends.description')}
-                />
-                <FeatureCard
-                  icon={Banknote}
-                  title={t('features.multiple_currencies.title')}
-                  description={t('features.multiple_currencies.description')}
-                />
-              </FeatureRow>
+        {signedIn && (
+          <section className="mx-auto mt-4 max-w-5xl px-4 empty:hidden">
+            <DetectedSubscriptionsCard enabled={signedIn} />
+          </section>
+        )}
 
-              <FeatureRow>
-                <FeatureCard
-                  icon={Split}
-                  title={t('features.unequal_split.title')}
-                  description={t('features.unequal_split.description')}
-                />
-                <FeatureCard
-                  icon={Globe}
-                  title={t('features.pwa_support.title')}
-                  description={t('features.pwa_support.description')}
-                />
-              </FeatureRow>
+        <section className="mx-auto mt-12 flex max-w-5xl flex-col items-center gap-6 px-4 text-center lg:mt-24 lg:items-start lg:text-start">
+          <h1 className="text-foreground max-w-3xl text-3xl leading-tight font-semibold lg:text-5xl lg:leading-tight">
+            {t('kafo.title_before_highlight')}{' '}
+            <span className="text-accent">{t('kafo.title_highlight')}</span>
+          </h1>
+          <p className="text-muted max-w-2xl text-base lg:text-lg">{t('kafo.subtitle')}</p>
+          <Link
+            href="/auth/signin"
+            className={`${buttonVariants({ size: 'lg' })} w-full max-w-xs gap-2 lg:w-auto`}
+          >
+            {t('kafo.get_started')}
+            <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
+          </Link>
+        </section>
 
-              <FeatureRow>
-                <FeatureCard
-                  icon={FileUp}
-                  title={t('features.upload_receipts.title')}
-                  description={t('features.upload_receipts.description')}
-                />
-                <FeatureCard
-                  icon={GitFork}
-                  title={t('features.open_source.title')}
-                  description={t('features.open_source.description')}
-                />
-              </FeatureRow>
+        <section className="mx-auto mt-16 mb-16 grid max-w-5xl grid-cols-1 gap-4 px-4 sm:grid-cols-2 lg:mt-24 lg:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, key }) => (
+            <Card key={key} variant="secondary">
+              <Card.Header>
+                <Icon className="text-accent mb-2 size-6" aria-hidden />
+                <Card.Title>{t(`kafo.features.${key}_title`)}</Card.Title>
+                <Card.Description>{t(`kafo.features.${key}_description`)}</Card.Description>
+              </Card.Header>
+            </Card>
+          ))}
+        </section>
 
-              <FeatureRow>
-                <FeatureCard
-                  icon={Import}
-                  title={t('features.import_splitwise.title')}
-                  description={t('features.import_splitwise.description')}
-                />
-                <FeatureCard
-                  icon={Bell}
-                  title={t('features.push_notifications.title')}
-                  description={t('features.push_notifications.description')}
-                />
-              </FeatureRow>
-
-              <FeatureRow>
-                <FeatureCard
-                  icon={Merge}
-                  title={t('features.debt_simplification.title')}
-                  description={t('features.debt_simplification.description')}
-                />
-                <FeatureCard
-                  icon={Globe}
-                  title={t('features.i18.title')}
-                  description={t('features.i18.description')}
-                />
-              </FeatureRow>
-
-              <FeatureRow>
-                <FeatureCard
-                  icon={DollarSign}
-                  title={t('features.currency_conversion.title')}
-                  description={t('features.currency_conversion.description')}
-                />
-                <FeatureCard
-                  icon={RefreshCw}
-                  title={t('features.recurring_transactions.title')}
-                  description={t('features.recurring_transactions.description')}
-                />
-              </FeatureRow>
-
-              <FeatureRow>
-                <FeatureCard
-                  icon={Landmark}
-                  title={t('features.bank_connection.title')}
-                  description={t('features.bank_connection.description')}
-                />
-              </FeatureRow>
-            </div>
-
-            <div className="mt-24 mb-20 flex flex-col gap-8 text-center lg:text-start">
-              <a
-                href="https://www.producthunt.com/posts/splitpro?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-splitpro"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Image
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=444717&theme=light"
-                  alt="Splitpro - Free&#0032;drop&#0032;in&#0032;replacement&#0032;&#0032;to&#0032;Splitwise&#0058;&#0032;Fully&#0032;Open&#0032;source | Product Hunt"
-                  className="mx-auto h-[47px] w-[200px] lg:mx-0"
-                  width="200"
-                  height="47"
-                />
-              </a>
-              <div>
-                {t('footer.built_by')}{' '}
-                <a
-                  className="text-primary"
-                  href="https://koushik.dev"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  KM Koushik
-                </a>
-                ,{' '}
-                <a
-                  className="text-primary"
-                  href="https://github.com/krokosik"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  krokosik
-                </a>
-                {/* <p className="text-gray-400">
-                  A product of <a className="underline underline-offset-2">ossapps.dev</a>
-                </p> */}
-              </div>
-              <div className="flex justify-center gap-4 lg:justify-start">
-                <a
-                  className="text-primary"
-                  href="https://github.com/oss-apps/split-pro"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  GitHub
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="sticky top-20 hidden shrink-0 lg:flex">
-            <MobileScreenShot />
-          </div>
-        </div>
+        <footer className="text-muted mx-auto flex max-w-5xl flex-wrap justify-center gap-6 px-4 pb-10 text-sm lg:justify-start">
+          <Link href="/terms">{t('nav.terms')}</Link>
+          <Link href="/privacy">{t('nav.privacy')}</Link>
+          {/* SplitPro is AGPL-licensed, so keep a link to the source code. */}
+          <a href="https://github.com/oss-apps/split-pro" target="_blank" rel="noreferrer">
+            {t('kafo.source_link')}
+          </a>
+        </footer>
       </main>
     </>
   );
@@ -261,22 +100,6 @@ const Home = () => {
 
 export default Home;
 
-const MobileScreenShot = () => {
-  const { t } = useTranslation('home');
-
-  return (
-    <BackgroundGradient>
-      <Image
-        src="/hero.webp"
-        className="bg-background rounded-[22px] border"
-        width={300}
-        height={550}
-        alt={t('hero.image_alt')}
-      />
-    </BackgroundGradient>
-  );
-};
-
 export const getServerSideProps: GetServerSideProps = async (context) => ({
-  props: await customServerSideTranslations(context.locale, ['home']),
+  props: await customServerSideTranslations(context.locale, ['home', 'common', 'categories']),
 });

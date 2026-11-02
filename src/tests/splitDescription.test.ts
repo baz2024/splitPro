@@ -15,6 +15,7 @@ const user = (id: number, name: string): User => ({
   currency: 'EUR',
   defaultCurrency: null,
   emailVerified: null,
+  phone: null,
   image: null,
   preferredLanguage: 'en',
   obapiProviderId: null,

@@ -3,5 +3,14 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm prisma migrate deploy && pnpm next build",
-  "crons": [{ "path": "/api/cron/recurrence-notifications", "schedule": "0 6 * * *" }]
+  "git": {
+    "deploymentEnabled": {
+      "worktree-*": false
+    }
+  },
+  "crons": [
+    { "path": "/api/cron/recurrence-notifications", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/billing-sync", "schedule": "30 6 * * *" },
+    { "path": "/api/cron/renewal-reminders", "schedule": "0 7 * * *" }
+  ]
 }

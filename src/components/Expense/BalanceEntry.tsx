@@ -16,6 +16,8 @@ export const BalanceEntry: React.FC<{
   const router = useRouter();
 
   const currentRoute = router.pathname;
+  // Groups are shown as projects; friend entries keep linking under the current page.
+  const href = '/groups' === currentRoute ? `/projects/${id}` : `${currentRoute}/${id}`;
 
   const stopPropagation = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -23,7 +25,7 @@ export const BalanceEntry: React.FC<{
   }, []);
 
   return (
-    <Link className="flex items-center justify-between" href={`${currentRoute}/${id}`}>
+    <Link className="flex items-center justify-between" href={href}>
       <div className="flex min-w-0 items-center gap-3">
         <EntityAvatar entity={entity} size={35} />
         <div className="text-foreground truncate">{displayName(entity)}</div>

@@ -5,6 +5,7 @@ export const createTestUser = (overrides: Partial<User> = {}): User => ({
   name: 'Alex Example',
   email: 'alex@example.test',
   emailVerified: null,
+  phone: null,
   image: null,
   currency: 'USD',
   defaultCurrency: null,

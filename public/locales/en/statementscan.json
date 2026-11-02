@@ -1,0 +1,149 @@
+{
+  "title": "Find subscriptions",
+  "back": "Back",
+  "intro": "Upload a bank or card statement. Safi picks out the subscriptions and shows what you could save.",
+  "upload": {
+    "heading": "Your statement",
+    "choose": "Choose a CSV or Excel file",
+    "drop": "or drop it here",
+    "drop_active": "Drop the file to scan it",
+    "sources": "Works with Revolut, AIB and Amex statements, and invoice exports from Stripe, GitHub and Vercel.",
+    "privacy": "The file is read once to find subscriptions. Safi keeps only the detected subscriptions, not your other transactions.",
+    "reading": "Reading your statement…",
+    "wrong_type": "Choose a CSV or Excel (.xlsx) file.",
+    "too_large": "This file is too big. Try a shorter date range.",
+    "too_large_compressed": "This file is still too big after compressing. Try a shorter date range.",
+    "too_many_rows": "This file has too many rows. Try a shorter date range.",
+    "read_failed": "Couldn't read this file. Check it's a CSV or Excel export.",
+    "scan_failed": "Couldn't scan this file. Please try again.",
+    "empty_file": "This file has no transactions in it. Export your statement again and upload that file.",
+    "not_statement": "This doesn't look like a statement. Choose a CSV or Excel export from your bank or card."
+  },
+  "mapping": {
+    "heading": "Check the columns",
+    "hint": "Safi couldn't tell which column is which. Pick the date, description and amount.",
+    "rows_found": "{count, plural, one {# row} other {# rows}}",
+    "columns": "Columns",
+    "fields": {
+      "date": "Date",
+      "description": "Description",
+      "amount": "Amount",
+      "currency": "Currency"
+    },
+    "required": "required",
+    "not_mapped": "Not used",
+    "date_format": "Date order",
+    "date_dmy": "Day first",
+    "date_mdy": "Month first",
+    "date_iso": "Year first",
+    "amount_sign": "Spending shows as",
+    "sign_positive": "Positive amounts",
+    "sign_negative": "Negative amounts",
+    "default_currency": "Currency",
+    "default_currency_hint": "Used when the file has no currency column.",
+    "missing_required": "Pick the date, description and amount columns to continue.",
+    "back": "Back",
+    "continue": "Find subscriptions"
+  },
+  "resume": {
+    "title": "Continue your last scan",
+    "count": "{count, plural, one {# to review} other {# to review}}",
+    "action": "Continue",
+    "new": "Scan a new file"
+  },
+  "report": {
+    "label": "What you could save",
+    "label_total": "Your subscriptions",
+    "at_risk": "{amount}/yr at risk",
+    "total_yearly": "{amount}/yr in subscriptions",
+    "of_total": "of {amount}/yr across {count, plural, one {# subscription} other {# subscriptions}}",
+    "found": "{count, plural, one {# subscription found} other {# subscriptions found}}",
+    "other_currencies": "Also {amounts} a year at risk",
+    "range": "{range} · {rows, plural, one {# row} other {# rows}}",
+    "breakdown": "Where the money goes",
+    "nothing_wasted": "Nothing looks wasted — nice. Confirm what you still use below.",
+    "none_found": "No subscriptions found in this file. Try a longer date range or another account.",
+    "flags": {
+      "trial": "Trials ending soon",
+      "duplicate": "Duplicates",
+      "price_rise": "Price rises",
+      "annual_soon": "Annual renewals soon"
+    }
+  },
+  "list": {
+    "heading_flagged": "Worth a look",
+    "heading_other": "Other subscriptions",
+    "hint": "Pick what to do with each one. Not sure is a safe choice: Safi reminds you before it renews.",
+    "handled": "Already handled ({count})",
+    "save": "{count, plural, =0 {Save} other {Save #}}",
+    "save_hint": "Pick a choice for at least one subscription.",
+    "need_amount": "{count, plural, one {Add the price for # subscription before saving.} other {Add the price for # subscriptions before saving.}}",
+    "partial": "{saved, plural, one {# saved} other {# saved}}. {failed, plural, one {# needs a look} other {# need a look}}.",
+    "save_failed": "Couldn't save. Please try again."
+  },
+  "item": {
+    "via": "via {name}",
+    "per_weekly": "{amount}/wk",
+    "per_monthly": "{amount}/mo",
+    "per_yearly": "{amount}/yr",
+    "price_unknown": "Price unknown",
+    "since": "Since {date}",
+    "renews_on": "Renews {date}",
+    "renews_in": "{days, plural, =0 {Renews today} =1 {Renews tomorrow} other {Renews in # days}}",
+    "trial_ends": "{days, plural, =0 {Trial ends today} =1 {Trial ends tomorrow} other {Trial ends in # days}}",
+    "trial_ends_on": "Trial ends {date}",
+    "flag_trial": "Trial",
+    "flag_duplicate": "Duplicate",
+    "flag_duplicate_of": "Duplicate of {name}",
+    "flag_duplicate_same": "Second {name} charge",
+    "flag_price_rise": "Price up {from} → {to}",
+    "flag_annual_soon": "Renews soon",
+    "check": "Check this one",
+    "seen_as": "Seen as {text}",
+    "decision_label": "What to do with {name}",
+    "decision": {
+      "using": "Using it",
+      "not_sure": "Not sure",
+      "cancel": "Cancel it",
+      "not_subscription": "Not a subscription"
+    },
+    "decision_hint": {
+      "using": "Saved as a subscription.",
+      "not_sure": "Saved with a reminder, so you can decide before it renews.",
+      "cancel": "Saved with a reminder to cancel before the next charge.",
+      "not_subscription": "Removed from this list. Nothing is saved."
+    },
+    "edit": "Edit",
+    "edit_label": "Edit {name}",
+    "done_editing": "Done",
+    "name": "Name",
+    "amount": "Price",
+    "amount_trial": "Price after the trial",
+    "cadence": "Billed",
+    "cadence_weekly": "Weekly",
+    "cadence_monthly": "Monthly",
+    "cadence_yearly": "Yearly",
+    "status_added": "Saved",
+    "status_dismissed": "Hidden",
+    "errors": {
+      "amount_required": "Add the price to save this one.",
+      "not_found": "This one is no longer available. Scan the file again.",
+      "failed": "Couldn't save this one. Please try again."
+    }
+  },
+  "done": {
+    "title": "All set",
+    "summary": "{saved, plural, one {# subscription saved} other {# subscriptions saved}} · {reminders, plural, =0 {no reminders} one {# reminder set} other {# reminders set}}",
+    "hidden": "{count, plural, one {# hidden as not a subscription} other {# hidden as not subscriptions}}",
+    "reminders_heading": "Reminders",
+    "reminder": "Reminder {days, plural, one {# day} other {# days}} before {date}",
+    "reminder_each": "Reminder {days, plural, one {# day} other {# days}} before each renewal",
+    "go": "Go to subscriptions",
+    "again": "Scan another file"
+  },
+  "entry": {
+    "subscriptions": "Scan a statement",
+    "data_title": "Find subscriptions in a bank statement",
+    "data_body": "See what you pay for, what renews soon and what you could cancel."
+  }
+}

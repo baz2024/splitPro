@@ -37,6 +37,8 @@ export interface AddExpenseState {
   transactionId?: string;
   multipleTransactions: TransactionAddInputModel[];
   isTransactionLoading: boolean;
+  /** Agent-detected subscription this expense comes from; marked ADDED once it is saved. */
+  detectedSubscriptionId?: string;
   actions: {
     setAmount: (amount: bigint) => void;
     setAmountStr: (amountStr: string) => void;
@@ -64,6 +66,7 @@ export interface AddExpenseState {
     setSingleTransaction: (singleTransaction: TransactionAddInputModel) => void;
     setIsTransactionLoading: (isTransactionLoading: boolean) => void;
     setCronExpression: (cronExpression: string) => void;
+    setDetectedSubscriptionId: (detectedSubscriptionId?: string) => void;
   };
 }
 
@@ -241,6 +244,7 @@ export const useAddExpenseStore = create<AddExpenseState>()((set) => ({
         transactionId: undefined,
         multipleTransactions: [],
         isTransactionLoading: false,
+        detectedSubscriptionId: undefined,
         cronExpression: '',
         isFileUploading: false,
         paidBy: s.currentUser,
@@ -264,6 +268,7 @@ export const useAddExpenseStore = create<AddExpenseState>()((set) => ({
         };
       }),
     setIsTransactionLoading: (isTransactionLoading) => set({ isTransactionLoading }),
+    setDetectedSubscriptionId: (detectedSubscriptionId) => set({ detectedSubscriptionId }),
     setCronExpression: (cronExpression) => set({ cronExpression }),
   },
 }));

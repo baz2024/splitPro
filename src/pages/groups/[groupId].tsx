@@ -7,7 +7,6 @@ import {
   DoorOpen,
   Info,
   Merge,
-  PlusIcon,
   Share,
   Trash2,
   UserPlus,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { type GetServerSideProps } from 'next';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,6 +22,7 @@ import { ExpenseList } from '~/components/Expense/ExpenseList';
 import AddMembers from '~/components/group/AddMembers';
 import GroupMyBalance from '~/components/group/GroupMyBalance';
 import NoMembers from '~/components/group/NoMembers';
+import { AddExpenseShortcuts } from '~/components/AddExpense/journey/AddExpenseShortcuts';
 import MainLayout from '~/components/Layout/MainLayout';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
@@ -31,6 +30,7 @@ import { AppDrawer } from '~/components/ui/drawer';
 import { Label } from '~/components/ui/label';
 import { SimpleConfirmationDialog } from '~/components/SimpleConfirmationDialog';
 import { DefaultSplitSettings } from '~/components/DefaultSplit/DefaultSplitSettings';
+import { GroupBudgetRow } from '~/components/Project/GroupBudgetRow';
 import { Switch } from '~/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { UpdateName } from '~/components/Account/UpdateDetails';
@@ -188,7 +188,9 @@ const BalancePage: NextPageWithUser<{
                     null != total._sum.amount ? (
                       <Fragment key={total.currency}>
                         <div className="flex flex-wrap gap-1">
-                          {getCurrencyHelpersCached(total.currency).toUIString(total._sum.amount)}
+                          <span dir="ltr">
+                            {getCurrencyHelpersCached(total.currency).toUIString(total._sum.amount)}
+                          </span>
                         </div>
                         {index < arr.length - 1 ? <span>+</span> : null}
                       </Fragment>
@@ -252,7 +254,7 @@ const BalancePage: NextPageWithUser<{
                         <p>{displayName(groupUser.user)}</p>
                       </div>
                       {groupUser.userId === groupDetailQuery.data?.userId ? (
-                        <p className="text-sm text-gray-400">{t('actors.owner')}</p>
+                        <p className="text-muted text-sm">{t('actors.owner')}</p>
                       ) : (
                         isAdmin &&
                         (() => {
@@ -332,6 +334,14 @@ const BalancePage: NextPageWithUser<{
                     }}
                   />
                 </div>
+
+                <GroupBudgetRow
+                  groupId={groupId}
+                  budget={groupDetailQuery.data?.budgetAmount ?? null}
+                  budgetCurrency={groupDetailQuery.data?.budgetCurrency ?? null}
+                  defaultCurrency={groupDetailQuery.data?.defaultCurrency ?? null}
+                  disabled={isArchived || !groupDetailQuery.data}
+                />
 
                 <div className="mt-6">
                   <p className="font-semibold">{t('group_details.group_info.default_split')}</p>
@@ -427,6 +437,7 @@ const BalancePage: NextPageWithUser<{
                     <Switch
                       id="archive-group"
                       checked={groupDetailQuery.data?.archivedAt !== null}
+                      disabled={!isAdmin}
                       onCheckedChange={() => {
                         toggleArchiveMutation.mutate(
                           { groupId },
@@ -529,16 +540,11 @@ const BalancePage: NextPageWithUser<{
                 groupId={groupId}
               />
             </div>
+            <AddExpenseShortcuts groupId={groupId} disabled={isArchived} className="mx-auto mb-3" />
             <div className="mb-4 flex justify-center gap-2 overflow-y-auto border-b pb-4">
-              <Link href={`/add?groupId=${groupId}`}>
-                <Button size="sm" className="w-40 gap-1 text-sm lg:w-[180px]" disabled={isArchived}>
-                  <PlusIcon className="size-4" /> {t('actions.add_expense')}
-                </Button>
-              </Link>
-
               <AddMembers group={groupDetailQuery.data} enableSendingInvites={enableSendingInvites}>
                 <Button size="sm" responsiveIcon variant="secondary" disabled={isArchived}>
-                  <UserPlus className="size-4 text-gray-400" /> {t('group_details.add_members')}
+                  <UserPlus className="text-muted size-4" /> {t('group_details.add_members')}
                 </Button>
               </AddMembers>
 
@@ -555,7 +561,7 @@ const BalancePage: NextPageWithUser<{
                   </>
                 ) : (
                   <>
-                    <Share className="size-4 text-gray-400" /> {t('actions.invite')}
+                    <Share className="text-muted size-4" /> {t('actions.invite')}
                   </>
                 )}
               </Button>
@@ -608,9 +614,20 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  // The project page is the one place for a group now (members, settle up, export, settings).
+  // `?classic=1` keeps this older page reachable while anything still needs it.
+  if ('1' !== context.query.classic) {
+    return {
+      redirect: {
+        destination: `/projects/${group.id}`,
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: {
-      ...(await customServerSideTranslations(context.locale, ['common', 'currencies'])),
+      ...(await customServerSideTranslations(context.locale, ['common', 'currencies', 'projects'])),
       enableSendingInvites: env.ENABLE_SENDING_INVITES,
     },
   };

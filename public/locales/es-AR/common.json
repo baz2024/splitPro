@@ -20,13 +20,13 @@
     },
     "download_app": "Descargar aplicación",
     "download_app_details": {
-      "download_as_pwa": "Podés descargar SplitPro como una PWA a tu pantalla de inicio.",
+      "download_as_pwa": "Podés descargar Safi como una PWA a tu pantalla de inicio.",
       "title": "Descargar aplicación",
       "using_android": "Si usás Android, revisá este",
       "using_ios": "Si usás iOS, revisá este",
       "video": "video"
     },
-    "download_splitpro_data": "Descargar datos de SplitPro",
+    "download_splitpro_data": "Descargar datos de Safi",
     "edit_name": {
       "placeholder": "Ingresá el nombre",
       "title": "Editar nombre"
@@ -172,11 +172,11 @@
       "description_placeholder": "Ingresá una descripción",
       "pick_a_date": "Seleccionar una fecha",
       "select_user_or_group": {
-        "add_to_split_pro": "Agregar a Split Pro",
+        "add_to_split_pro": "Agregar a Safi",
         "note": "Nota: el envío de invitaciones está deshabilitado por ahora debido al spam",
         "only_one_group_time": "Solo podés tener un grupo a la vez",
         "send_invite": "Enviar invitación al usuario",
-        "warning": "Advertencia: No uses enviar invitación si el correo electrónico no es válido. Usá agregar a Split Pro en su lugar. Tu cuenta será bloqueada si se abusa de esta función"
+        "warning": "Advertencia: No uses enviar invitación si el correo electrónico no es válido. Usá agregar a Safi en su lugar. Tu cuenta será bloqueada si se abusa de esta función"
       },
       "split_type_section": {
         "split_equally": "dividir por igual",
@@ -298,12 +298,12 @@
     "no_members": {
       "add_members": "Agregar miembros",
       "add_members_details": {
-        "add_to_split_pro": "Agregar a Split Pro",
+        "add_to_split_pro": "Agregar a Safi",
         "note": "Nota: el envío de invitaciones está deshabilitado por ahora debido al spam",
         "placeholder": "Ingresá nombre o correo electrónico",
         "send_invite": "Enviar invitación al usuario",
         "title": "Agregar miembros",
-        "warning": "Advertencia: No uses enviar invitación si el correo electrónico no es válido. Usá agregar a Split Pro en su lugar. Tu cuenta será bloqueada si se abusa de esta función"
+        "warning": "Advertencia: No uses enviar invitación si el correo electrónico no es válido. Usá agregar a Safi en su lugar. Tu cuenta será bloqueada si se abusa de esta función"
       },
       "copied": "Copiado",
       "invite_link": "Compartir enlace de invitación",
@@ -321,16 +321,16 @@
     "text": "Unite al grupo y podrás agregar, gestionar gastos y seguir tus saldos"
   },
   "meta": {
-    "application_name": "SplitPro",
+    "application_name": "Safi",
     "description": "Dividí gastos con tus amigos gratis",
-    "title": "SplitPro: Dividí gastos con tus amigos gratis"
+    "title": "Safi: Dividí gastos con tus amigos gratis"
   },
   "navigation": {
     "account": "Cuenta",
     "activity": "Actividad",
     "add": "Agregar",
     "add_expense": "Agregar Gasto",
-    "app_name": "SplitPro",
+    "app_name": "Safi",
     "balances": "Saldos",
     "groups": "Grupos",
     "recurring": "Recurrente"
@@ -413,7 +413,7 @@
     "settle_up_name": "Liquidar",
     "settled_up": "Liquidado",
     "settlement": "Liquidación",
-    "share_text": "Echale un vistazo a SplitPro. Es una alternativa gratuita de código abierto a Splitwise",
+    "share_text": "Echale un vistazo a Safi. Es una alternativa gratuita de código abierto a Splitwise",
     "show_all_currencies": "Mostrar todas las monedas",
     "today": "Hoy",
     "total_balance": "Balance total"

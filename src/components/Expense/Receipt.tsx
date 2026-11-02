@@ -19,7 +19,7 @@ export const Receipt = ({ fileKey }: { fileKey: string }) => {
           height={56}
           data-loaded="false"
           onLoad={setDataLoaded}
-          className="h-14 w-14 rounded-md object-cover object-center data-[loaded=false]:animate-pulse data-[loaded=false]:bg-gray-100/10"
+          className="data-[loaded=false]:bg-default h-14 w-14 rounded-md object-cover object-center data-[loaded=false]:animate-pulse"
         />
       }
       leftAction={t('actions.close')}
@@ -35,7 +35,7 @@ export const Receipt = ({ fileKey }: { fileKey: string }) => {
           alt={t('expense_details.receipt.image_alt')}
           data-loaded="false"
           onLoad={setDataLoaded}
-          className="h-full w-full rounded-2xl object-cover data-[loaded=false]:animate-pulse data-[loaded=false]:bg-gray-100/10"
+          className="data-[loaded=false]:bg-default h-full w-full rounded-2xl object-cover data-[loaded=false]:animate-pulse"
         />
       </div>
     </AppDrawer>

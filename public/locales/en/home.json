@@ -65,18 +65,41 @@
     "subtitle_part2": "alternative to SplitWise",
     "title_highlight": "free",
     "title_part1": "Split Expenses with your friends for",
-    "image_alt": "SplitPro app preview",
+    "image_alt": "Safi app preview",
     "title_before_highlight": "Split expenses with your friends for",
     "title_after_highlight": ".",
     "subtitle": "An open source alternative to SplitWise."
   },
   "meta": {
-    "description": "SplitPro: Split Expenses with your friends for free",
-    "title": "SplitPro: Split Expenses with your friends for free"
+    "description": "Safi: Split Expenses with your friends for free",
+    "title": "Safi: Split Expenses with your friends for free"
   },
   "nav": {
-    "app_name": "SplitPro",
+    "app_name": "Safi",
     "privacy": "Privacy",
     "terms": "Terms"
+  },
+  "kafo": {
+    "meta_title": "Kafo AI: every cost against your project budget",
+    "meta_description": "Kafo AI tracks receipts, subscriptions and your agents' API spend against each project budget.",
+    "brand": "Kafo AI",
+    "title_before_highlight": "Every receipt, subscription and API cost —",
+    "title_highlight": "against your project budget",
+    "subtitle": "Snap a receipt, log a subscription or let your agents report their API spend. Kafo AI keeps each project on budget and tells you before it slips.",
+    "get_started": "Get started",
+    "sign_in": "Sign in",
+    "features": {
+      "budgets_title": "Project budgets",
+      "budgets_description": "Set a budget per project and see what's left after every expense.",
+      "receipts_title": "Receipts in seconds",
+      "receipts_description": "Take a photo and Kafo AI reads the total, date and shop for you.",
+      "agents_title": "Agents' API spend",
+      "agents_description": "Track what your AI agents spend on APIs alongside everything else.",
+      "subscriptions_title": "Subscriptions",
+      "subscriptions_description": "Recurring costs are added on schedule so nothing surprises you.",
+      "split_title": "Share with your team",
+      "split_description": "Split costs with teammates and settle up in any currency."
+    },
+    "source_link": "Source code"
   }
 }

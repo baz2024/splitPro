@@ -1,0 +1,23 @@
+{
+  "form": {
+    "remind": "Remind me {days, plural, one {# day} other {# days}} before it renews",
+    "remind_hint": "Everyone sharing this cost gets a notification, or an email if notifications are off.",
+    "saved_without_reminder": "Subscription saved, but the reminder couldn't be set. Turn it on from Subscriptions."
+  },
+  "row": {
+    "turn_on": "Remind me {days, plural, one {# day} other {# days}} before {name} renews",
+    "turn_off": "Turn off the renewal reminder for {name}",
+    "turned_on": "Reminder on for {name}",
+    "turned_off": "Reminder off for {name}",
+    "error": "Couldn't update the reminder. Please try again."
+  },
+  "notification": {
+    "title": "{name} renews in {days, plural, one {# day} other {# days}}",
+    "amount_personal": "{amount}",
+    "amount_split": "{amount} · split {ways} ways",
+    "line": "{name} renews in {days, plural, one {# day} other {# days}} — {details}",
+    "email_subject": "Renewal reminder: {name}",
+    "email_open": "Open Subscriptions in Safi",
+    "email_footer": "You get this because a renewal reminder is on for this subscription. Turn it off with the bell on the Subscriptions page."
+  }
+}

@@ -17,6 +17,9 @@ export const GeneralPicker: React.FC<{
   placeholderText: string;
   noOptionsText: string;
   title: string;
+  /** Controlled open state, for opening the picker from elsewhere (e.g. a menu row). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }> = ({
   className,
   trigger,
@@ -30,15 +33,25 @@ export const GeneralPicker: React.FC<{
   noOptionsText,
   title,
   selected,
+  open: controlledOpen,
+  onOpenChange,
 }) => {
-  const [open, setOpen] = React.useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      setUncontrolledOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
 
   const onSelectAndClose: typeof onSelect = useCallback(
     (value) => {
       setOpen(false);
       onSelect(value);
     },
-    [onSelect],
+    [onSelect, setOpen],
   );
 
   return (

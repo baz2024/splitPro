@@ -9,11 +9,13 @@ import {
 } from '~/lib/defaultSplit';
 import { claimInviteCooldown } from '~/lib/inviteCooldown';
 import { InviteErrorCode } from '~/lib/error/invite';
+import { normalizePhone } from '~/lib/phone';
 import { simplifyDebts } from '~/lib/simplify';
 import { AppError } from '~/server/api/appError';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 import { db } from '~/server/db';
 import { sendFeedbackEmail, sendInviteEmail } from '~/server/mailer';
+import { isSmsInviteEnabled, sendInviteSms } from '~/server/sms';
 import { SplitwiseGroupSchema, SplitwiseUserSchema } from '~/types';
 
 import {
@@ -66,17 +68,109 @@ export const userRouter = createTRPCRouter({
   }),
 
   inviteFriend: protectedProcedure
-    .input(z.object({ email: z.string(), sendInviteEmail: z.boolean().optional() }))
+    .input(
+      z
+        .object({
+          email: z.string().optional(),
+          phone: z.string().optional(),
+          // Kept for backwards compatibility; with `phone` it sends the invite by SMS.
+          sendInviteEmail: z.boolean().optional(),
+        })
+        .refine((value) => Boolean(value.email?.trim()) || Boolean(value.phone?.trim()), {
+          message: 'Either email or phone is required',
+        }),
+    )
     .mutation(async ({ input, ctx: { session } }) => {
+      const inviterName = session.user.name ?? session.user.email ?? '';
+      const email = input.email?.trim().toLowerCase();
+
+      if (!email) {
+        const phone = normalizePhone(input.phone);
+        if (!phone) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Phone number must be in international format, for example +962791234567.',
+          });
+        }
+
+        // Upsert for the same race reason as the email branch below.
+        const phoneUser = await db.user.upsert({
+          where: { phone },
+          update: {},
+          create: { phone, name: phone },
+        });
+
+        if (!input.sendInviteEmail) {
+          return phoneUser;
+        }
+
+        // Someone who already signed in has a linked account and doesn't need an invite.
+        const hasSignedIn = 0 < (await db.account.count({ where: { userId: phoneUser.id } }));
+        if (hasSignedIn) {
+          return phoneUser;
+        }
+
+        if (!env.ENABLE_SENDING_INVITES) {
+          throwInviteError(
+            'PRECONDITION_FAILED',
+            InviteErrorCode.INVITES_DISABLED,
+            'Invites are disabled on this server.',
+          );
+        }
+
+        if (!isSmsInviteEnabled()) {
+          throwInviteError(
+            'PRECONDITION_FAILED',
+            InviteErrorCode.INVITE_SMS_DISABLED,
+            'SMS invites are not configured on this server.',
+          );
+        }
+
+        if (!claimInviteCooldown(phoneUser.id, session.user.id)) {
+          throwInviteError(
+            'TOO_MANY_REQUESTS',
+            InviteErrorCode.INVITE_RATE_LIMITED,
+            'Please wait before re-sending an invite to this number.',
+          );
+        }
+
+        let smsSent = false;
+        try {
+          smsSent = await sendInviteSms(phone, inviterName);
+        } catch (err) {
+          console.error('Error sending invite SMS to user', phoneUser.id, err);
+        }
+        if (!smsSent) {
+          throwInviteError(
+            'INTERNAL_SERVER_ERROR',
+            InviteErrorCode.INVITE_SMS_SEND_FAILED,
+            'Failed to send invite SMS. Check your Twilio configuration.',
+          );
+        }
+
+        return phoneUser;
+      }
+
       // Upsert avoids a find-then-create race where two concurrent invites for the same brand-new email both miss the lookup and hit the unique constraint.
       const user = await db.user.upsert({
-        where: { email: input.email },
+        where: { email },
         update: {},
         create: {
-          email: input.email,
-          name: input.email.split('@')[0],
+          email,
+          name: email.split('@')[0],
         },
       });
+
+      // Log the outcome (no address) so a missing invite can be traced in production logs.
+      console.info(
+        'Invite by email',
+        JSON.stringify({
+          userId: user.id,
+          requested: Boolean(input.sendInviteEmail),
+          alreadyVerified: Boolean(user.emailVerified),
+          invitesEnabled: env.ENABLE_SENDING_INVITES,
+        }),
+      );
 
       // Only a just-created or not-yet-verified user should get an invite email.
       if (input.sendInviteEmail && !user.emailVerified) {
@@ -98,7 +192,7 @@ export const userRouter = createTRPCRouter({
 
         let sent = false;
         try {
-          sent = await sendInviteEmail(input.email, session.user.name ?? session.user.email ?? '');
+          sent = await sendInviteEmail(email, inviterName);
         } catch (err) {
           console.error('Error sending invite email to user', user.id, err);
         }
@@ -378,7 +472,7 @@ export const userRouter = createTRPCRouter({
 
   sendTestPushNotification: protectedProcedure.mutation(async ({ ctx }) => {
     const { sentCount } = await sendPushNotificationToUsers([ctx.session.user.id], {
-      title: 'SplitPro',
+      title: 'Safi',
       message: 'Test notification from debug info',
       data: {
         url: '/account',

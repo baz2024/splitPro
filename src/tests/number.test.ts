@@ -13,7 +13,7 @@ describe('getCurrencyHelpers', () => {
         it.each([
           [12345n, '$123.45'],
           [-12345n, '$123.45'],
-          [-50n, '$0.5'],
+          [-50n, '$0.50'],
           [-0n, '$0'],
           [99999999999999999999999999999n, '$999,999,999,999,999,999,999,999,999.99'],
           [-99999999999999999999999999999n, '$999,999,999,999,999,999,999,999,999.99'],
@@ -39,7 +39,7 @@ describe('getCurrencyHelpers', () => {
         it.each([
           [12345n, '$123.45'],
           [-12345n, '-$123.45'],
-          [-50n, '-$0.5'],
+          [-50n, '-$0.50'],
           [-0n, '$0'],
           [99999999999999999999999999999n, '$999,999,999,999,999,999,999,999,999.99'],
           [-99999999999999999999999999999n, '-$999,999,999,999,999,999,999,999,999.99'],
@@ -50,7 +50,7 @@ describe('getCurrencyHelpers', () => {
         it.each([
           [12345n, '123.45'],
           [-12345n, '-123.45'],
-          [-50n, '-0.5'],
+          [-50n, '-0.50'],
           [-0n, '0'],
         ])('should format %p as %p with signed flag and hideSymbol', (value, expected) => {
           expect(toUIString(value, true, true)).toBe(expected);
@@ -82,6 +82,48 @@ describe('getCurrencyHelpers', () => {
           expect(toUIString(1n, false, true)).toBe('0.01');
         });
       });
+
+      describe('fraction digits', () => {
+        const { toUIString, format } = getCurrencyHelpers({ locale, currency: 'USD' });
+
+        it.each([
+          [102050n, '$1,020.50'],
+          [97950n, '$979.50'],
+          [13950n, '$139.50'],
+          [10n, '$0.10'],
+          [200000n, '$2,000'],
+          [4500n, '$45'],
+        ])('shows %p as %p (whole amounts without decimals)', (value, expected) => {
+          expect(toUIString(value)).toBe(expected);
+        });
+
+        it('pads fractions with the symbol hidden and signed', () => {
+          expect(toUIString(-102050n, true, true)).toBe('-1,020.50');
+        });
+
+        it('pads currencies with three fraction digits', () => {
+          const { toUIString: toKwd } = getCurrencyHelpers({ locale, currency: 'KWD' });
+          expect(toKwd(1500n).endsWith('1.500')).toBe(true);
+        });
+
+        it('leaves typed input as typed', () => {
+          expect(format('12.5', {})).toBe('$12.5');
+          expect(format('2000', {})).toBe('$2,000');
+        });
+      });
+    });
+
+    describe('ar locale', () => {
+      const { toUIString } = getCurrencyHelpers({ locale: 'ar', currency: 'USD' });
+
+      it('pads fractions in the locale digits', () => {
+        const expected = new Intl.NumberFormat('ar', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+        }).format(1020.5);
+        expect(toUIString(102050n)).toBe(expected);
+      });
     });
 
     describe('bg-BG locale', () => {
@@ -95,7 +137,7 @@ describe('getCurrencyHelpers', () => {
         it.each([
           [12345n, '123,45 €'],
           [-12345n, '123,45 €'],
-          [-50n, '0,5 €'],
+          [-50n, '0,50 €'],
           [-0n, '0 €'],
         ])('should format %p as %p ', (value, expected) => {
           expect(toUIString(value)).toBe(expected);

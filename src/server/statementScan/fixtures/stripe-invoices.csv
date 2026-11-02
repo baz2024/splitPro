@@ -1,0 +1,14 @@
+id,Number,Customer,Customer Email,Description,Amount Due,Amount Paid,Currency,Created (UTC),Period Start (UTC),Period End (UTC),Status
+in_1Q000001,KAFO-0001,Kafo AI Ltd,billing@kafoai.com,Retool Team (annual),1200.00,1200.00,usd,2025-12-05 09:12:44,2025-12-05 00:00:00,2026-12-05 00:00:00,paid
+in_1Q000002,KAFO-0002,Kafo AI Ltd,billing@kafoai.com,Linear Standard,8.00,8.00,usd,2026-01-03 09:12:44,2026-01-03 00:00:00,2026-02-03 00:00:00,paid
+in_1Q000003,KAFO-0003,Kafo AI Ltd,billing@kafoai.com,Linear Standard,8.00,8.00,usd,2026-02-03 09:12:44,2026-02-03 00:00:00,2026-03-03 00:00:00,paid
+in_1Q000004,KAFO-0004,Kafo AI Ltd,billing@kafoai.com,Linear Standard,8.00,8.00,usd,2026-03-03 09:12:44,2026-03-03 00:00:00,2026-04-03 00:00:00,paid
+in_1Q000005,KAFO-0005,Kafo AI Ltd,billing@kafoai.com,Linear Standard,8.00,8.00,usd,2026-04-03 09:12:44,2026-04-03 00:00:00,2026-05-03 00:00:00,paid
+in_1Q000006,KAFO-0006,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,25.00,25.00,usd,2026-05-01 09:12:44,2026-05-01 00:00:00,2026-06-01 00:00:00,paid
+in_1Q000007,KAFO-0007,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,25.00,25.00,usd,2026-06-01 09:12:44,2026-06-01 00:00:00,2026-07-01 00:00:00,paid
+in_1Q000008,KAFO-0008,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,25.00,25.00,usd,2026-07-01 09:12:44,2026-07-01 00:00:00,2026-08-01 00:00:00,paid
+in_1Q000009,KAFO-0009,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,25.00,25.00,usd,2026-08-01 09:12:44,2026-08-01 00:00:00,2026-09-01 00:00:00,paid
+in_1Q000010,KAFO-0010,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,35.00,35.00,usd,2026-09-01 09:12:44,2026-09-01 00:00:00,2026-10-01 00:00:00,paid
+in_1Q000011,KAFO-0011,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,35.00,35.00,usd,2026-10-01 09:12:44,2026-10-01 00:00:00,2026-11-01 00:00:00,paid
+in_1Q000012,KAFO-0012,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,25.00,0.00,usd,2026-07-15 09:12:44,2026-07-01 00:00:00,2026-08-01 00:00:00,void
+in_1Q000013,KAFO-0013,Kafo AI Ltd,billing@kafoai.com,Supabase Pro Plan,35.00,0.00,usd,2026-10-28 09:12:44,2026-11-01 00:00:00,2026-12-01 00:00:00,draft

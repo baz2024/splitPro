@@ -8,7 +8,12 @@ const jestConfig = () =>
       '<rootDir>/src/**/*.{test,spec}.{ts,tsx}',
       '<rootDir>/tests/**/*.{test,spec}.{ts,tsx}',
     ],
-    testPathIgnorePatterns: ['<rootDir>/src/tests/integration/', '<rootDir>/tests/e2e/'],
+    testPathIgnorePatterns: [
+      '<rootDir>/src/tests/integration/',
+      '<rootDir>/tests/e2e/',
+      '<rootDir>/mobile/',
+    ],
+    modulePathIgnorePatterns: ['<rootDir>/mobile/'],
   });
 
 export default jestConfig;

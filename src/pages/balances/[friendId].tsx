@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, HandCoins, Pencil, PlusIcon } from 'lucide-react';
+import { ChevronLeftIcon, HandCoins, Pencil } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -9,6 +9,7 @@ import { ExpenseList } from '~/components/Expense/ExpenseList';
 import { DeleteFriend } from '~/components/Friend/DeleteFriend';
 import { Export } from '~/components/Friend/Export';
 import { SettleUp } from '~/components/Friend/Settleup';
+import { AddExpenseShortcuts } from '~/components/AddExpense/journey/AddExpenseShortcuts';
 import MainLayout from '~/components/Layout/MainLayout';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
@@ -97,6 +98,7 @@ const FriendPage: NextPageWithUser = ({ user }) => {
                         {
                           ...user,
                           emailVerified: null,
+                          phone: null,
                           name: user.name ?? null,
                           email: user.email ?? null,
                           image: user.image ?? null,
@@ -175,6 +177,7 @@ const FriendPage: NextPageWithUser = ({ user }) => {
         {!friendQuery.data ? null : (
           <div className="mb-28 transition-discrete starting:opacity-0">
             <CumulatedBalances entityId={friendQuery.data.id} balances={aggregatedBalances} />
+            <AddExpenseShortcuts friendId={friendQuery.data.id} className="mx-auto mt-6" />
             <div className="mt-6 mb-4 flex justify-center gap-2">
               <SettleUp balances={balances.data} friend={friendQuery.data}>
                 <Button
@@ -185,11 +188,6 @@ const FriendPage: NextPageWithUser = ({ user }) => {
                   <HandCoins className="size-4" /> {t('actions.settle_up')}
                 </Button>
               </SettleUp>
-              <Link href={`/add?friendId=${friendQuery.data.id}`}>
-                <Button size="sm" variant="secondary" responsiveIcon>
-                  <PlusIcon className="size-4" /> {t('actions.add_expense')}
-                </Button>
-              </Link>
               <Export
                 expenses={expenses.data}
                 fileName={`expenses_with_${displayName(friendQuery.data)}`}

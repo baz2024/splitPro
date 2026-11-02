@@ -1,3 +1,5 @@
 pnpm-lock.yaml
 .github
 .direnv
+mobile
+.design

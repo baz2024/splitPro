@@ -1,0 +1,7 @@
+{
+  "synced": {
+    "badge": "Synced from {provider}",
+    "badge_label": "This cost was imported by {provider} billing sync",
+    "edit_note": "Synced from {provider}. Billing sync keeps the amount and description up to date, so changes to them would be overwritten."
+  }
+}

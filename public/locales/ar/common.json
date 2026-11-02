@@ -11,13 +11,13 @@
     },
     "download_app": "تنزيل التطبيق",
     "download_app_details": {
-      "download_as_pwa": "يمكنك تثبيت SplitPro كتطبيق ويب (PWA) على شاشتك الرئيسية.",
+      "download_as_pwa": "يمكنك تثبيت Safi كتطبيق ويب (PWA) على شاشتك الرئيسية.",
       "title": "تنزيل التطبيق",
       "using_android": "إذا كنت تستخدم Android، شاهد هذا",
       "using_ios": "إذا كنت تستخدم iOS، شاهد هذا",
       "video": "الفيديو"
     },
-    "download_splitpro_data": "تنزيل بيانات SplitPro",
+    "download_splitpro_data": "تنزيل بيانات Safi",
     "default_balance_currency": "عملة الرصيد الافتراضية",
     "edit_name": {
       "apply_avatar": "تطبيق الصورة",
@@ -78,6 +78,12 @@
       "send_test_notification": "إرسال إشعار تجريبي",
       "test_notification_sent": "تم إرسال الإشعار التجريبي",
       "test_notification_failed": "تعذّر إرسال الإشعار التجريبي"
+    },
+    "theme": {
+      "title": "المظهر",
+      "light": "فاتح",
+      "dark": "داكن",
+      "system": "النظام"
     }
   },
   "actions": {
@@ -121,7 +127,37 @@
     "send_magic_link": "إرسال رابط الدخول",
     "sending": "جارٍ الإرسال...",
     "setup_instructions": "تعليمات الإعداد باستخدام Docker",
-    "trouble_logging_in": "تواجه مشكلة في تسجيل الدخول؟ تواصل مع"
+    "trouble_logging_in": "تواجه مشكلة في تسجيل الدخول؟ تواصل مع",
+    "supabase_error": "تعذّر تسجيل دخولك. يُرجى المحاولة مرة أخرى.",
+    "welcome": {
+      "brand": "Kafo AI",
+      "page_title": "تسجيل الدخول إلى Kafo AI",
+      "headline": "كل إيصال واشتراك وتكلفة API — مقابل ميزانية مشروعك",
+      "subtitle": "صوّر إيصالاتك، وتابع اشتراكاتك، واعرف ما تنفقه وكلاؤك، كل ذلك في مكان واحد.",
+      "continue_apple": "المتابعة باستخدام Apple",
+      "continue_google": "المتابعة باستخدام Google",
+      "continue_phone": "المتابعة برقم الهاتف",
+      "terms": "الشروط",
+      "privacy": "الخصوصية"
+    },
+    "phone": {
+      "label": "رقم الهاتف",
+      "placeholder": "+1 555 555 0100",
+      "send_code": "إرسال الرمز",
+      "code_sent": "أُرسل الرمز إلى {phone}",
+      "enter_code": "أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى {phone}",
+      "code_label": "رمز من 6 أرقام",
+      "verify": "تحقّق وتابع",
+      "verifying": "جارٍ التحقق...",
+      "change_number": "استخدام رقم آخر",
+      "invalid": "أدخل رقم هاتفك مع رمز الدولة",
+      "send_failed": "تعذّر إرسال رمز إلى هذا الرقم",
+      "verify_failed": "هذا الرمز غير صحيح. يُرجى المحاولة مرة أخرى."
+    },
+    "callback": {
+      "signing_in": "جارٍ تسجيل دخولك...",
+      "back_to_signin": "العودة إلى تسجيل الدخول"
+    }
   },
   "currency_conversion": {
     "amount_to_receive": "المبلغ المستلم",
@@ -164,6 +200,7 @@
     "upload_failed": "تعذّر رفع الملف",
     "uploading_error": "حدث خطأ أثناء رفع الملف",
     "valid_email": "أدخل بريدًا إلكترونيًا صالحًا",
+    "valid_phone": "أدخل رقم الهاتف بالصيغة الدولية، بدءًا بـ +",
     "group_balances_malformed": "بيانات أرصدة المجموعة غير سليمة، يرجى الإبلاغ عن المشكلة أو إعادة حساب الأرصدة.",
     "currency_conversion_malformed": "بيانات تحويل العملة غير سليمة",
     "invalid_cron_expression": "تعبير cron غير صالح",
@@ -176,7 +213,9 @@
     "expense_deletion_failed": "حدث خطأ غير متوقع أثناء حذف المصروف.",
     "friend_deletion_failed": "تعذّر حذف الصديق",
     "signin_failed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
-    "invite_email_failed": "تعذّر إرسال بريد الدعوة. تحقق من إعدادات SMTP."
+    "invite_email_failed": "تعذّر إرسال بريد الدعوة. تحقق من إعدادات SMTP.",
+    "invite_sms_failed": "تعذّر إرسال رسالة الدعوة النصية. تحقق من إعدادات Twilio.",
+    "invite_sms_disabled": "الدعوات عبر الرسائل النصية غير مفعّلة على هذا الخادم."
   },
   "bank_transactions": {
     "choose_bank_provider": "اختر مزوّد الخدمة البنكية",
@@ -198,11 +237,12 @@
       "description_placeholder": "أدخل الوصف",
       "pick_a_date": "اختر تاريخًا",
       "select_user_or_group": {
-        "add_to_split_pro": "إضافة إلى SplitPro",
+        "add_to_split_pro": "إضافة إلى Safi",
         "note": "ملاحظة: إرسال الدعوات معطّل حاليًا بسبب الرسائل المزعجة",
         "only_one_group_time": "يمكنك اختيار مجموعة واحدة فقط في كل مرة",
         "send_invite": "إرسال دعوة للمستخدم",
-        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة",
+        "send_invite_sms": "إرسال دعوة عبر رسالة نصية",
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى Safi» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة",
         "empty_image_alt": "لم يتم العثور على مستخدمين"
       },
       "split_type_section": {
@@ -349,12 +389,13 @@
     "no_members": {
       "add_members": "إضافة أعضاء",
       "add_members_details": {
-        "add_to_split_pro": "إضافة إلى SplitPro",
+        "add_to_split_pro": "إضافة إلى Safi",
         "note": "ملاحظة: إرسال الدعوات عبر البريد الإلكتروني معطّل",
         "placeholder": "أدخل الاسم أو البريد الإلكتروني",
         "send_invite": "إرسال دعوة للمستخدم",
+        "send_invite_sms": "إرسال دعوة عبر رسالة نصية",
         "title": "إضافة أعضاء",
-        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى SplitPro» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة"
+        "warning": "تحذير: لا تستخدم إرسال الدعوة إذا كان البريد الإلكتروني غير صالح، واستخدم «إضافة إلى Safi» بدلًا من ذلك. سيتم حظر حسابك عند إساءة استخدام هذه الميزة"
       },
       "invite_link": "رابط الدعوة",
       "no_members": "لا يوجد أعضاء في المجموعة بعد."
@@ -366,14 +407,14 @@
     "title": "الأرصدة المستحقة في المجموعة"
   },
   "invite_message": {
-    "in_splitpro": "على SplitPro",
+    "in_splitpro": "على Safi",
     "join_to": "انضم إلى",
     "text": "انضم إلى المجموعة لتتمكن من إضافة المصاريف وإدارتها ومتابعة أرصدتك"
   },
   "meta": {
-    "application_name": "SplitPro",
+    "application_name": "Safi",
     "description": "قسّم المصاريف مع أصدقائك مجانًا",
-    "title": "SplitPro: قسّم المصاريف مع أصدقائك مجانًا"
+    "title": "Safi: قسّم المصاريف مع أصدقائك مجانًا"
   },
   "balances": {
     "user_preferences": {
@@ -392,7 +433,8 @@
     "add_expense": "إضافة مصروف",
     "recurring": "المتكررة",
     "balances": "الأرصدة",
-    "groups": "المجموعات"
+    "groups": "المجموعات",
+    "projects": "المشاريع"
   },
   "recurrence": {
     "title": "التكرار",
@@ -488,7 +530,7 @@
     "settle_up_name": "تسوية",
     "settled_up": "تمت التسوية",
     "settlement": "تسوية",
-    "share_text": "جرّب SplitPro، بديل مجاني ومفتوح المصدر لتطبيق Splitwise",
+    "share_text": "جرّب Safi، بديل مجاني ومفتوح المصدر لتطبيق Splitwise",
     "show_all_currencies": "عرض جميع العملات",
     "today": "اليوم",
     "in_group": "في المجموعة",
@@ -541,5 +583,310 @@
     "enable_description": "لا تفوّت الأحداث المهمة. اشترك لتلقي إشعارات عند إضافة المصاريف أو تحديثها.",
     "permission_granted": "ستصلك الإشعارات الآن",
     "subscribe": "اشتراك"
+  },
+  "empty_states": {
+    "balances": {
+      "title": "لا توجد أرصدة مستحقة",
+      "description": "أضف مصروفًا مع صديق أو مجموعة وسترى هنا من يدين لمن."
+    },
+    "groups": {
+      "title": "لا توجد مجموعات بعد",
+      "description": "أنشئ مجموعة لرحلة أو منزل أو فريق لتتابعوا التكاليف المشتركة معًا."
+    },
+    "activity": {
+      "description": "ستظهر هنا المصروفات والمدفوعات والتغييرات من أصدقائك ومجموعاتك."
+    }
+  },
+  "add_journey": {
+    "mode_label": "كيف تريد إضافته؟",
+    "modes": {
+      "scan": "مسح",
+      "manual": "يدوي",
+      "import": "استيراد"
+    },
+    "titles": {
+      "scan": "إضافة مصروف",
+      "reading": "جارٍ قراءة الإيصال",
+      "review": "مراجعة المصروف",
+      "amount": "إضافة مصروف",
+      "details": "تفاصيل المصروف",
+      "split": "تقسيم المصروف"
+    },
+    "scan": {
+      "frame_title": "ضع الإيصال داخل الإطار",
+      "frame_hint": "يقرأ Kafo AI الإجمالي والتاريخ واسم المتجر نيابةً عنك.",
+      "shutter": "التقاط صورة",
+      "gallery": "اختيار من الصور",
+      "powered_by": "قرأه Kafo AI. يمكنك تعديل أي شيء قبل الحفظ.",
+      "reading_title": "جارٍ قراءة الإيصال",
+      "reading_hint": "يستغرق هذا بضع ثوانٍ.",
+      "unsupported": "لا يمكن مسح هذا النوع من الصور. أدخل التفاصيل يدويًا.",
+      "too_large": "هذه الصورة كبيرة جدًا للمسح. أدخل التفاصيل يدويًا.",
+      "failed": "تعذّرت قراءة الإيصال. أدخل التفاصيل يدويًا.",
+      "frame_chip": "يملأ الذكاء الاصطناعي المبلغ والتاريخ واسم التاجر",
+      "flash": "يُضبط الفلاش من تطبيق الكاميرا",
+      "reading_row": "جارٍ القراءة…",
+      "not_found": "غير موجود",
+      "preview_alt": "صورة الإيصال",
+      "reading_footnote": "أبقِ هذه الشاشة مفتوحة. سنُعلِّم أي حقل لم يتأكد منه الذكاء الاصطناعي لتراجعه.",
+      "fields": {
+        "merchant": "التاجر",
+        "total": "الإجمالي",
+        "date": "التاريخ",
+        "category": "الفئة"
+      }
+    },
+    "manual": {
+      "amount_label": "المبلغ",
+      "amount_hint": "اكتب الإجمالي",
+      "keypad": "لوحة الأرقام",
+      "decimal": "الفاصلة العشرية",
+      "backspace": "حذف آخر رقم",
+      "what_for": "مقابل ماذا؟",
+      "what_for_placeholder": "أضف وصفًا",
+      "attach": "إرفاق صورة الإيصال (اختياري)",
+      "attached": "تم إرفاق صورة الإيصال",
+      "attach_short": "إرفاق إيصال",
+      "attached_short": "تم إرفاق الإيصال",
+      "uploading": "جارٍ رفع الصورة…",
+      "change_currency": "تغيير العملة"
+    },
+    "review": {
+      "edit_amount": "تغيير المبلغ",
+      "check": "راجِع",
+      "warning_title": "بعض التفاصيل تحتاج إلى مراجعة",
+      "warning_fields": "لم يكن Kafo AI متأكدًا من هذه الحقول:",
+      "fields": {
+        "merchant": "الوصف",
+        "amount": "المبلغ",
+        "currency": "العملة",
+        "date": "التاريخ",
+        "category": "الفئة"
+      },
+      "receipt": "الإيصال",
+      "repeat": "التكرار",
+      "repeat_on": "متكرر",
+      "repeat_off": "غير متكرر",
+      "filled_from_photo": "مُعبّأ من الصورة",
+      "project": "المشروع",
+      "no_project": "بدون",
+      "edit_date": "تغيير التاريخ",
+      "untitled": "بدون وصف",
+      "warning_pill": "لم يكن {fields} واضحًا — يُرجى التأكيد"
+    },
+    "split": {
+      "who": "المشاركون",
+      "method": "طريقة التقسيم",
+      "equal": "بالتساوي",
+      "shares": "حصص",
+      "percent": "%",
+      "exact": "مبلغ محدد",
+      "budget_title": "ميزانية {project} · {month}",
+      "budget_left": "يتبقى {amount} بعد هذا المصروف",
+      "budget_over": "تجاوز الميزانية بمقدار {amount} بعد هذا المصروف",
+      "receipt_attached": "الإيصال ✓",
+      "paid": "دفع {amount}",
+      "owes": "مدين لـ{name}",
+      "not_included": "غير مشمول",
+      "people": "المشاركون في هذا المصروف",
+      "budget_adds": "يضيف هذا {amount} — يتبقى {left} {days, plural, zero {لليوم} one {ليوم واحد} two {ليومين} few {لـ# أيام} many {لـ# يومًا} other {لـ# يوم}}",
+      "budget_adds_over": "يضيف هذا {amount} — تجاوز الميزانية بمقدار {over}",
+      "notify": "{count, plural, =1 {سيصل إشعار إلى {name} عند الحفظ.} other {سيصل إشعار إلى المشاركين (#) عند الحفظ.}}"
+    },
+    "choose_people": "اختر المشاركين في التقسيم",
+    "save": "حفظ المصروف",
+    "saved": "تم حفظ المصروف",
+    "shortcuts": {
+      "scan": "مسح إيصال",
+      "manual": "إضافة يدويًا"
+    },
+    "close": "إغلاق",
+    "sentence": {
+      "paid_by": "دفعه",
+      "split": "مقسّم",
+      "equally": "بالتساوي ({count})",
+      "unequally": "بشكل غير متساوٍ",
+      "change_payer": "تغيير من دفع",
+      "change_split": "تغيير طريقة التقسيم"
+    },
+    "next_split": "التالي: التقسيم",
+    "saved_notified": "{count, plural, =0 {تم حفظ المصروف} =1 {تم حفظ المصروف · تم إشعار {name}} other {تم حفظ المصروف · تم إشعار المشاركين (#)}}"
+  },
+  "agents": {
+    "account_entry": "وكلاء البرمجة",
+    "back": "العودة إلى الحساب",
+    "title": "وكلاء البرمجة",
+    "intro": "اربط وكيل برمجة مثل Claude Code. يفحص شيفرتك بحثًا عن واجهات API وخدمات مدفوعة، ويبلغ عن الجديد منها هنا لتؤكده.",
+    "loading": "جارٍ التحميل…",
+    "copy": {
+      "action": "نسخ",
+      "copied": "تم النسخ",
+      "failed": "تعذّر النسخ. حدّد النص وانسخه يدويًا."
+    },
+    "keys": {
+      "title": "مفاتيح API",
+      "description": "يستخدم وكيل البرمجة مفتاحًا لإرسال الاشتراكات المكتشفة إلى حسابك.",
+      "name_label": "اسم المفتاح",
+      "name_placeholder": "مثال: حاسوب العمل",
+      "create": "إنشاء مفتاح",
+      "create_error": "تعذّر إنشاء المفتاح",
+      "created_title": "تم إنشاء المفتاح «{name}»",
+      "created_warning": "انسخ هذا المفتاح الآن، فلن تتمكن من رؤيته مرة أخرى. يستطيع أي شخص يملك هذا المفتاح إضافة عناصر إلى صندوق الوارد لديك.",
+      "created_done": "نسختُه",
+      "token_label": "مفتاح API",
+      "empty": "لا توجد مفاتيح بعد. أنشئ مفتاحًا لربط وكيل برمجة.",
+      "created_on": "أُنشئ في {date}",
+      "last_used": "آخر استخدام {date}",
+      "never_used": "لم يُستخدم قط",
+      "revoked": "مُلغى",
+      "revoke": "إلغاء",
+      "revoke_title": "إلغاء هذا المفتاح؟",
+      "revoke_description": "ستتوقف الوكلاء التي تستخدم «{name}» عن العمل فورًا. لا يمكن التراجع عن هذا الإجراء.",
+      "revoke_success": "تم إلغاء المفتاح",
+      "revoke_error": "تعذّر إلغاء المفتاح"
+    },
+    "skill": {
+      "title": "تثبيت المهارة",
+      "description": "تفحص المهارة شيفرتك بحثًا عن واجهات API وخدمات مدفوعة، وتبلغ عن الجديد منها هنا لتؤكده. لا يُضاف شيء حتى توافق.",
+      "steps": {
+        "create_key": "أنشئ مفتاح API أعلاه وانسخه.",
+        "install": "شغّل أمر التثبيت في الطرفية.",
+        "set_key": "عيّن مفتاحك كمتغير بيئة.",
+        "run": "اطلب من Claude Code فحص هذا المشروع بحثًا عن اشتراكات."
+      },
+      "command_label": "التثبيت لـ Claude Code",
+      "env_label": "عيّن مفتاحك",
+      "env_hint": "استبدل العنصر النائب بالمفتاح الذي أنشأته. أضف السطر إلى ملف إعدادات الطرفية للاحتفاظ به."
+    },
+    "detected": {
+      "title": "الاشتراكات المكتشفة",
+      "description": "عثر وكيل البرمجة على هذه الخدمات المدفوعة. أضفها كمصروفات أو تجاهلها.",
+      "per_month": "{amount}/شهريًا",
+      "vendor": "المورّد: {vendor}",
+      "reported_by": "أبلغ عنه {agent}",
+      "pricing": "صفحة الأسعار",
+      "add": "إضافة كمصروف",
+      "dismiss": "تجاهل",
+      "dismissed": "تم تجاهل {service}",
+      "error": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
+      "details": "{count, plural, =0 {التفاصيل} zero {التفاصيل} one {التفاصيل · دليل واحد} two {التفاصيل · دليلان} few {التفاصيل · # أدلة} many {التفاصيل · # دليلًا} other {التفاصيل · # دليل}}"
+    }
+  },
+  "audit_a": {
+    "switchers": {
+      "button_label": "اللغة والعملة",
+      "language": "اللغة",
+      "currency": "العملة"
+    },
+    "headline": {
+      "owed_by_one": "إجمالاً، {name} مدين لك بـ <amount/>",
+      "owed": "إجمالاً، لك <amount/>",
+      "owe_to_one": "إجمالاً، أنت مدين لـ {name} بـ <amount/>",
+      "owe": "إجمالاً، أنت مدين بـ <amount/>",
+      "mixed": "إجمالاً، لك <owed/> وعليك <owe/>",
+      "settled": "حساباتك كلها مسوّاة"
+    },
+    "row": {
+      "owes_you": "مدين لك",
+      "you_owe": "أنت مدين"
+    },
+    "detected": {
+      "summary": "وجد وكيل البرمجة {count, plural, one {خدمة جديدة واحدة} two {خدمتين جديدتين} few {# خدمات جديدة} many {# خدمة جديدة} other {# خدمة جديدة}}",
+      "review": "مراجعة",
+      "hide": "إخفاء",
+      "scan_cta": "اكتشف الاشتراكات في كشف حسابك البنكي",
+      "statement_summary": "{count, plural, zero {لا اشتراكات} one {اشتراك واحد} two {اشتراكان} few {# اشتراكات} many {# اشتراكًا} other {# اشتراك}} من كشف حسابك بانتظار المراجعة"
+    },
+    "signin": {
+      "page_title": "تسجيل الدخول إلى Safi",
+      "by_kafo": "من Kafo AI",
+      "invite_question": "لديك دعوة؟",
+      "invite_hint": "افتح رابط الدعوة للانضمام إلى المشروع مباشرة."
+    }
+  },
+  "audit_b": {
+    "addcost": {
+      "scan": "مسح",
+      "plans": "الخطط",
+      "list_price_note": "سعر القائمة بالدولار، تحقّق من خطتك",
+      "per_seat": "/ مقعد"
+    }
+  },
+  "audit_c": {
+    "pace": {
+      "on_track": "على المسار · متبقٍ {left}",
+      "at_risk": "بهذا المعدل ستنفق {projected} بحلول {date}، أي {over} فوق الميزانية",
+      "over": "تجاوزت الميزانية بمقدار {over} · بهذا المعدل ستصل إلى {projected} بحلول {date}"
+    },
+    "project": {
+      "archived_on": "مؤرشف في {date}",
+      "all_expenses": "كل المصروفات"
+    },
+    "expense_row": {
+      "no_balance": "لا رصيد"
+    },
+    "settings": {
+      "title": "إعدادات المشروع",
+      "deleted": "تم حذف المشروع",
+      "archived": "تمت أرشفة المشروع",
+      "unarchived": "تمت استعادة المشروع",
+      "archive_creator_only": "يمكن لمنشئ المشروع فقط أرشفته.",
+      "remove_member": "إزالة {name}",
+      "remove": "إزالة",
+      "delete": "حذف المشروع",
+      "delete_title": "حذف {name}؟",
+      "delete_description": "سيُحذف المشروع وكل مصروفاته للجميع. لا يمكن التراجع عن ذلك."
+    },
+    "members": {
+      "title": "الأعضاء · {count}",
+      "settle_up": "تسوية",
+      "all_settled": "الجميع متساوون، لا توجد مبالغ مستحقة.",
+      "invite_link": "رابط الدعوة",
+      "exported": "{count, plural, zero {لم يُصدَّر أي مصروف} one {تم تصدير مصروف واحد} two {تم تصدير مصروفين} few {تم تصدير # مصروفات} many {تم تصدير # مصروفًا} other {تم تصدير # مصروف}}",
+      "export_failed": "تعذّر تصدير هذا المشروع",
+      "settled": "تمت التسوية",
+      "is_owed": "مستحق له {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "owes": "عليه {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "you_are_owed": "مستحق لك {amount}{count, plural, =0 {} other { + # أخرى}}",
+      "you_owe": "عليك {amount}{count, plural, =0 {} other { + # أخرى}}"
+    },
+    "scan": {
+      "title": "ما قرأناه",
+      "check": "تحقّق",
+      "check_count": "{count, plural, one {تحقّق من الحقل المميّز} two {تحقّق من الحقلين المميّزين} few {تحقّق من # حقول مميّزة} many {تحقّق من # حقلًا مميّزًا} other {تحقّق من # حقل مميّز}}",
+      "all_clear": "مقروء من إيصالك"
+    },
+    "notify": {
+      "will_be_notified": "{count, plural, one {سيتم إشعار {name}} two {سيتم إشعار شخصين} few {سيتم إشعار # أشخاص} many {سيتم إشعار # شخصًا} other {سيتم إشعار # شخص}}",
+      "was_notified": "{count, plural, one {تم إشعار {name}} two {تم إشعار شخصين} few {تم إشعار # أشخاص} many {تم إشعار # شخصًا} other {تم إشعار # شخص}}",
+      "saved_title": "تم حفظ المصروف",
+      "add_another": "إضافة آخر",
+      "done": "تم"
+    },
+    "invite": {
+      "preview_sms": "رسالة نصية إلى {to}",
+      "preview_email": "بريد إلكتروني إلى {to}",
+      "subject": "الموضوع: {subject}",
+      "preview_note": "لن يُرسل شيء حتى تضغط إرسال الدعوة.",
+      "send": "إرسال الدعوة"
+    }
+  },
+  "audit_d": {
+    "agent": {
+      "added_by": "أضافه الوكيل {name}"
+    },
+    "journey": {
+      "import_link": "استيراد من البنك بدلاً من ذلك",
+      "leave_import": "إلغاء الاستيراد"
+    }
+  },
+  "audit_f": {
+    "pace": {
+      "early": "أنفقت {spent} حتى الآن هذا الشهر · يتبقى {left} من الميزانية",
+      "over_early": "تجاوزت الميزانية بمقدار {over}"
+    }
+  },
+  "audit_g": {
+    "skill_create_key": "اضغط «إضافة وكيل والحصول على رمز» وانسخ المفتاح الذي يظهر لك."
   }
 }

@@ -7,6 +7,9 @@ import { renderWithProviders } from '~/tests/helpers/render';
 import { createMockRouter } from '~/tests/helpers/router';
 import MainLayout from './MainLayout';
 
+// The toolbar switchers need tRPC; the navigation tests don't.
+jest.mock('./ToolbarSwitchers', () => ({ ToolbarSwitchers: () => null }));
+
 it('marks the active navigation section for nested routes', () => {
   renderWithProviders(
     <MainLayout title="Overview">
@@ -17,11 +20,40 @@ it('marks the active navigation section for nested routes', () => {
     },
   );
   expect(screen.getByText('Content')).toBeInTheDocument();
-  screen.getAllByRole('link', { name: 'Groups' }).forEach((link) => {
-    expect(link).toHaveAttribute('href', '/groups');
-    expect(link.querySelector('span')).toHaveClass('text-cyan-500');
+  // Groups are projects: their sub-pages keep the Projects tab active.
+  const projectLinks = screen.getAllByRole('link', { name: 'Projects' });
+  expect(projectLinks).toHaveLength(2);
+  projectLinks.forEach((link) => {
+    expect(link).toHaveAttribute('href', '/projects');
+    expect(link).toHaveAttribute('aria-current', 'page');
   });
   screen.getAllByRole('link', { name: 'Balances' }).forEach((link) => {
-    expect(link.querySelector('span')).not.toHaveClass('text-cyan-500');
+    expect(link).not.toHaveAttribute('aria-current');
   });
+});
+
+it('shows the five tabs in design order', () => {
+  renderWithProviders(
+    <MainLayout>
+      <p>Content</p>
+    </MainLayout>,
+    { router: createMockRouter({ pathname: '/balances', asPath: '/balances' }) },
+  );
+  const [, mobileNav] = screen.getAllByRole('navigation');
+  const hrefs = Array.from(mobileNav?.querySelectorAll('a') ?? []).map((link) =>
+    link.getAttribute('href'),
+  );
+  expect(hrefs).toEqual(['/balances', '/projects', '/add', '/activity', '/account']);
+});
+
+it('hides the mobile tab bar when hideAppBar is set', () => {
+  renderWithProviders(
+    <MainLayout hideAppBar>
+      <p>Content</p>
+    </MainLayout>,
+    { router: createMockRouter({ pathname: '/add', asPath: '/add' }) },
+  );
+  // Only the desktop sidebar navigation remains.
+  expect(screen.getAllByRole('navigation')).toHaveLength(1);
+  expect(screen.getAllByRole('link', { name: 'Add' })).toHaveLength(1);
 });

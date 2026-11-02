@@ -74,7 +74,7 @@ export const BalanceList: React.FC<{
                 <EntityAvatar entity={user} />
                 <div className="text-foreground line-clamp-2 min-w-0 break-words">
                   {Object.values(total).every((amount) => 0n === amount) ? (
-                    <span className="text-gray-400">
+                    <span className="text-muted">
                       {t('expense_details.balance_list.settled', {
                         actor: isCurrentUser ? 'you' : 'other',
                         person: displayName(user),
@@ -82,13 +82,14 @@ export const BalanceList: React.FC<{
                     </span>
                   ) : (
                     <>
-                      <span className="text-gray-400">
+                      <span className="text-muted">
                         {t(`expense_details.balance_list.${0 < totalAmount[1] ? 'lent' : 'owes'}`, {
                           actor: isCurrentUser ? 'you' : 'other',
                           person: displayName(user),
                         })}{' '}
                       </span>
                       <span
+                        dir="ltr"
                         className={clsx(
                           'text-end',
                           0 < totalAmount[1] ? 'text-emerald-500' : 'text-orange-600',

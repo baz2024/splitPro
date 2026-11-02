@@ -44,7 +44,7 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
           onSuccess: (data) => {
             utils.group.getAllGroupsWithBalances.refetch().catch(console.error);
             router
-              .push(`/groups/${data.id}`)
+              .push(`/projects/${data.id}`)
               .then(() => setDrawerOpen(false))
               .catch(console.error);
           },

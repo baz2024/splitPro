@@ -1,20 +1,22 @@
 import { ArrowUpOnSquareIcon } from '@heroicons/react/24/outline';
-import { Download, PlusIcon } from 'lucide-react';
+import { Download, Scale } from 'lucide-react';
 import Head from 'next/head';
-import Link from 'next/link';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { DownloadAppDrawer } from '~/components/Account/DownloadAppDrawer';
-import { BalanceEntry } from '~/components/Expense/BalanceEntry';
+import { EmptyState } from '~/components/EmptyState';
+import { MonthlySpendCard } from '~/components/Insights/MonthlySpendCard';
+import { BalanceHeadline } from '~/components/Safi/BalanceHeadline';
+import { DetectedSubscriptionsSummary } from '~/components/Safi/DetectedSubscriptionsSummary';
+import { HomeBalanceRow } from '~/components/Safi/HomeBalanceRow';
+import { AddExpenseShortcuts } from '~/components/AddExpense/journey/AddExpenseShortcuts';
 import MainLayout from '~/components/Layout/MainLayout';
 import { NotificationModal } from '~/components/NotificationModal';
 import { Button } from '~/components/ui/button';
-import { ConvertibleBalance } from '~/components/Expense/ConvertibleBalance';
 import { useIsPwa } from '~/hooks/useIsPwa';
 import { useTranslationWithUtils } from '~/hooks/useTranslationWithUtils';
 import { type NextPageWithUser } from '~/types';
 import { api } from '~/utils/api';
 import { withI18nStaticProps } from '~/utils/i18n/server';
-import { cn } from '~/lib/utils';
 import { isCurrencyCode } from '~/lib/currency';
 import { useCurrencyPreferenceStore } from '~/store/currencyPreferenceStore';
 
@@ -24,7 +26,6 @@ const BalancePage: NextPageWithUser = ({ user }) => {
   const balanceQuery = api.expense.getBalances.useQuery();
   const cumulatedQuery = api.expense.getCumulatedBalances.useQuery();
 
-  const selectedCurrency = useCurrencyPreferenceStore((s) => s.getPreference());
   const setUserDefaultCurrency = useCurrencyPreferenceStore((s) => s.setUserDefaultCurrency);
 
   useEffect(() => {
@@ -32,13 +33,6 @@ const BalancePage: NextPageWithUser = ({ user }) => {
       setUserDefaultCurrency(user.defaultCurrency);
     }
   }, [user, setUserDefaultCurrency]);
-
-  const allNonZeroCurrencies = useMemo(() => {
-    const nonZeroBalances = balanceQuery.data?.balances.flatMap((b) =>
-      b.currencies.filter((c) => c.amount !== 0n),
-    );
-    return nonZeroBalances ? [...new Set(nonZeroBalances.map((c) => c.currency))] : [];
-  }, [balanceQuery.data?.balances]);
 
   const shareWithFriends = useCallback(() => {
     if (navigator.share) {
@@ -65,43 +59,28 @@ const BalancePage: NextPageWithUser = ({ user }) => {
             <Button variant="ghost" onClick={shareWithFriends}>
               <ArrowUpOnSquareIcon className="h-6 w-6" />
             </Button>
-          ) : (
-            <div className="h-6 w-10" />
-          )
+          ) : null
         }
         loading={cumulatedQuery.isPending}
       >
         <NotificationModal />
-        <div className="mx-4 flex items-stretch justify-between gap-4">
-          {selectedCurrency && isCurrencyCode(selectedCurrency) ? (
-            <CumulatedBalanceDisplay
-              prefix={t('ui.total_balance')}
-              cumulatedBalances={[
-                cumulatedQuery.data?.youOwe ?? [],
-                cumulatedQuery.data?.youGet ?? [],
-              ].flat()}
-              currencies={allNonZeroCurrencies}
-              className="mx-auto"
-            />
-          ) : (
-            <>
-              <CumulatedBalanceDisplay
-                prefix={t('ui.expense.statements.you_owe')}
-                cumulatedBalances={cumulatedQuery.data?.youOwe}
-                currencies={allNonZeroCurrencies}
-              />
-              <CumulatedBalanceDisplay
-                prefix={t('ui.expense.statements.you_lent')}
-                cumulatedBalances={cumulatedQuery.data?.youGet}
-                currencies={allNonZeroCurrencies}
-              />
-            </>
-          )}
-        </div>
+        {/* New users get the empty state below instead of "You're all settled up". */}
+        {balanceQuery.data?.balances.length ? (
+          <BalanceHeadline
+            className="mt-1"
+            youGet={cumulatedQuery.data?.youGet}
+            youOwe={cumulatedQuery.data?.youOwe}
+            balances={balanceQuery.data.balances}
+          />
+        ) : null}
 
-        <div className="mt-5 flex flex-col gap-8 pb-36">
+        <MonthlySpendCard className="mt-6" />
+
+        <DetectedSubscriptionsSummary className="mt-4" />
+
+        <div id="balances-list" className="mt-6 flex scroll-mt-4 flex-col gap-6 pb-36">
           {balanceQuery.data?.balances.map((balance) => (
-            <BalanceEntry
+            <HomeBalanceRow
               key={balance.friend.id}
               id={balance.friend.id}
               entity={balance.friend}
@@ -110,21 +89,21 @@ const BalancePage: NextPageWithUser = ({ user }) => {
           ))}
 
           {!balanceQuery.isPending && !balanceQuery.data?.balances.length ? (
-            <div className="mt-[40vh] flex -translate-y-[130%] flex-col items-center justify-center gap-6">
-              <DownloadAppDrawer>
-                <Button className="w-62.5">
-                  <Download className="me-2 h-5 w-5 text-black" />
-                  {t('account.download_app')}
-                </Button>
-              </DownloadAppDrawer>
-              {!isPwa && <p>{t('ui.or')}</p>}
-              <Link href="/add">
-                <Button className="w-62.5">
-                  <PlusIcon className="me-2 h-5 w-5 text-black" />
-                  {t('actions.add_expense')}
-                </Button>
-              </Link>
-            </div>
+            <EmptyState
+              icon={Scale}
+              title={t('empty_states.balances.title')}
+              description={t('empty_states.balances.description')}
+            >
+              <AddExpenseShortcuts className="w-62.5 flex-col" />
+              {!isPwa && (
+                <DownloadAppDrawer>
+                  <Button variant="outline" className="w-62.5">
+                    <Download className="me-2 h-5 w-5" />
+                    {t('account.download_app')}
+                  </Button>
+                </DownloadAppDrawer>
+              )}
+            </EmptyState>
           ) : null}
         </div>
       </MainLayout>
@@ -132,38 +111,8 @@ const BalancePage: NextPageWithUser = ({ user }) => {
   );
 };
 
-const CumulatedBalanceDisplay: React.FC<{
-  prefix?: string;
-  className?: string;
-  cumulatedBalances?: { currency: string; amount: bigint }[];
-  currencies: string[];
-}> = ({ prefix = '', className = '', cumulatedBalances, currencies }) => {
-  if (!cumulatedBalances || cumulatedBalances.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={cn('w-1/2 rounded-2xl border px-4 py-2', className)}>
-      <div className="mt-2 px-1">
-        <div className="flex items-center justify-center gap-2 text-center">
-          <p className="text-sm">{prefix}</p>
-        </div>
-      </div>
-      <div className="mt-4 mb-2 flex flex-wrap justify-center gap-1">
-        <ConvertibleBalance
-          balances={cumulatedBalances}
-          showMultiOption
-          className="flex-wrap"
-          overrideCurrencies={currencies}
-          forceShowButton={currencies.length > 1}
-        />
-      </div>
-    </div>
-  );
-};
-
 BalancePage.auth = true;
 
-export const getStaticProps = withI18nStaticProps(['common']);
+export const getStaticProps = withI18nStaticProps(['common', 'categories', 'insights']);
 
 export default BalancePage;

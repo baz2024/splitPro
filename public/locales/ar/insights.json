@@ -1,0 +1,60 @@
+{
+  "other_currencies": "إضافةً إلى {amounts} بعملات أخرى، غير محوّلة وغير مشمولة في الرسم.",
+  "trend": {
+    "title": "الإنفاق الشهري",
+    "subtitle": "إجمالي إنفاق المشروع، آخر {count} أشهر · {currency}",
+    "this_month": "{month} (هذا الشهر)",
+    "budget_line": "الميزانية {amount}",
+    "aria": "إنفاق المشروع لكل شهر خلال آخر {count} أشهر، مع إبراز هذا الشهر",
+    "title_daily": "الإنفاق اليومي",
+    "spent_label": "المُنفَق",
+    "avg_per_month": "متوسط {amount} شهريًا · {range}",
+    "avg_per_day": "متوسط {amount} يوميًا · {range}",
+    "average_line": "المتوسط {amount}",
+    "today": "{day} (اليوم)",
+    "aria_daily": "إنفاق المشروع لكل يوم خلال آخر {count} يومًا، مع إبراز اليوم"
+  },
+  "table": {
+    "show": "عرض كجدول",
+    "month": "الشهر",
+    "amount": "المبلغ",
+    "day": "اليوم"
+  },
+  "category": {
+    "title": "الإنفاق حسب الفئة",
+    "subtitle": "آخر {count} أشهر · {currency}",
+    "other": "فئات أخرى",
+    "empty": "لا يوجد إنفاق بهذه العملة بعد.",
+    "subtitle_range": "{range} · {currency}",
+    "source_label": "من أضاف التكلفة",
+    "sources": {
+      "all": "الكل",
+      "human": "الأشخاص",
+      "agent": "الوكلاء"
+    },
+    "source_totals": "الأشخاص {human} · الوكلاء {agent}",
+    "agent_empty": "لا توجد تكاليف أبلغ عنها وكلاء البرمجة في هذه الفترة.",
+    "human_empty": "لا توجد تكاليف أضافها أشخاص في هذه الفترة.",
+    "agent_hint": "الوكلاء تعني التكاليف المُبلَّغ عنها عبر مفتاح API لوكيل."
+  },
+  "services": {
+    "title": "التكلفة الشهرية حسب الخدمة",
+    "subtitle": "المعدل الشهري لكل خدمة · {currency}",
+    "other": "{count, plural, one {اشتراك آخر واحد} two {اشتراكان آخران} few {# اشتراكات أخرى} many {# اشتراكًا آخر} other {# اشتراك آخر}}",
+    "plans": "{count, plural, one {خطة واحدة} two {خطتان} few {# خطط} many {# خطة} other {# خطة}}"
+  },
+  "my_spend": {
+    "label": "إنفاقك هذا الشهر",
+    "no_history": "لا توجد أشهر سابقة للمقارنة بعد",
+    "same": "مماثل لمتوسطك خلال {count} أشهر ({average})",
+    "above": "أعلى بنسبة {percent}% من متوسطك خلال {count} أشهر البالغ {average}",
+    "below": "أقل بنسبة {percent}% من متوسطك خلال {count} أشهر البالغ {average}",
+    "trend_aria": "إنفاقك خلال آخر {count} أشهر، مع إبراز هذا الشهر"
+  },
+  "range": {
+    "label": "الفترة الزمنية",
+    "1m": "شهر",
+    "6m": "6 أشهر",
+    "1y": "سنة"
+  }
+}

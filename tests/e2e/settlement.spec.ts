@@ -30,7 +30,7 @@ test('partially then fully settles a real debt through the UI', async ({ page, s
     )
     .toBe(-600n);
   await page.reload();
-  await expect(page.getByText('$6', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^You owe\s*\$6\.00$/)).toBeVisible();
   await settle('6.00');
   await expect
     .poll(async () =>

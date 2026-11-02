@@ -9,10 +9,13 @@ import type { DayPickerProps, PropsSingleRequired } from 'react-day-picker';
 type DateSelectorProps = DayPickerProps &
   PropsSingleRequired & {
     popoverPortalled?: boolean;
+    /** Overrides how the selected date is shown on the trigger. */
+    formatDate?: (date: Date) => string;
   };
 
 export const DateSelector: React.FC<DateSelectorProps> = ({
   popoverPortalled = true,
+  formatDate,
   ...calendarProps
 }) => {
   const { t, toUIDate } = useTranslationWithUtils();
@@ -30,7 +33,8 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
           >
             <CalendarIcon className="text-primary me-2 size-6" />
             {calendarProps.selected ? (
-              toUIDate(calendarProps.selected, { useToday: true })
+              (formatDate?.(calendarProps.selected) ??
+              toUIDate(calendarProps.selected, { useToday: true }))
             ) : (
               <span>{t('expense_details.add_expense_details.pick_a_date')}</span>
             )}

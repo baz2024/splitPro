@@ -1,0 +1,47 @@
+{
+  "title": "Agents & API usage",
+  "back": "Back to account",
+  "loading": "Loading usage…",
+  "error": "Couldn't load usage. Try again later.",
+  "summary": {
+    "spend_label": "AI & dev spend this month",
+    "cap_label": "Budget · {project}",
+    "cap_label_no_project": "Project budget",
+    "no_cap": "No project budget",
+    "set_cap": "Set a budget",
+    "ring_label": "AI and dev spend is {percent} percent of the {cap} project budget",
+    "excluded_currencies": "Spend in {currencies} isn't included. Amounts aren't converted."
+  },
+  "spent_by": {
+    "title": "Spent by",
+    "amount_header": "This month",
+    "agent_sub": "agent · {services}",
+    "empty": "No AI or developer spend this month yet. Expenses in Tech & AI categories show up here."
+  },
+  "warning": {
+    "over_cap": "AI and dev spend is {over} over the {cap} project budget.",
+    "near_cap": "AI and dev spend has used {percent}% of the {cap} project budget."
+  },
+  "connected": {
+    "title": "Connected",
+    "kafo_ai": "Kafo AI",
+    "budget_source": "Budget source",
+    "set_budget": "Set a budget",
+    "vercel": "Vercel",
+    "connect": "Connect",
+    "connect_label": "Connect {service} billing (coming soon)",
+    "soon": "Soon"
+  },
+  "add_agent": "Add agent & get token",
+  "providers": {
+    "title": "By provider",
+    "other": "Not matched to a provider",
+    "other_sub": "Logged as {categories}",
+    "empty": "No AI or developer spend this month yet."
+  },
+  "audit_g": {
+    "spend_label": "Your share of AI & dev spend this month",
+    "share_header": "Your share",
+    "share_note": "Amounts are your share of each cost. Subscriptions shows the full price of shared plans."
+  }
+}

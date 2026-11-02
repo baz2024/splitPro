@@ -2,6 +2,7 @@ import {
   InviteErrorCode,
   getInviteErrorToastKey,
   isInviteEmailSendFailed,
+  isInviteSendFailed,
 } from '~/lib/error/invite';
 
 describe('isInviteEmailSendFailed', () => {
@@ -27,11 +28,39 @@ describe('isInviteEmailSendFailed', () => {
   });
 });
 
+describe('isInviteSendFailed', () => {
+  it.each([
+    InviteErrorCode.INVITE_EMAIL_SEND_FAILED,
+    InviteErrorCode.INVITE_SMS_SEND_FAILED,
+    InviteErrorCode.INVITE_SMS_DISABLED,
+  ])('returns true for %s', (code) => {
+    expect(isInviteSendFailed(code)).toBe(true);
+  });
+
+  it.each([InviteErrorCode.INVITES_DISABLED, InviteErrorCode.INVITE_RATE_LIMITED, undefined])(
+    'returns false for %p',
+    (code) => {
+      expect(isInviteSendFailed(code)).toBe(false);
+    },
+  );
+});
+
 describe('getInviteErrorToastKey', () => {
   describe('when the code is INVITE_EMAIL_SEND_FAILED', () => {
     it('returns the invite-email-failed key', () => {
       expect(getInviteErrorToastKey(InviteErrorCode.INVITE_EMAIL_SEND_FAILED)).toBe(
         'errors.invite_email_failed',
+      );
+    });
+  });
+
+  describe('when the code is an SMS delivery code', () => {
+    it('returns the SMS keys', () => {
+      expect(getInviteErrorToastKey(InviteErrorCode.INVITE_SMS_SEND_FAILED)).toBe(
+        'errors.invite_sms_failed',
+      );
+      expect(getInviteErrorToastKey(InviteErrorCode.INVITE_SMS_DISABLED)).toBe(
+        'errors.invite_sms_disabled',
       );
     });
   });

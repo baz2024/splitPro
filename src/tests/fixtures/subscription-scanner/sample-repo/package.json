@@ -1,0 +1,12 @@
+{
+  "name": "safi-scanner-fixture-sample-repo",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "openai": "^4.52.0",
+    "stripe": "^16.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "Safi",
+    "slug": "safi",
+    "scheme": "splitpro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0b1626",
+    "ios": {
+      "bundleIdentifier": "com.kafoai.split",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "Safi uses the camera to scan receipts.",
+        "NSPhotoLibraryUsageDescription": "Safi uses your photo library to attach receipt images.",
+        "CFBundleAllowMixedLocalizations": true
+      },
+      "usesAppleSignIn": true
+    },
+    "locales": {
+      "en": "./src/locales/en.json",
+      "ar": "./src/locales/ar.json"
+    },
+    "android": {
+      "package": "com.kafoai.split",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1626",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-apple-authentication",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0b1626",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0b1626"
+          }
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "241f61f1-841a-41e7-839a-cd90ec0c5964"
+      }
+    },
+    "owner": "lastatble"
+  }
+}

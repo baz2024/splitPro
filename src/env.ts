@@ -3,6 +3,11 @@ import { z } from 'zod';
 
 import { parseEnvBoolean } from './utils/env';
 
+// Public Supabase project values (anon role, safe to ship to the browser by design).
+const DEFAULT_SUPABASE_URL = 'https://lfmhkxsjyvqlswmnppad.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbWhreHNqeXZxbHN3bW5wcGFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0Njk0ODIsImV4cCI6MjEwOTA0NTQ4Mn0.bUeKYZiQHftSXilZwpgrzv9ls5ClBTc34GisVXVowrA';
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -81,6 +86,13 @@ export const env = createEnv({
     OIDC_ALLOW_DANGEROUS_EMAIL_LINKING: z.boolean().default(false),
     OAUTH_AUTO_REDIRECT: z.boolean().default(false),
     UPLOAD_MAX_FILE_SIZE_MB: z.coerce.number().int().positive().default(10),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    // 32-byte key (base64) for encrypting billing-sync tokens. Billing sync is off when unset.
+    INTEGRATION_ENCRYPTION_KEY: z.string().optional(),
+    // Twilio credentials for SMS invites. SMS invites are off when any of these is unset.
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
   },
 
   /**
@@ -91,6 +103,9 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_APP_VERSION: z.string().optional(),
     NEXT_PUBLIC_GIT_SHA: z.string().optional(),
+    // Public Supabase values (safe to ship to the browser by design).
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().default(DEFAULT_SUPABASE_URL),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().default(DEFAULT_SUPABASE_ANON_KEY),
   },
 
   /**
@@ -154,8 +169,18 @@ export const env = createEnv({
     UPLOAD_MAX_FILE_SIZE_MB: process.env.UPLOAD_MAX_FILE_SIZE_MB
       ? Number(process.env.UPLOAD_MAX_FILE_SIZE_MB)
       : 10,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    INTEGRATION_ENCRYPTION_KEY: process.env.INTEGRATION_ENCRYPTION_KEY,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+    TWILIO_MESSAGING_SERVICE_SID: process.env.TWILIO_MESSAGING_SERVICE_SID,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     NEXT_PUBLIC_GIT_SHA: process.env.NEXT_PUBLIC_GIT_SHA,
+    // `||` keeps the public defaults when SKIP_ENV_VALIDATION bypasses the Zod defaults
+    // (Docker and CI builds), which would otherwise inline `undefined` into the browser bundle.
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

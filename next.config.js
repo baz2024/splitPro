@@ -27,6 +27,24 @@ const nextConfig = {
    * @see https://github.com/vercel/next.js/issues/41980
    */
   i18n: i18nConfig.i18n,
+  // Server-side translations read JSON from disk; ship them with every serverless function.
+  outputFileTracingIncludes: {
+    '/**': ['./public/locales/**/*', './next-i18next.config.js'],
+  },
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

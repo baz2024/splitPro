@@ -1,0 +1,18 @@
+{
+  "summary": "{count, plural, one {# unused 30+ days} other {# unused 30+ days}}",
+  "sheet": {
+    "title": "Unused 30+ days",
+    "explainer": "No sign of use in the last 30 days: your coding agent didn't find these in a repo, you logged no usage costs for them, and you haven't confirmed you still use them."
+  },
+  "row": {
+    "per_month": "{amount}/mo",
+    "no_signal": "No usage seen yet",
+    "last_confirmed": "You confirmed use on {date}",
+    "last_seen_in_repo": "Last found in a repo on {date}",
+    "last_usage_expense": "Last usage cost on {date}",
+    "still_using": "Still using",
+    "still_using_done": "Marked {name} as still in use",
+    "still_using_error": "Couldn't update this subscription",
+    "open_expense": "Open expense"
+  }
+}
