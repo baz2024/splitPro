@@ -1,12 +1,15 @@
 import { buttonVariants } from '@heroui/react';
+import { PlusIcon } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
 import React from 'react';
 
+import { CreateGroup } from '~/components/group/CreateGroup';
 import MainLayout from '~/components/Layout/MainLayout';
 import { ProjectCard } from '~/components/Project/ProjectCard';
 import { useTzOffset } from '~/components/Project/format';
+import { Button } from '~/components/ui/button';
 import { type NextPageWithUser } from '~/types';
 import { api } from '~/utils/api';
 import { withI18nStaticProps } from '~/utils/i18n/server';
@@ -21,7 +24,17 @@ const ProjectsPage: NextPageWithUser = () => {
       <Head>
         <title>{t('title')}</title>
       </Head>
-      <MainLayout title={t('title')} loading={projectsQuery.isPending}>
+      <MainLayout
+        title={t('title')}
+        loading={projectsQuery.isPending}
+        actions={
+          <CreateGroup>
+            <Button variant="ghost" size="icon" aria-label={t('list.create_group')}>
+              <PlusIcon />
+            </Button>
+          </CreateGroup>
+        }
+      >
         <div className="flex flex-col gap-3 pb-8">
           <p className="text-muted text-sm">{t('list.intro')}</p>
           {projectsQuery.isError ? (

@@ -200,7 +200,9 @@ const Auth: React.FC<{ Page: PageWithAuth; pageProps: AppProps['pageProps'] }> =
     }
   }, [status, data?.user, router, updateUser, update]);
 
-  if ('loading' === status) {
+  // Only wait for the first session load. `update()` also reports 'loading', and unmounting
+  // The page then would wipe its state, such as the sheet confirming that an expense was saved.
+  if (!data?.user) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         {showSpinner ? <LoadingSpinner className="text-primary" /> : null}

@@ -36,5 +36,10 @@ export const createDatabaseAdapter = (rawConnectionString: string) => {
     attachDatabasePool(pool);
   }
 
-  return new PrismaPg(pool, { schema: parameters.get('schema') ?? 'public' });
+  // A pool passed in is not closed by default, so $disconnect() would leave its connections open
+  // (holding session state such as advisory locks) and keep the process alive.
+  return new PrismaPg(pool, {
+    schema: parameters.get('schema') ?? 'public',
+    disposeExternalPool: true,
+  });
 };

@@ -5,7 +5,7 @@ test('redirects unauthenticated visitors to sign in', async ({ browser, baseURL 
   try {
     const page = await context.newPage();
     await page.goto('/en/balances');
-    await expect(page).toHaveURL(/\/auth\/signin/);
+    await page.waitForURL(/\/auth\/signin/);
   } finally {
     await context.close();
   }

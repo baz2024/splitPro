@@ -29,7 +29,8 @@ export const resetDatabase = async () => {
     "ExpenseParticipant", "ExpenseNote", "Expense", "ExpenseRecurrence",
     "GroupDefaultSplit", "GroupUser", "Group", "FriendDefaultSplit",
     "PushNotification", "CachedBankData", "CachedCurrencyRate", "Session",
-    "Account", "User", "VerificationToken", "Balance", "GroupBalance", "AppMetadata"
+    "Account", "User", "VerificationToken", "Balance", "GroupBalance", "AppMetadata",
+    "ApiKey", "DetectedSubscription", "BillingImport", "BillingConnection"
     RESTART IDENTITY CASCADE`);
   await db.$executeRaw`DELETE FROM cron.job_run_details`;
   await db.$executeRaw`DELETE FROM cron.job`;
