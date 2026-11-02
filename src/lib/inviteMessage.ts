@@ -5,6 +5,12 @@
 
 export const INVITE_EMAIL_SUBJECT = 'Invitation to Safi';
 
+/** Where an invite points: the project's join link when there is a project, else the app. */
+export const buildInviteUrl = (baseUrl: string, groupPublicId?: string): string =>
+  groupPublicId
+    ? new URL(`/join-group?groupId=${encodeURIComponent(groupPublicId)}`, baseUrl).toString()
+    : baseUrl;
+
 export const buildInviteSmsText = (inviterName: string, url: string): string =>
   `${'' === inviterName.trim() ? 'A friend' : inviterName.trim()} invited you to Safi to share expenses. Sign in with this phone number: ${url}`;
 

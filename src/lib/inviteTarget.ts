@@ -30,7 +30,8 @@ export const getInviteTarget = (input: string): InviteTarget => {
 export const toInviteFriendInput = (
   target: Extract<InviteTarget, { kind: 'email' | 'phone' }>,
   sendInviteEmail: boolean,
+  groupId?: number,
 ) =>
   'email' === target.kind
-    ? { email: target.email, sendInviteEmail }
-    : { phone: target.phone, sendInviteEmail };
+    ? { email: target.email, sendInviteEmail, groupId }
+    : { phone: target.phone, sendInviteEmail, groupId };

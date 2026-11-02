@@ -23,11 +23,11 @@ export async function joinGroup(userId: number, publicGroupId: string) {
     throw new Error('Group not found');
   }
 
-  await db.groupUser.create({
-    data: {
-      groupId: group.id,
-      userId,
-    },
+  // Upsert: an invited person is already a member, and links get opened more than once.
+  await db.groupUser.upsert({
+    where: { groupId_userId: { groupId: group.id, userId } },
+    update: {},
+    create: { groupId: group.id, userId },
   });
 
   return group;

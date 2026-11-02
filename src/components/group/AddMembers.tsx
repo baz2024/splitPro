@@ -14,6 +14,7 @@ import {
   INVITE_EMAIL_SUBJECT,
   buildInviteEmailText,
   buildInviteSmsText,
+  buildInviteUrl,
 } from '~/lib/inviteMessage';
 import { type InviteTarget, getInviteTarget, toInviteFriendInput } from '~/lib/inviteTarget';
 import { api } from '~/utils/api';
@@ -122,7 +123,7 @@ const AddMembers: React.FC<{
   const addTarget = (target: SendableTarget, invite: boolean) => {
     const addUserToGroup = (user: { id: number }) => onSave({ ...userIds, [user.id]: true });
 
-    addFriendMutation.mutate(toInviteFriendInput(target, invite), {
+    addFriendMutation.mutate(toInviteFriendInput(target, invite, group.id), {
       onSuccess: addUserToGroup,
       onError: (err) => {
         const appErrorCode = err.data?.appErrorCode;
@@ -152,7 +153,8 @@ const AddMembers: React.FC<{
   };
 
   const inviterName = session?.user.name ?? session?.user.email ?? '';
-  const signInUrl = 'undefined' === typeof window ? '' : window.location.origin;
+  const signInUrl =
+    'undefined' === typeof window ? '' : buildInviteUrl(window.location.origin, group.publicId);
   const message = preview ? invitePreview(preview, inviterName, signInUrl) : null;
 
   return (

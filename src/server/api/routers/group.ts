@@ -127,11 +127,11 @@ export const groupRouter = createTRPCRouter({
         throw new Error('Group not found');
       }
 
-      await ctx.db.groupUser.create({
-        data: {
-          groupId: group.id,
-          userId: ctx.session.user.id,
-        },
+      const userId = ctx.session.user.id;
+      await ctx.db.groupUser.upsert({
+        where: { groupId_userId: { groupId: group.id, userId } },
+        update: {},
+        create: { groupId: group.id, userId },
       });
 
       await ctx.db.groupDefaultSplit.deleteMany({ where: { groupId: group.id } });
