@@ -9,6 +9,7 @@ import {
 } from '~/lib/defaultSplit';
 import { claimInviteCooldown } from '~/lib/inviteCooldown';
 import { InviteErrorCode } from '~/lib/error/invite';
+import { buildInviteUrl } from '~/lib/inviteMessage';
 import { normalizePhone } from '~/lib/phone';
 import { simplifyDebts } from '~/lib/simplify';
 import { AppError } from '~/server/api/appError';
@@ -35,6 +36,20 @@ const throwInviteError = (
   message: string,
 ): never => {
   throw new TRPCError({ code, message, cause: new AppError(inviteErrorCode, message) });
+};
+
+/** The invite link. Only a member of the project may hand out its join link. */
+const resolveInviteUrl = async (userId: number, groupId?: number) => {
+  if (undefined === groupId) {
+    return env.NEXTAUTH_URL;
+  }
+
+  const membership = await db.groupUser.findUnique({
+    where: { groupId_userId: { groupId, userId } },
+    select: { group: { select: { publicId: true } } },
+  });
+
+  return buildInviteUrl(env.NEXTAUTH_URL, membership?.group.publicId);
 };
 
 export const userRouter = createTRPCRouter({
@@ -75,6 +90,8 @@ export const userRouter = createTRPCRouter({
           phone: z.string().optional(),
           // Kept for backwards compatibility; with `phone` it sends the invite by SMS.
           sendInviteEmail: z.boolean().optional(),
+          // The project the invite is for, so its link joins that project.
+          groupId: z.number().optional(),
         })
         .refine((value) => Boolean(value.email?.trim()) || Boolean(value.phone?.trim()), {
           message: 'Either email or phone is required',
@@ -136,7 +153,11 @@ export const userRouter = createTRPCRouter({
 
         let smsSent = false;
         try {
-          smsSent = await sendInviteSms(phone, inviterName);
+          smsSent = await sendInviteSms(
+            phone,
+            inviterName,
+            await resolveInviteUrl(session.user.id, input.groupId),
+          );
         } catch (err) {
           console.error('Error sending invite SMS to user', phoneUser.id, err);
         }
@@ -192,7 +213,11 @@ export const userRouter = createTRPCRouter({
 
         let sent = false;
         try {
-          sent = await sendInviteEmail(email, inviterName);
+          sent = await sendInviteEmail(
+            email,
+            inviterName,
+            await resolveInviteUrl(session.user.id, input.groupId),
+          );
         } catch (err) {
           console.error('Error sending invite email to user', user.id, err);
         }

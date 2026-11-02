@@ -77,6 +77,17 @@ describe('sendInviteEmail', () => {
       expect(mockSendMail).toHaveBeenCalledTimes(1);
     });
 
+    it('puts the project join link in the email', async () => {
+      mockSendMail.mockResolvedValue(mockSentMessageInfo);
+      const url = 'https://splitpro.example.com/join-group?groupId=abc';
+
+      await sendInviteEmail('friend@example.com', 'Alice', url);
+
+      const sent = mockSendMail.mock.calls[0]?.[0];
+      expect(sent?.text).toContain(url);
+      expect(sent?.html).toContain(url);
+    });
+
     it('escapes HTML special characters in the inviter name', async () => {
       mockSendMail.mockResolvedValue(mockSentMessageInfo);
 

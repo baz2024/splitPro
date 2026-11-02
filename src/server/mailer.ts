@@ -56,12 +56,12 @@ export async function sendSignUpEmail(email: string, url: string, token: string)
   return await sendMail(email, subject, text, html);
 }
 
-export async function sendInviteEmail(email: string, name: string) {
+export async function sendInviteEmail(email: string, name: string, url: string = env.NEXTAUTH_URL) {
   if (!env.ENABLE_SENDING_INVITES) {
     throw new Error('Sending invites is not enabled');
   }
 
-  const { host } = new URL(env.NEXTAUTH_URL);
+  const { host } = new URL(url);
 
   if ('development' === env.NODE_ENV) {
     console.log('Sending invite email', email, name);
@@ -69,8 +69,8 @@ export async function sendInviteEmail(email: string, name: string) {
   }
 
   const subject = INVITE_EMAIL_SUBJECT;
-  const text = buildInviteEmailText(name, env.NEXTAUTH_URL);
-  const html = `<p>Hey,</p> <p>You have been invited to Safi by ${escapeHtml(name)}. Safi keeps your team's expenses, receipts and project budgets in one place. You can sign in to Safi by clicking the below URL:</p><p><a href="${env.NEXTAUTH_URL}">Sign in to ${host}</a></p><br><p>Thanks,<br/>Safi Team</p>`;
+  const text = buildInviteEmailText(name, url);
+  const html = `<p>Hey,</p> <p>You have been invited to Safi by ${escapeHtml(name)}. Safi keeps your team's expenses, receipts and project budgets in one place. You can sign in to Safi by clicking the below URL:</p><p><a href="${escapeHtml(url)}">Sign in to ${host}</a></p><br><p>Thanks,<br/>Safi Team</p>`;
 
   return await sendMail(email, subject, text, html);
 }

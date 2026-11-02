@@ -8,15 +8,19 @@ export const isSmsInviteEnabled = (): boolean =>
   'development' === env.NODE_ENV ||
   Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_MESSAGING_SERVICE_SID);
 
-export const buildInviteSmsBody = (inviterName: string): string =>
-  buildInviteSmsText(inviterName, env.NEXTAUTH_URL);
+export const buildInviteSmsBody = (inviterName: string, url: string = env.NEXTAUTH_URL): string =>
+  buildInviteSmsText(inviterName, url);
 
 /**
  * Sends an SMS invite through Twilio's Messages API. Returns false when Twilio is not
  * configured or the request fails. In development the message is only logged.
  */
-export const sendInviteSms = async (phone: string, inviterName: string): Promise<boolean> => {
-  const body = buildInviteSmsBody(inviterName);
+export const sendInviteSms = async (
+  phone: string,
+  inviterName: string,
+  url: string = env.NEXTAUTH_URL,
+): Promise<boolean> => {
+  const body = buildInviteSmsBody(inviterName, url);
 
   if ('development' === env.NODE_ENV) {
     console.log('Sending invite SMS', phone, body);
