@@ -80,4 +80,10 @@ END IF;
 END $$;
 
 -- AddForeignKey
-ALTER TABLE "public"."ExpenseRecurrence" ADD CONSTRAINT "ExpenseRecurrence_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "cron"."job"("jobid") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  ALTER TABLE "public"."ExpenseRecurrence" ADD CONSTRAINT "ExpenseRecurrence_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "cron"."job"("jobid") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN insufficient_privilege THEN
+  -- Managed hosts (e.g. Supabase) own cron.job and deny REFERENCES; skip the FK there.
+  RAISE NOTICE 'Skipping ExpenseRecurrence_jobId_fkey: %', SQLERRM;
+END $$;
