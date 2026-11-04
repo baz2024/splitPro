@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Avatar from 'boring-avatars';
 import { useRouter } from 'next/router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { type TFunction, useTranslation } from 'next-i18next';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { AppDrawer } from '~/components/ui/drawer';
@@ -24,6 +25,8 @@ type CreateGroupFormValues = z.infer<ReturnType<typeof groupSchema>>;
 export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { t } = useTranslation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const createGroup = api.group.create.useMutation(undefined);
   const utils = api.useUtils();
@@ -38,20 +41,33 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const onGroupSubmit = useCallback(
     async (values: CreateGroupFormValues) => {
-      await createGroup.mutateAsync(
-        { name: values.name },
-        {
-          onSuccess: (data) => {
-            utils.group.getAllGroupsWithBalances.refetch().catch(console.error);
-            router
-              .push(`/projects/${data.id}`)
-              .then(() => setDrawerOpen(false))
-              .catch(console.error);
-          },
-        },
-      );
+      /*
+       * The ref catches a second tap that lands before React has disabled the button. It also
+       * covers Enter in the name field, which doesn't go through the button.
+       */
+      if (submittingRef.current) {
+        return;
+      }
+      submittingRef.current = true;
+      setIsSubmitting(true);
+
+      try {
+        const group = await createGroup.mutateAsync({ name: values.name });
+        utils.group.getAllGroupsWithBalances.refetch().catch(console.error);
+        /*
+         * Stay locked until the new page has loaded, so a tap during navigation can't create
+         * another project. A failed navigation still closes the drawer: the project exists.
+         */
+        await router.push(`/projects/${group.id}`).catch(console.error);
+        setDrawerOpen(false);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : t('errors.create_group_failed'));
+      } finally {
+        submittingRef.current = false;
+        setIsSubmitting(false);
+      }
     },
-    [router, createGroup, utils.group.getAllGroupsWithBalances],
+    [router, createGroup, t, utils.group.getAllGroupsWithBalances],
   );
 
   const handleOpenChange = useCallback(
@@ -102,11 +118,14 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
         className="h-[70vh]"
         actionTitle={t('actions.submit')}
         actionOnClick={handleActionClick}
+        actionDisabled={isSubmitting}
       >
         <div className="w-full">
           <Form {...groupForm}>
             <form
-              onSubmit={groupForm.handleSubmit(onGroupSubmit)}
+              onSubmit={(event) => {
+                groupForm.handleSubmit(onGroupSubmit)(event).catch(console.error);
+              }}
               className="mt-4 flex w-full items-start gap-4"
             >
               <Avatar size={50} name={groupName} variant="bauhaus" colors={avatarColors} />
