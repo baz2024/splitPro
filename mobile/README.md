@@ -21,6 +21,8 @@ This folder uses **npm**, separate from the root pnpm workspace.
   Pages on `safi.kafoai.com` stay in the WebView.
 - Receipt scanning works through `<input type="file" capture>`. iOS asks for camera and photo
   library permission using the text in `app.json`.
+- Exports open the iOS share sheet, because the WebView can't save files the web app creates in
+  memory. The web app sends the file over the WebView message bridge (`src/lib/download.ts`).
 - If the site cannot load, a "Try again" screen appears.
 
 ## How sign-in works

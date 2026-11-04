@@ -16,7 +16,28 @@ export const gzipFileToBase64 = async (file: Blob): Promise<string> => {
   return bytesToBase64(new Uint8Array(await new Response(stream).arrayBuffer()));
 };
 
-const saveBlob = (blob: Blob, fileName: string) => {
+/**
+ * Only the Safi mobile app defines this. Its WebView can't save blob: URLs on iOS, so it takes the
+ * file over this bridge and opens the share sheet (mobile/src/lib/download.ts).
+ */
+const nativeBridge = () =>
+  (window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void } })
+    .ReactNativeWebView;
+
+const saveBlob = async (blob: Blob, fileName: string) => {
+  const bridge = nativeBridge();
+  if (bridge) {
+    bridge.postMessage(
+      JSON.stringify({
+        type: 'file-download',
+        fileName,
+        mimeType: blob.type,
+        base64: bytesToBase64(new Uint8Array(await blob.arrayBuffer())),
+      }),
+    );
+    return;
+  }
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -34,7 +55,7 @@ export const saveGzipBase64 = async (gzipBase64: string, fileName: string, mimeT
     .stream()
     .pipeThrough(new DecompressionStream('gzip'));
   const data = await new Response(stream).arrayBuffer();
-  saveBlob(new Blob([data], { type: mimeType }), fileName);
+  await saveBlob(new Blob([data], { type: mimeType }), fileName);
 };
 
 export const saveText = (text: string, fileName: string, mimeType: string) =>
