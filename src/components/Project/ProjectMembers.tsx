@@ -1,4 +1,5 @@
-import { Check, Download, HandCoins, Share, UserPlus } from 'lucide-react';
+import { Check, Download, HandCoins, Share, Upload, UserPlus } from 'lucide-react';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -155,6 +156,12 @@ export const ProjectMembers: React.FC<{
           <Download className="size-4" aria-hidden />
           {t('actions.export')}
         </button>
+        {isArchived ? null : (
+          <Link href={`/data?groupId=${group.id}`} className={CHIP_SECONDARY}>
+            <Upload className="size-4" aria-hidden />
+            {t('actions.import')}
+          </Link>
+        )}
       </div>
 
       <div className="flex items-baseline justify-between">

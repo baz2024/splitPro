@@ -81,6 +81,7 @@ const en = {
   checkConnection: 'Check your connection and try again.',
   tryAgain: 'Try again',
   signInIncomplete: 'We could not finish signing you in. Please try again.',
+  shareFileFailed: 'Could not share this file. Please try again.',
   // Auth errors raised by the app itself (provider messages pass through untranslated)
   signInCancelled: 'Sign-in was cancelled',
   signInNotConfigured: 'Sign-in is not configured in this build (missing Supabase key).',
@@ -119,6 +120,7 @@ const ar: Strings = {
   checkConnection: 'تحقّق من اتصالك وحاول مرة أخرى.',
   tryAgain: 'حاول مرة أخرى',
   signInIncomplete: 'تعذّر إكمال تسجيل دخولك. يُرجى المحاولة مرة أخرى.',
+  shareFileFailed: 'تعذّرت مشاركة هذا الملف. يُرجى المحاولة مرة أخرى.',
   signInCancelled: 'تم إلغاء تسجيل الدخول',
   signInNotConfigured: 'تسجيل الدخول غير مُعَدّ في هذا الإصدار (مفتاح Supabase مفقود).',
   noSession: 'لم يُرجع تسجيل الدخول جلسة.',

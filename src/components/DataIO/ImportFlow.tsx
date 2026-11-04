@@ -13,6 +13,7 @@ import {
 } from '~/server/dataio/types';
 import { type RouterOutputs, api } from '~/utils/api';
 
+import { initialImportTarget } from './importTarget';
 import { type MappingState, MappingStep } from './MappingStep';
 import { PreviewStep } from './PreviewStep';
 import { ResultStep } from './ResultStep';
@@ -43,7 +44,10 @@ export const toImportOptions = (state: MappingState): ImportOptions => ({
   timeZone: browserTimeZone(),
 });
 
-export const ImportFlow: React.FC<{ fallbackCurrency: string }> = ({ fallbackCurrency }) => {
+export const ImportFlow: React.FC<{ fallbackCurrency: string; groupId?: number | null }> = ({
+  fallbackCurrency,
+  groupId = null,
+}) => {
   const { t } = useTranslation(DATAIO_NAMESPACES);
   const inputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>('file');
@@ -101,8 +105,7 @@ export const ImportFlow: React.FC<{ fallbackCurrency: string }> = ({ fallbackCur
         dateFormat: inspected.dateFormat,
         amountSign: inspected.amountSign,
         defaultCurrency: inspected.currency ?? fallbackCurrency,
-        targetType: 'personal',
-        groupId: null,
+        ...initialImportTarget(groupId),
         split: 'equal',
       });
       setStep('mapping');

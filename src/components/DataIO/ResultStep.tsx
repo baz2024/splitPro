@@ -39,7 +39,7 @@ export const ResultStep: React.FC<{ result: ImportResult; onRestart: () => void 
         reasonText(row),
       ]),
     ]);
-    saveText(csv, 'safi-import-report.csv', 'text/csv;charset=utf-8');
+    saveText(csv, 'safi-import-report.csv', 'text/csv;charset=utf-8').catch(console.error);
   };
 
   return (

@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import {
+  Alert,
   BackHandler,
   Linking,
   Platform,
@@ -23,12 +24,14 @@ import { WebView as RNWebView, type WebViewProps } from 'react-native-webview';
 import type {
   ShouldStartLoadRequest,
   WebViewHttpErrorEvent,
+  WebViewMessageEvent,
   WebViewNavigation,
   WebViewOpenWindowEvent,
   WebViewScrollEvent,
   WebViewSource,
 } from 'react-native-webview/lib/WebViewTypes';
 
+import { parseFileDownload, shareFileDownload } from '../lib/download';
 import { WEB_LOCALE, directionStyle, isArabic, stripLocale, t } from '../lib/i18n';
 import {
   APP_HOST,
@@ -298,6 +301,18 @@ export const WebAppScreen = ({
     [trackAuthState],
   );
 
+  const handleMessage = useCallback((event: WebViewMessageEvent) => {
+    const sender = parseUrl(event.nativeEvent.url);
+    const download = parseFileDownload(event.nativeEvent.data);
+    if (!sender || !isAppUrl(sender) || !download) {
+      return;
+    }
+    shareFileDownload(download).catch((error: unknown) => {
+      console.warn('Could not share file', error);
+      Alert.alert(t.shareFileFailed);
+    });
+  }, []);
+
   const handleScroll = useCallback((event: WebViewScrollEvent) => {
     setAtTop(0 >= event.nativeEvent.contentOffset.y);
   }, []);
@@ -333,6 +348,7 @@ export const WebAppScreen = ({
       originWhitelist={['*']}
       onShouldStartLoadWithRequest={handleShouldStartLoad}
       onOpenWindow={handleOpenWindow}
+      onMessage={handleMessage}
       onNavigationStateChange={handleNavigationStateChange}
       onLoadEnd={handleLoadEnd}
       onError={handleError}
