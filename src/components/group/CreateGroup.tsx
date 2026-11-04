@@ -41,8 +41,10 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const onGroupSubmit = useCallback(
     async (values: CreateGroupFormValues) => {
-      // The ref catches a second tap that lands before React has disabled the button. It also
-      // covers Enter in the name field, which doesn't go through the button.
+      /*
+       * The ref catches a second tap that lands before React has disabled the button. It also
+       * covers Enter in the name field, which doesn't go through the button.
+       */
       if (submittingRef.current) {
         return;
       }
@@ -52,8 +54,10 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const group = await createGroup.mutateAsync({ name: values.name });
         utils.group.getAllGroupsWithBalances.refetch().catch(console.error);
-        // Stay locked until the new page has loaded, so a tap during navigation can't create
-        // another project. A failed navigation still closes the drawer: the project exists.
+        /*
+         * Stay locked until the new page has loaded, so a tap during navigation can't create
+         * another project. A failed navigation still closes the drawer: the project exists.
+         */
         await router.push(`/projects/${group.id}`).catch(console.error);
         setDrawerOpen(false);
       } catch (error) {
@@ -119,7 +123,9 @@ export const CreateGroup: React.FC<{ children: React.ReactNode }> = ({ children 
         <div className="w-full">
           <Form {...groupForm}>
             <form
-              onSubmit={groupForm.handleSubmit(onGroupSubmit)}
+              onSubmit={(event) => {
+                groupForm.handleSubmit(onGroupSubmit)(event).catch(console.error);
+              }}
               className="mt-4 flex w-full items-start gap-4"
             >
               <Avatar size={50} name={groupName} variant="bauhaus" colors={avatarColors} />
