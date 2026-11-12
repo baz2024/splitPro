@@ -39,10 +39,12 @@ Verified locally: user anonymised, 0 sessions left, 120 shared expenses kept.
    only see these fixes after the deploy.
 2. **Set `SUPABASE_SERVICE_ROLE_KEY`** in Vercel (server-only). Without it, deletion leaves the
    Supabase sign-in record behind (it no longer links to any Safi data).
-3. **Create a review account.** Add a Supabase test phone number with a fixed code, give it some
-   sample expenses, and put the details in App Review Notes and Play Console → App access.
-4. **Store forms:** App Store privacy labels and Play Data safety must match the new privacy
-   policy. Play account-deletion URL: `https://safi.kafoai.com/delete-account`.
+3. **Review account (done 12 Nov):** Supabase test phone +353 87 000 0101 is live
+   (`tool/set_review_phone.sh`). Paste the "App access" text from `docs/store-privacy.md` into
+   App Store Connect → App Review Information and Play Console → App access.
+4. **Store forms:** App Store App Privacy is published (7 data types, no tracking, privacy URL
+   set). Play Data safety waits until Safi is created in Play Console; answers are in
+   `docs/store-privacy.md`. Play account-deletion URL: `https://safi.kafoai.com/delete-account`.
 5. **Google Play:** save the service-account key as `mobile/google-service-account.json` and do
    the first upload by hand in Play Console.
 6. **New native build:** the privacy manifest and Welcome links need a fresh EAS build.
