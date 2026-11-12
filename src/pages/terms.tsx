@@ -1,7 +1,8 @@
-import { type NextPage } from 'next';
+import { type GetServerSideProps, type NextPage } from 'next';
 import Link from 'next/link';
 
 import { env } from '~/env';
+import { customServerSideTranslations } from '~/utils/i18n/server';
 
 const Terms: NextPage<{ feedbackEmail: string }> = ({ feedbackEmail }) => (
   <>
@@ -15,13 +16,13 @@ const Terms: NextPage<{ feedbackEmail: string }> = ({ feedbackEmail }) => (
           </Link>
         </nav>
         <h1 className="mt-20 text-2xl font-semibold">Terms of service</h1>
-        <p className="text-muted text-sm">Last Updated: 06 Mar, 2022</p>
+        <p className="text-muted text-sm">Last updated: 12 November 2026</p>
 
         <p className="mt-12 text-xl font-semibold">1. Agreement</p>
         <p className="text-foreground/80 mt-1 text-lg">
-          By using Splitpro, you agree to these Terms of Service. Splitpro reserves the right to
-          modify these Terms at any time. By continuing to use the Service, you agree to the updated
-          Terms.
+          Safi (the &quot;Service&quot;) is provided by Kafo AI. By using Safi on the web or in the
+          iPhone or Android app, you agree to these Terms of Service. Kafo AI may update these Terms
+          at any time. By continuing to use the Service, you agree to the updated Terms.
         </p>
 
         <p className="mt-12 text-xl font-semibold">2. Eligibility</p>
@@ -36,37 +37,54 @@ const Terms: NextPage<{ feedbackEmail: string }> = ({ feedbackEmail }) => (
           right to terminate your access to the Service if you violate this provision.
         </p>
 
-        <p className="mt-12 text-xl font-semibold">4. Termination</p>
+        <p className="mt-12 text-xl font-semibold">4. Your Data and AI Features</p>
+        <p className="text-foreground/80 mt-1 text-lg">
+          You are responsible for the expenses and amounts you record. When you scan a receipt, the
+          amount, date and merchant are read by AI and may be wrong, so please check them before you
+          save. You can delete your account at any time from Account → Delete account.
+        </p>
+
+        <p className="mt-12 text-xl font-semibold">5. Termination</p>
         <p className="text-foreground/80 mt-1 text-lg">
           We reserve the right to suspend or terminate your access to the Service at any time, with
           or without notice, for any reason.
         </p>
 
-        <p className="mt-12 text-xl font-semibold">5. Disclaimers and Limitation of Liability</p>
+        <p className="mt-12 text-xl font-semibold">6. Disclaimers and Limitation of Liability</p>
         <p className="text-foreground/80 mt-1 text-lg">
           The Service is provided &quot;as is&quot; and &quot;as available,&quot; without warranties
           of any kind. We disclaim all liability for any damages or losses arising from your use of
           the Service.
         </p>
 
-        <p className="mt-12 text-xl font-semibold">6. Governing Law</p>
+        <p className="mt-12 text-xl font-semibold">7. Governing Law</p>
         <p className="text-foreground/80 mt-1 text-lg">
           These Terms shall be governed by the laws of US. Any disputes arising from these Terms
           shall be resolved in the courts located in US.
         </p>
 
-        <p className="mt-12 text-xl font-semibold">7. Privacy</p>
+        <p className="mt-12 text-xl font-semibold">8. Privacy</p>
         <p className="text-foreground/80 mt-1 text-lg">
-          Please read our <Link href="/privacy">Privacy Policy</Link>
+          Please read our{' '}
+          <Link className="underline" href="/privacy">
+            Privacy Policy
+          </Link>
+          .
         </p>
 
-        <p className="mt-12 text-xl font-semibold">8. Contact</p>
+        <p className="mt-12 text-xl font-semibold">9. Contact</p>
         <p className="text-foreground/80 mt-1 text-lg">
           If you have any questions or concerns regarding these Terms, please contact us at{' '}
-          {/* oxlint-disable-next-line next/no-html-link-for-pages */}
-          <a className="underline" href={`mailto:${feedbackEmail}`}>
-            {feedbackEmail ?? ''}
-          </a>
+          {'' === feedbackEmail ? (
+            <Link className="underline" href="/privacy">
+              safi.kafoai.com/privacy
+            </Link>
+          ) : (
+            // oxlint-disable-next-line next/no-html-link-for-pages
+            <a className="break-all underline" href={`mailto:${feedbackEmail}`}>
+              {feedbackEmail}
+            </a>
+          )}
           .
         </p>
       </main>
@@ -76,10 +94,10 @@ const Terms: NextPage<{ feedbackEmail: string }> = ({ feedbackEmail }) => (
 
 export default Terms;
 
-export async function getServerSideProps() {
-  return {
-    props: {
-      feedbackEmail: env.FEEDBACK_EMAIL ?? '',
-    },
-  };
-}
+export const getServerSideProps: GetServerSideProps = async (context) => ({
+  props: {
+    feedbackEmail: env.FEEDBACK_EMAIL ?? '',
+    // Loads the app title and other shared strings used by the page shell.
+    ...(await customServerSideTranslations(context.locale, ['common'])),
+  },
+});

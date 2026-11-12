@@ -84,6 +84,13 @@
       "light": "Light",
       "dark": "Dark",
       "system": "System"
+    },
+    "delete_account": "Delete account",
+    "delete_account_details": {
+      "title": "Delete your account?",
+      "description": "This permanently deletes your profile, sign-in methods, bank and billing connections, API keys and subscription list. Expenses you share with others stay in their projects under \"Deleted user\" so their balances stay correct. This cannot be undone.",
+      "failed": "Could not delete your account. Please try again.",
+      "deleted": "Your account has been deleted."
     }
   },
   "actions": {
@@ -408,7 +415,7 @@
     "title": "Group outstanding balances"
   },
   "invite_message": {
-    "in_splitpro": "in Splitpro",
+    "in_splitpro": "in Safi",
     "join_to": "Join to",
     "text": "Join to the group and you can add, manage expenses, and track your balances"
   },
@@ -889,5 +896,21 @@
   },
   "audit_g": {
     "skill_create_key": "Tap \"Add agent & get token\" and copy the key it shows you."
+  },
+  "ai_consent": {
+    "title": "Read this receipt with AI?",
+    "description": "To fill in the amount, date and shop, Safi sends the receipt photo to Anthropic (Claude). It is used only to read this receipt and is not used to train AI models. You can always type the details yourself instead.",
+    "allow": "Allow and scan",
+    "deny": "Don't allow",
+    "privacy_link": "Privacy policy"
+  },
+  "delete_account_page": {
+    "title": "Delete your Safi account",
+    "intro": "You can delete your Safi account and its personal data at any time.",
+    "in_app": "In the app: open Account, then tap Delete account at the bottom and confirm.",
+    "sign_in_cta": "Sign in to delete your account",
+    "what_deleted": "What is deleted: your name, email, phone number, photo, sign-in methods, sessions, bank and billing connections, API keys and detected subscriptions.",
+    "what_kept": "What stays: expenses you shared with other people stay in their projects under \"Deleted user\", so their balances remain correct. Nothing in them identifies you.",
+    "help": "Can't sign in? Email us from the address on your account and we will delete it within 30 days."
   }
 }

@@ -126,10 +126,11 @@ export const AmountKeypad: React.FC<{
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col items-center gap-1 py-4">
+      {/* Shorter amount block on phones under ~860pt tall, so the keypad clears the pinned CTA. */}
+      <div className="flex flex-col items-center gap-1 py-4 [@media(max-height:860px)]:py-0">
         <p
           dir="ltr"
-          className="text-foreground text-center text-6xl font-bold tracking-tight tabular-nums"
+          className="text-foreground text-center text-6xl font-bold tracking-tight tabular-nums [@media(max-height:860px)]:text-5xl"
           aria-live="polite"
           aria-label={t('add_journey.manual.amount_label')}
         >

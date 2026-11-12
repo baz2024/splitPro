@@ -12,16 +12,19 @@ import type { GetServerSideProps } from 'next';
 import { signOut } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AccountButton } from '~/components/Account/AccountButton';
+import { DeleteAccount } from '~/components/Account/DeleteAccount';
 import { DownloadAppDrawer } from '~/components/Account/DownloadAppDrawer';
 import { LanguagePicker } from '~/components/Account/LanguagePicker';
 import { ThemePicker } from '~/components/Account/ThemePicker';
 import { SubmitFeedback } from '~/components/Account/SubmitFeedback';
 import { SubscribeNotification } from '~/components/Account/SubscribeNotification';
 import { UpdateName } from '~/components/Account/UpdateDetails';
+import { saveBlob } from '~/components/DataIO/transfer';
 import MainLayout from '~/components/Layout/MainLayout';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
@@ -60,12 +63,8 @@ const AccountPage: NextPageWithUser<{
     setDownloading(true);
     const data = await downloadQuery.mutateAsync();
     const blob = new Blob([JSON.stringify(data, bigIntReplacer, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'splitpro_data.json';
-    link.click();
-    URL.revokeObjectURL(url);
+    // The native app saves through the share sheet (saveBlob), since blob: links can't be saved there.
+    await saveBlob(blob, 'safi_data.json');
     setDownloading(false);
   }, [downloadQuery]);
 
@@ -183,10 +182,19 @@ const AccountPage: NextPageWithUser<{
           ) : null}
         </div>
 
-        <div className="mt-2 flex justify-center">
+        <div className="mt-2 flex flex-col items-center gap-1">
           <Button variant="ghost" className="text-danger hover:text-danger/90" onClick={onSignOut}>
             {t('account.logout')}
           </Button>
+          <DeleteAccount />
+          <p className="text-muted flex gap-4 text-sm">
+            <Link href="/terms" className="inline-flex min-h-11 items-center underline">
+              {t('auth.welcome.terms')}
+            </Link>
+            <Link href="/privacy" className="inline-flex min-h-11 items-center underline">
+              {t('auth.welcome.privacy')}
+            </Link>
+          </p>
         </div>
       </MainLayout>
     </>
@@ -197,7 +205,7 @@ AccountPage.auth = true;
 
 export const getServerSideProps: GetServerSideProps = async (context) => ({
   props: {
-    feedbackPossible: Boolean(env.FEEDBACK_EMAIL),
+    feedBackPossible: Boolean(env.FEEDBACK_EMAIL),
     bankConnectionEnabled: isBankConnectionConfigured(),
     bankConnection: whichBankConnectionConfigured(),
     ...(await customServerSideTranslations(context.locale, ['common', 'currencies', 'dataio'])),
