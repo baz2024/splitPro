@@ -90,7 +90,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#5aa9ff",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "extra": {
       "eas": {

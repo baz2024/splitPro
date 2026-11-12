@@ -1,8 +1,10 @@
-import { Bell, BellOff } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Bell, BellOff, Settings } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useNativePush } from '~/hooks/useNativePush';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
+import { hasNativePush } from '~/utils/nativePush';
 import { useTranslation } from 'next-i18next';
 
 import { AccountButton } from './AccountButton';
@@ -20,7 +22,74 @@ const base64ToUint8Array = (base64: string) => {
   return outputArray;
 };
 
+/** Inside the Safi app: the OS permission and Expo push token come from the native side. */
+const NativeSubscribeNotification: React.FC = () => {
+  const { t } = useTranslation();
+  const nativePush = useNativePush();
+  const [busy, setBusy] = useState(false);
+
+  const onToggle = useCallback(async () => {
+    setBusy(true);
+    try {
+      if (nativePush.enabled) {
+        await nativePush.disable();
+        return;
+      }
+      if (nativePush.needsSettings) {
+        // Opens Safi in the Settings app; the state refreshes when the user comes back.
+        await nativePush.enable();
+        return;
+      }
+      if (await nativePush.enable()) {
+        toast.success(t('account.notifications.messages.notification_granted'));
+      } else if ('granted' === nativePush.state?.status) {
+        toast.error(t('errors.notification_subscribe_failed'));
+      }
+    } catch (e) {
+      console.info(e);
+      toast.error(t(nativePush.enabled ? 'errors.unsubscribe_error' : 'errors.request_error'));
+    } finally {
+      setBusy(false);
+    }
+  }, [nativePush, t]);
+
+  if (!nativePush.available || !nativePush.state || 'unavailable' === nativePush.state.status) {
+    return null;
+  }
+
+  return (
+    <AccountButton onClick={onToggle} disabled={busy} loading={busy}>
+      {nativePush.enabled ? (
+        <>
+          <BellOff className="text-muted h-5 w-5" />
+          {t('account.notifications.disable_notification')}
+        </>
+      ) : nativePush.needsSettings ? (
+        <>
+          <Settings className="text-muted h-5 w-5" />
+          {t('account.notifications.open_settings')}
+        </>
+      ) : (
+        <>
+          <Bell className="text-muted h-5 w-5" />
+          {t('account.notifications.enable_notification')}
+        </>
+      )}
+    </AccountButton>
+  );
+};
+
 export const SubscribeNotification: React.FC = () => {
+  const [isNative, setIsNative] = useState(false);
+
+  useEffect(() => {
+    setIsNative(hasNativePush());
+  }, []);
+
+  return isNative ? <NativeSubscribeNotification /> : <WebSubscribeNotification />;
+};
+
+const WebSubscribeNotification: React.FC = () => {
   const { t } = useTranslation();
   const updatePushSubscription = api.user.updatePushNotification.useMutation();
   const deletePushSubscription = api.user.deletePushNotification.useMutation();

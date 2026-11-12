@@ -51,7 +51,8 @@
       "enable_notification": "تفعيل الإشعارات",
       "messages": {
         "notification_granted": "ستصلك الإشعارات الآن"
-      }
+      },
+      "open_settings": "تفعيل الإشعارات من الإعدادات"
     },
     "star_on_github": "ادعمنا بنجمة على GitHub",
     "submit_feedback": "إرسال ملاحظات",

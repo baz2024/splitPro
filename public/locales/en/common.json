@@ -51,7 +51,8 @@
       "enable_notification": "Enable notification",
       "messages": {
         "notification_granted": "You will receive notifications now"
-      }
+      },
+      "open_settings": "Turn on notifications in Settings"
     },
     "star_on_github": "Star us on GitHub",
     "submit_feedback": "Submit feedback",
