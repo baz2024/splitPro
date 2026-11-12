@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useNativePush } from '~/hooks/useNativePush';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
-import { hasNativePush } from '~/utils/nativePush';
+import { isNativePushDisabled, useHasNativePush } from '~/utils/nativePush';
 
 import {
   AlertDialog,
@@ -84,11 +84,10 @@ const EnableNotificationsDialog: React.FC<EnableNotificationsDialogProps> = ({
 const NativeNotificationModal: React.FC = () => {
   const { t } = useTranslation();
   const nativePush = useNativePush();
-  const [dismissed, setDismissed] = useState(true);
-
-  useEffect(() => {
-    setDismissed(nativePush.disabled || wasDismissedRecently());
-  }, [nativePush.disabled]);
+  // Only mounted on the client inside the app, so storage can be read straight away.
+  const [dismissed, setDismissed] = useState(
+    () => isNativePushDisabled() || wasDismissedRecently(),
+  );
 
   const onEnable = useCallback(() => {
     setDismissed(true);
@@ -120,11 +119,7 @@ const NativeNotificationModal: React.FC = () => {
 };
 
 export const NotificationModal: React.FC = () => {
-  const [isNative, setIsNative] = useState(false);
-
-  useEffect(() => {
-    setIsNative(hasNativePush());
-  }, []);
+  const isNative = useHasNativePush();
 
   return isNative ? <NativeNotificationModal /> : <WebNotificationModal />;
 };

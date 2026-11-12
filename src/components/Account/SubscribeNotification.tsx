@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useNativePush } from '~/hooks/useNativePush';
 import { useAppStore } from '~/store/appStore';
 import { api } from '~/utils/api';
-import { hasNativePush } from '~/utils/nativePush';
+import { useHasNativePush } from '~/utils/nativePush';
 import { useTranslation } from 'next-i18next';
 
 import { AccountButton } from './AccountButton';
@@ -80,11 +80,7 @@ const NativeSubscribeNotification: React.FC = () => {
 };
 
 export const SubscribeNotification: React.FC = () => {
-  const [isNative, setIsNative] = useState(false);
-
-  useEffect(() => {
-    setIsNative(hasNativePush());
-  }, []);
+  const isNative = useHasNativePush();
 
   return isNative ? <NativeSubscribeNotification /> : <WebSubscribeNotification />;
 };

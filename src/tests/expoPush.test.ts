@@ -48,7 +48,7 @@ describe('sendExpoPushNotifications', () => {
     ]);
     const [url, init] = fetchSpy.mock.calls[0]!;
     expect(url).toBe('https://exp.host/--/api/v2/push/send');
-    expect(JSON.parse(String(init?.body))).toEqual([
+    expect(JSON.parse(init?.body as string)).toEqual([
       expect.objectContaining({
         to: TOKEN_A,
         title: 'Dana',
@@ -87,7 +87,7 @@ describe('sendExpoPushNotifications', () => {
   it('should send in batches of 100', async () => {
     const tokens = Array.from({ length: 150 }, (_, i) => `ExponentPushToken[token${i}]`);
     const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation((_url, init) => {
-      const count = (JSON.parse(String(init?.body)) as unknown[]).length;
+      const count = (JSON.parse(init?.body as string) as unknown[]).length;
       return Promise.resolve({
         ok: true,
         status: 200,

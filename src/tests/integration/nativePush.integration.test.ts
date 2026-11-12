@@ -1,5 +1,10 @@
 import { deleteUserAccount } from '~/server/accountDeletion';
 
+// The shared setup stubs the notification service; these tests need the real sender.
+jest.mock('~/server/api/services/notificationService', () =>
+  jest.requireActual('~/server/api/services/notificationService'),
+);
+
 import { db } from './database';
 import { testUser } from './factories';
 import { callerFor } from './trpc';

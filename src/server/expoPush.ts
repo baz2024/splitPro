@@ -3,9 +3,11 @@ import { z } from 'zod';
 import { env } from '~/env';
 import { type PushMessage } from '~/types';
 
-// Native push for the Safi iOS/Android app (mobile/src/lib/push.ts). Its Expo push tokens are
-// stored in the PushNotification table next to Web Push subscriptions, with the token as the
-// endpoint. https://docs.expo.dev/push-notifications/sending-notifications/
+/*
+ * Native push for the Safi iOS/Android app (mobile/src/lib/push.ts). Its Expo push tokens are
+ * stored in the PushNotification table next to Web Push subscriptions, with the token as the
+ * endpoint. See https://docs.expo.dev/push-notifications/sending-notifications/
+ */
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 // The Expo push API accepts at most 100 messages per request.

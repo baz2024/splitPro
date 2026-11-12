@@ -1,9 +1,12 @@
+import { useSyncExternalStore } from 'react';
 import { z } from 'zod';
 
-// Push inside the Safi iOS/Android app. The WebView has no service worker, so Web Push can't
-// work there. The native app owns the OS permission and the Expo push token instead
-// (mobile/src/lib/push.ts): we ask over the ReactNativeWebView bridge and it answers with a
-// `safi-native-push` DOM event.
+/*
+ * Push inside the Safi iOS/Android app. The WebView has no service worker, so Web Push can't
+ * work there. The native app owns the OS permission and the Expo push token instead
+ * (mobile/src/lib/push.ts): we ask over the ReactNativeWebView bridge and it answers with a
+ * `safi-native-push` DOM event.
+ */
 
 const PUSH_STATE_EVENT = 'safi-native-push';
 const REPLY_TIMEOUT_MS = 15_000;
@@ -20,12 +23,20 @@ const NativePushStateSchema = z.object({
 
 export type NativePushState = z.infer<typeof NativePushStateSchema>;
 
-type Bridge = { postMessage: (message: string) => void };
+interface Bridge {
+  postMessage: (message: string) => void;
+}
 
 const nativeBridge = () =>
   (window as Window & { ReactNativeWebView?: Bridge }).ReactNativeWebView ?? null;
 
 export const hasNativePush = () => 'undefined' !== typeof window && null !== nativeBridge();
+
+const subscribeNoop = () => () => undefined;
+
+/** True inside the Safi app; false during server rendering and in browsers. */
+export const useHasNativePush = () =>
+  useSyncExternalStore(subscribeNoop, hasNativePush, () => false);
 
 const askNative = (type: 'push-status' | 'push-enable') =>
   new Promise<NativePushState>((resolve, reject) => {

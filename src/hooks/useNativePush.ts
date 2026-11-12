@@ -5,11 +5,11 @@ import {
   type NativePushState,
   getNativePushState,
   getStoredNativePushToken,
-  hasNativePush,
   isNativePushDisabled,
   requestNativePush,
   setNativePushDisabled,
   setStoredNativePushToken,
+  useHasNativePush,
 } from '~/utils/nativePush';
 
 /**
@@ -18,9 +18,10 @@ import {
  * and exposes enable/disable for the account page and the first-run prompt.
  */
 export const useNativePush = () => {
-  const [available, setAvailable] = useState(false);
+  const available = useHasNativePush();
   const [state, setState] = useState<NativePushState | null>(null);
-  const [disabled, setDisabled] = useState(false);
+  // Only mounted on the client inside the app, so storage can be read straight away.
+  const [disabled, setDisabled] = useState(() => available && isNativePushDisabled());
   const { mutateAsync: registerToken } = api.user.registerNativePushToken.useMutation();
   const { mutateAsync: deleteToken } = api.user.deleteNativePushToken.useMutation();
 
@@ -45,22 +46,16 @@ export const useNativePush = () => {
   }, [storeToken]);
 
   useEffect(() => {
-    if (!hasNativePush()) {
-      return;
-    }
-    setAvailable(true);
-    setDisabled(isNativePushDisabled());
-    refresh().catch(console.error);
-
     // Coming back from Settings (or the background) may have changed the permission.
     const onVisible = () => {
-      if ('visible' === document.visibilityState) {
+      if (available && 'visible' === document.visibilityState) {
         refresh().catch(console.error);
       }
     };
+    onVisible();
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [refresh]);
+  }, [available, refresh]);
 
   /** Resolves true once this device will receive notifications. */
   const enable = useCallback(async () => {
