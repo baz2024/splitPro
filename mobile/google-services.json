@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "301909519593",
+    "project_id": "safi-52b91",
+    "storage_bucket": "safi-52b91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301909519593:android:6c845f7dd513f822d49478",
+        "android_client_info": {
+          "package_name": "com.kafoai.split"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4lntCFWlt9Ho4tMN5-hgyqNwYQV-XKn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
