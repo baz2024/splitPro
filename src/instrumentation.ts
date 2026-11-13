@@ -39,15 +39,20 @@ export async function register() {
     console.log(
       `Creating cron job for cleaning up bank cache ${env.CLEAR_CACHE_CRON_RULE} with interval ${env.CACHE_RETENTION_INTERVAL}`,
     );
-    setTimeout(
-      () =>
-        createRecurringDeleteBankCacheJob(
-          env.CLEAR_CACHE_CRON_RULE!,
-          env.CACHE_RETENTION_INTERVAL!,
-        ).catch((err) => {
-          console.error('Error creating recurring delete bank cache job:', err);
-        }),
-      1000 * 10,
-    );
+    // A cold database can time out right after boot, so try a few times before giving up.
+    // Rescheduling is safe: pg_cron replaces a job with the same name.
+    const scheduleJob = (attempt: number): void => {
+      createRecurringDeleteBankCacheJob(
+        env.CLEAR_CACHE_CRON_RULE!,
+        env.CACHE_RETENTION_INTERVAL!,
+      ).catch((err) => {
+        if (3 > attempt) {
+          setTimeout(() => scheduleJob(attempt + 1), 1000 * 30 * attempt);
+          return;
+        }
+        console.error('Error creating recurring delete bank cache job:', err);
+      });
+    };
+    setTimeout(() => scheduleJob(1), 1000 * 10);
   }
 }

@@ -6,7 +6,8 @@
   "git": {
     "deploymentEnabled": {
       "worktree-*": false,
-      "claude/*": false
+      "claude/*": false,
+      "fix/*": false
     }
   },
   "crons": [

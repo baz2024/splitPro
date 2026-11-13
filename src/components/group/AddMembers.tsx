@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 import { Button } from '~/components/ui/button';
 import { AppDrawer } from '~/components/ui/drawer';
-import { getInviteErrorToastKey, isInviteSendFailed } from '~/lib/error/invite';
+import { getInviteErrorToastKey } from '~/lib/error/invite';
 import {
   INVITE_EMAIL_SUBJECT,
   buildInviteEmailText,
@@ -127,15 +127,8 @@ const AddMembers: React.FC<{
       onSuccess: addUserToGroup,
       onError: (err) => {
         const appErrorCode = err.data?.appErrorCode;
+        // Not added when the invite failed: they would be in the project without knowing.
         toast.error(t(getInviteErrorToastKey(appErrorCode)));
-
-        // The friend row already exists whenever this router throws, so retry the group-add.
-        if (isInviteSendFailed(appErrorCode)) {
-          addFriendMutation.mutate(toInviteFriendInput(target, false), {
-            onSuccess: addUserToGroup,
-            onError: () => toast.error(t('errors.add_member_failed')),
-          });
-        }
       },
     });
   };
