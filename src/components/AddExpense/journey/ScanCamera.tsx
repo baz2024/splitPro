@@ -1,7 +1,8 @@
 import { Button, Spinner } from '@heroui/react';
-import { Check, ImageIcon, Minus, Sparkles, Zap } from 'lucide-react';
+import { Check, ImageIcon, Minus, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
-import React, { useRef } from 'react';
+import Link from 'next/link';
+import React, { useRef, useState, useSyncExternalStore } from 'react';
 
 import { useReviewTranslation } from '../../Review/useReviewTranslation';
 import { GroupedRows } from './journeyUi';
@@ -29,11 +30,78 @@ const ReceiptOutline: React.FC = () => (
   </div>
 );
 
+const AI_CONSENT_KEY = 'safi.aiReceiptConsent';
+
+const readAiConsent = () => {
+  try {
+    return 'granted' === localStorage.getItem(AI_CONSENT_KEY);
+  } catch {
+    return false;
+  }
+};
+
+const subscribeToNothing = () => () => undefined;
+
+/**
+ * Asks once before any receipt photo goes to the AI provider (App Store guideline 5.1.2(i)).
+ * Declining keeps the user in the app with manual entry.
+ */
+const AiConsent: React.FC<{ onAllow: () => void; onDecline: () => void }> = ({
+  onAllow,
+  onDecline,
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      role="dialog"
+      aria-labelledby="ai-consent-title"
+      className="bg-surface-secondary border-border flex flex-col gap-4 rounded-3xl border p-6"
+    >
+      <ShieldCheck className="text-accent size-8" aria-hidden />
+      <h2 id="ai-consent-title" className="text-lg font-semibold">
+        {t('ai_consent.title')}
+      </h2>
+      <p className="text-muted text-sm leading-relaxed">{t('ai_consent.description')}</p>
+      <Link
+        href="/privacy"
+        className="text-accent inline-flex min-h-11 items-center text-sm underline"
+      >
+        {t('ai_consent.privacy_link')}
+      </Link>
+      <div className="flex flex-col gap-2">
+        <Button className="min-h-12 w-full" onPress={onAllow}>
+          {t('ai_consent.allow')}
+        </Button>
+        <Button variant="ghost" className="min-h-12 w-full" onPress={onDecline}>
+          {t('ai_consent.deny')}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 /** Screen 1: camera-style capture. Uses the native camera via a capture file input. */
-export const ScanCamera: React.FC<{ onPick: (file: File) => void }> = ({ onPick }) => {
+export const ScanCamera: React.FC<{ onPick: (file: File) => void; onDecline: () => void }> = ({
+  onPick,
+  onDecline,
+}) => {
   const { t } = useTranslation();
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  // Server render assumes no consent; the stored answer is read on the client without a mismatch.
+  const storedConsent = useSyncExternalStore(subscribeToNothing, readAiConsent, () => false);
+  const [grantedNow, setGrantedNow] = useState(false);
+  const consented = storedConsent || grantedNow;
+
+  const allowAi = () => {
+    try {
+      localStorage.setItem(AI_CONSENT_KEY, 'granted');
+    } catch {
+      // Private mode: the consent holds for this visit only.
+    }
+    setGrantedNow(true);
+  };
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -43,6 +111,10 @@ export const ScanCamera: React.FC<{ onPick: (file: File) => void }> = ({ onPick 
       onPick(file);
     }
   };
+
+  if (!consented) {
+    return <AiConsent onAllow={allowAi} onDecline={onDecline} />;
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4">

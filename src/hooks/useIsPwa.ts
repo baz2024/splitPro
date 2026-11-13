@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
+import { isNativeApp } from '~/utils/nativeApp';
+
 const getSnapshot = (): boolean => {
   try {
     const isIOSStandalone =
@@ -12,7 +14,8 @@ const getSnapshot = (): boolean => {
         ? window.matchMedia('(display-mode: standalone)').matches
         : false;
 
-    return isIOSStandalone || isDisplayModeStandalone;
+    // The native app is installed already, so it counts as installed for PWA prompts.
+    return isIOSStandalone || isDisplayModeStandalone || isNativeApp();
   } catch {
     return false;
   }

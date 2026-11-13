@@ -5,7 +5,8 @@
   "buildCommand": "pnpm prisma migrate deploy && pnpm next build",
   "git": {
     "deploymentEnabled": {
-      "worktree-*": false
+      "worktree-*": false,
+      "claude/*": false
     }
   },
   "crons": [

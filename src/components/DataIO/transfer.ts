@@ -24,7 +24,7 @@ const nativeBridge = () =>
   (window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void } })
     .ReactNativeWebView;
 
-const saveBlob = async (blob: Blob, fileName: string) => {
+export const saveBlob = async (blob: Blob, fileName: string) => {
   const bridge = nativeBridge();
   if (bridge) {
     bridge.postMessage(

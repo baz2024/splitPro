@@ -1,8 +1,7 @@
-# SplitPro mobile (TestFlight wrapper)
+# Safi mobile app
 
 An Expo app with native sign-in that then shows https://safi.kafoai.com inside a
 full-screen WebView.
-It is meant for internal TestFlight testing, not an App Store release.
 
 This folder uses **npm**, separate from the root pnpm workspace.
 
@@ -133,17 +132,32 @@ Run these from `mobile/`. EAS builds in the cloud, so you do not need Xcode.
 5. In App Store Connect, open TestFlight, add the build to your internal testing group and
    install it through the TestFlight app.
 
-### TODO before `eas submit`
+## Store submission
 
-`eas.json` has a placeholder in `submit.production.ios.ascAppId`:
+Run these from `mobile/`. `eas.json` already has the App Store Connect app ID and the Google
+Play settings (internal track, draft release).
 
+**iOS (App Store)**
+
+```bash
+npx eas-cli@latest build -p ios --profile production
+npx eas-cli@latest submit -p ios --profile production --latest
 ```
-"ascAppId": "TODO_REPLACE_WITH_APP_STORE_CONNECT_APP_ID"
+
+**Android (Google Play)**
+
+```bash
+npx eas-cli@latest build -p android --profile production
+npx eas-cli@latest submit -p android --profile production --latest
 ```
 
-Create the app in App Store Connect (My Apps, then +, then New App, with bundle ID
-`com.kafoai.split`). Then copy its numeric **Apple ID** from App Information into `ascAppId`.
-Or delete the `ascAppId` line and `eas submit` will ask you for it.
+- The production profile builds an Android App Bundle (`.aab`).
+- Submitting needs a Google Play service-account key saved as
+  `mobile/google-service-account.json`. It is in `.gitignore`; never commit it.
+- Google Play does not accept the first upload through the API. Upload the first `.aab` by hand
+  in Play Console, then `eas submit` works for later builds.
+- The Welcome screen links to the Terms and Privacy pages on `safi.kafoai.com`, which both
+  stores require.
 
 ## Regenerating the icons
 

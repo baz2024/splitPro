@@ -1,10 +1,11 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthCancelledError, signInWithApple, signInWithGoogle } from '../lib/auth';
-import { directionStyle, isArabic, t, textStartStyle } from '../lib/i18n';
+import { LANGUAGE, directionStyle, isArabic, t, textStartStyle } from '../lib/i18n';
 import { COLORS } from '../theme';
 
 interface WelcomeScreenProps {
@@ -15,6 +16,12 @@ interface WelcomeScreenProps {
 }
 
 type Busy = 'apple' | 'google' | null;
+
+const LEGAL_BASE_URL = `https://safi.kafoai.com/${LANGUAGE}`;
+
+const openLegalPage = (page: 'terms' | 'privacy') => {
+  WebBrowser.openBrowserAsync(`${LEGAL_BASE_URL}/${page}`).catch(() => undefined);
+};
 
 const describeError = (error: unknown) => (error instanceof Error ? error.message : t.genericError);
 
@@ -144,6 +151,28 @@ export const WelcomeScreen = ({
         >
           <Text style={[styles.link, textDirection]}>{t.useEmailInstead}</Text>
         </Pressable>
+
+        <View style={styles.legalRow}>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel={t.termsLabel}
+            onPress={() => openLegalPage('terms')}
+            style={({ pressed }) => [styles.legalLink, pressed ? styles.pressed : null]}
+          >
+            <Text style={[styles.legalLabel, textDirection]}>{t.terms}</Text>
+          </Pressable>
+          <Text style={styles.legalDot} importantForAccessibility="no" accessible={false}>
+            ·
+          </Text>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel={t.privacyLabel}
+            onPress={() => openLegalPage('privacy')}
+            style={({ pressed }) => [styles.legalLink, pressed ? styles.pressed : null]}
+          >
+            <Text style={[styles.legalLabel, textDirection]}>{t.privacy}</Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -270,5 +299,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     textDecorationLine: 'underline',
+  },
+  // Row inherits the screen's Yoga direction, so the two links swap sides in Arabic.
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  legalLink: {
+    minHeight: 44,
+    minWidth: 44,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  legalLabel: {
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  legalDot: {
+    color: COLORS.muted,
+    fontSize: 13,
   },
 });

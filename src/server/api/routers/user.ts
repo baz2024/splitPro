@@ -12,6 +12,7 @@ import { InviteErrorCode } from '~/lib/error/invite';
 import { buildInviteUrl } from '~/lib/inviteMessage';
 import { normalizePhone } from '~/lib/phone';
 import { simplifyDebts } from '~/lib/simplify';
+import { deleteUserAccount } from '~/server/accountDeletion';
 import { AppError } from '~/server/api/appError';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 import { db } from '~/server/db';
@@ -545,6 +546,11 @@ export const userRouter = createTRPCRouter({
         },
       });
     }),
+
+  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
+    await deleteUserAccount(ctx.session.user.id);
+    return { deleted: true };
+  }),
 
   downloadData: protectedProcedure.mutation(async ({ ctx }) => {
     const { user } = ctx.session;

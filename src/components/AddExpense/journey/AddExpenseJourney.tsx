@@ -563,6 +563,7 @@ export const AddExpenseJourney: React.FC<{
             onPick={(file) => {
               onReceiptPicked(file).catch(console.error);
             }}
+            onDecline={() => changeMode('manual', 'manual')}
           />
         );
       case 'reading':
