@@ -68,7 +68,8 @@
       "permissions": [
         "android.permission.CAMERA"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -90,7 +91,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#5aa9ff",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "extra": {
       "eas": {

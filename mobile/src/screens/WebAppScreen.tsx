@@ -34,6 +34,14 @@ import type {
 import { parseFileDownload, shareFileDownload } from '../lib/download';
 import { WEB_LOCALE, directionStyle, isArabic, stripLocale, t } from '../lib/i18n';
 import {
+  addNotificationTapListener,
+  enablePush,
+  getPushState,
+  parsePushRequest,
+  pushStateScript,
+  takeLaunchNotificationPath,
+} from '../lib/push';
+import {
   APP_HOST,
   APP_ORIGIN,
   COLORS,
@@ -116,7 +124,11 @@ const supabaseAuthProvider = (url: URL): string | null =>
 const isInternalScheme = (url: string) =>
   url.startsWith('about:') || url.startsWith('data:') || url.startsWith('blob:');
 
-const buildSource = (entry: WebEntry): WebViewSource => {
+// Opens an app page from a notification tap. Same-origin only (see notificationPath).
+const openPathScript = (path: string) =>
+  `window.location.assign(${JSON.stringify(`${APP_ORIGIN}${path}`)}); true;`;
+
+const buildSource = (entry: WebEntry, launchPath: string | null): WebViewSource => {
   if ('exchange' === entry.kind) {
     return {
       uri: EXCHANGE_URL,
@@ -130,7 +142,8 @@ const buildSource = (entry: WebEntry): WebViewSource => {
   if ('email' === entry.kind) {
     return { uri: EMAIL_SIGNIN_URL };
   }
-  return { uri: `${APP_ORIGIN}${HOME_PATH}` };
+  // Relaunch from a notification tap: open its page straight away.
+  return { uri: `${APP_ORIGIN}${launchPath ?? HOME_PATH}` };
 };
 
 export const WebAppScreen = ({
@@ -150,8 +163,16 @@ export const WebAppScreen = ({
   // Email sign-in starts on /auth/signin; every other entry is already signed in.
   const signedInRef = useRef('email' !== entry.kind);
   const signedOutRef = useRef(false);
+  // A notification page still to open once the user is signed in (fresh sign-in entries).
+  const pendingPathRef = useRef<string | null>(null);
   // Build the source once: the POST must not be replayed when the component re-renders.
-  const [source] = useState(() => buildSource(entry));
+  const [source] = useState(() => {
+    const launchPath = takeLaunchNotificationPath();
+    if ('resume' !== entry.kind) {
+      pendingPathRef.current = launchPath;
+    }
+    return buildSource(entry, 'resume' === entry.kind ? launchPath : null);
+  });
   const [onSignInPage, setOnSignInPage] = useState('email' === entry.kind);
   const [atTop, setAtTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -197,6 +218,11 @@ export const WebAppScreen = ({
       if (isSignedInPage(parsed)) {
         signedInRef.current = true;
         onSignedIn();
+        const pendingPath = pendingPathRef.current;
+        if (pendingPath) {
+          pendingPathRef.current = null;
+          webViewRef.current?.injectJavaScript(openPathScript(pendingPath));
+        }
         return;
       }
 
@@ -209,6 +235,19 @@ export const WebAppScreen = ({
       }
     },
     [onSignedIn, onSignedOut],
+  );
+
+  // Notification taps while the app is running.
+  useEffect(
+    () =>
+      addNotificationTapListener((path) => {
+        if (!signedInRef.current) {
+          pendingPathRef.current = path;
+          return;
+        }
+        webViewRef.current?.injectJavaScript(openPathScript(path));
+      }),
+    [],
   );
 
   const openExternal = useCallback((url: string) => {
@@ -303,8 +342,21 @@ export const WebAppScreen = ({
 
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     const sender = parseUrl(event.nativeEvent.url);
+    if (!sender || !isAppUrl(sender)) {
+      return;
+    }
+
+    // The web app asks for the notification permission / Expo push token (src/utils/nativePush.ts).
+    const pushRequest = parsePushRequest(event.nativeEvent.data);
+    if (pushRequest) {
+      ('enable' === pushRequest ? enablePush() : getPushState())
+        .then((state) => webViewRef.current?.injectJavaScript(pushStateScript(state)))
+        .catch((error: unknown) => console.warn('Push request failed', error));
+      return;
+    }
+
     const download = parseFileDownload(event.nativeEvent.data);
-    if (!sender || !isAppUrl(sender) || !download) {
+    if (!download) {
       return;
     }
     shareFileDownload(download).catch((error: unknown) => {

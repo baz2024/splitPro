@@ -70,6 +70,8 @@ export const env = createEnv({
     WEB_PUSH_EMAIL: z.string().optional(),
     WEB_PUSH_PRIVATE_KEY: z.string().optional(),
     WEB_PUSH_PUBLIC_KEY: z.string().optional(),
+    // Only needed when "Enhanced push security" is on for the Expo project.
+    EXPO_ACCESS_TOKEN: z.string().optional(),
     FEEDBACK_EMAIL: z.string().optional(),
     DISCORD_WEBHOOK_URL: z.string().optional(),
     DEFAULT_HOMEPAGE: z.string().default('/home'),
@@ -153,6 +155,7 @@ export const env = createEnv({
     WEB_PUSH_EMAIL: process.env.WEB_PUSH_EMAIL,
     WEB_PUSH_PRIVATE_KEY: process.env.WEB_PUSH_PRIVATE_KEY,
     WEB_PUSH_PUBLIC_KEY: process.env.WEB_PUSH_PUBLIC_KEY,
+    EXPO_ACCESS_TOKEN: process.env.EXPO_ACCESS_TOKEN,
     FEEDBACK_EMAIL: process.env.FEEDBACK_EMAIL,
     DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
     DEFAULT_HOMEPAGE: process.env.DEFAULT_HOMEPAGE,

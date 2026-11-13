@@ -29,6 +29,7 @@ import MainLayout from '~/components/Layout/MainLayout';
 import { EntityAvatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { env } from '~/env';
+import { useForgetNativePushToken } from '~/hooks/useNativePush';
 import { customServerSideTranslations } from '~/utils/i18n/server';
 import { BankConnection } from '~/components/Account/BankAccount/BankConnection';
 import { bigIntReplacer } from '~/utils/numbers';
@@ -90,10 +91,14 @@ const AccountPage: NextPageWithUser<{
     [t],
   );
 
+  const forgetNativePushToken = useForgetNativePushToken();
+
   const onSignOut = useCallback(async () => {
+    // Stop this phone getting the signed-out user's notifications (Safi app only).
+    await forgetNativePushToken();
     await signOut({ redirect: false });
     void router.push('/auth/signin', '/auth/signin', { locale: 'default' });
-  }, [router]);
+  }, [forgetNativePushToken, router]);
 
   return (
     <>

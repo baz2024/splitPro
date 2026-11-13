@@ -4,6 +4,7 @@ import { SubscriptionEndpointSchema } from '~/types/notifications';
 import { type PushMessage } from '~/types';
 
 import { db } from '~/server/db';
+import { isExpoPushToken, sendExpoPushNotifications } from '~/server/expoPush';
 import { pushNotification } from '~/server/notification';
 import { getCurrencyHelpers } from '~/utils/numbers';
 
@@ -50,16 +51,40 @@ export const sendPushNotificationToUsers = async (userIds: number[], pushData: P
     },
   });
 
-  const pushResults = await Promise.all(
-    subscriptions.map(async (s) => {
-      const result = await pushNotification(s.subscription, pushData);
-      return Object.assign(result, { userId: s.userId, endpoint: s.endpoint });
-    }),
-  );
+  // Native app tokens go through Expo's push service; browser subscriptions through Web Push.
+  const nativeSubscriptions = subscriptions.filter((s) => isExpoPushToken(s.endpoint));
+  const webSubscriptions = subscriptions.filter((s) => !isExpoPushToken(s.endpoint));
+
+  const [webResults, nativeResults] = await Promise.all([
+    Promise.all(
+      webSubscriptions.map(async (s) => {
+        const result = await pushNotification(s.subscription, pushData);
+        return {
+          ok: result.ok,
+          stale: !result.ok && isPermanentPushFailure(result.statusCode),
+          userId: s.userId,
+          endpoint: s.endpoint,
+        };
+      }),
+    ),
+    sendExpoPushNotifications(
+      nativeSubscriptions.map((s) => s.endpoint),
+      pushData,
+    ).then((results) =>
+      results.map((result, index) => ({
+        ok: result.ok,
+        stale: result.unregistered,
+        userId: nativeSubscriptions[index]!.userId,
+        endpoint: result.token,
+      })),
+    ),
+  ]);
+
+  const pushResults = [...webResults, ...nativeResults];
 
   await removeStalePushSubscriptions(
     pushResults
-      .filter((result) => !result.ok && isPermanentPushFailure(result.statusCode))
+      .filter((result) => result.stale)
       .map((result) => ({ userId: result.userId, endpoint: result.endpoint })),
   );
 

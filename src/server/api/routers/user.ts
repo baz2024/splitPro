@@ -16,6 +16,7 @@ import { deleteUserAccount } from '~/server/accountDeletion';
 import { AppError } from '~/server/api/appError';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 import { db } from '~/server/db';
+import { ExpoPushTokenSchema, expoSubscriptionJson } from '~/server/expoPush';
 import { sendFeedbackEmail, sendInviteEmail } from '~/server/mailer';
 import { isSmsInviteEnabled, sendInviteSms } from '~/server/sms';
 import { SplitwiseGroupSchema, SplitwiseUserSchema } from '~/types';
@@ -494,6 +495,34 @@ export const userRouter = createTRPCRouter({
           },
         })
         .catch(() => null);
+    }),
+
+  /** Expo push token from the Safi iOS/Android app, passed on by the web app inside it. */
+  registerNativePushToken: protectedProcedure
+    .input(z.object({ token: ExpoPushTokenSchema, platform: z.enum(['ios', 'android']) }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+      const subscription = expoSubscriptionJson(input.token, input.platform);
+
+      await db.$transaction([
+        // One device belongs to whoever signed in on it last.
+        db.pushNotification.deleteMany({
+          where: { endpoint: input.token, userId: { not: userId } },
+        }),
+        db.pushNotification.upsert({
+          where: { userId_endpoint: { userId, endpoint: input.token } },
+          create: { userId, endpoint: input.token, subscription },
+          update: { subscription },
+        }),
+      ]);
+    }),
+
+  deleteNativePushToken: protectedProcedure
+    .input(z.object({ token: ExpoPushTokenSchema }))
+    .mutation(async ({ input, ctx }) => {
+      await db.pushNotification.deleteMany({
+        where: { userId: ctx.session.user.id, endpoint: input.token },
+      });
     }),
 
   sendTestPushNotification: protectedProcedure.mutation(async ({ ctx }) => {
